@@ -5,7 +5,7 @@ export const lesson19_2: Lesson = {
   "id": "19.2",
   "moduleId": 19,
   "title": "Mocki, stuby, obiekty pozorne i szpiedzy",
-  "description": "Dublerzy testowi, izolowanie zależności, mockowanie z umiarem, testowanie efektów ubocznych i granice wiarygodności testów izolowanych.",
+  "description": "Mocki, stuby, fake, spy, vi.fn/jest.fn, spyOn, mockowanie modułów, fake timers, MSW i ryzyka nadmiernego mockowania.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson19_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Vitest Guide",
-        "url": "https://vitest.dev/guide/",
-        "description": "Dokumentacja nowoczesnego runnera testów jednostkowych dla ekosystemu Vite."
+        "title": "Vitest Mocking",
+        "url": "https://vitest.dev/guide/mocking",
+        "description": "Mockowanie w Vitest."
       },
       {
-        "title": "Jest Documentation",
-        "url": "https://jestjs.io/docs/getting-started",
-        "description": "Klasyczne narzędzie testowe, którego pojęcia są nadal powszechne w projektach JavaScript/TypeScript."
+        "title": "Jest Mock Functions",
+        "url": "https://jestjs.io/docs/mock-functions",
+        "description": "Mock functions w Jest."
       },
       {
-        "title": "Testing Library Documentation",
-        "url": "https://testing-library.com/docs/",
-        "description": "Podejście do testowania komponentów przez zachowanie użytkownika, a nie szczegóły implementacji."
-      },
-      {
-        "title": "Martin Fowler - Test Double",
-        "url": "https://martinfowler.com/bliki/TestDouble.html",
-        "description": "Klasyczny opis dublerów testowych: dummy, fake, stub, spy i mock."
+        "title": "MSW",
+        "url": "https://mswjs.io/docs/",
+        "description": "Mockowanie HTTP na granicy sieci."
       }
     ],
     "tipsAndTricks": [

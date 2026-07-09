@@ -1,73 +1,147 @@
 # Rodzaje testów i piramida testów
 
-> Moduł siedemnasty wraca do fundamentów zawodu testera. Automatyzacja jest skuteczna tylko wtedy, gdy wynika z dobrego rozumienia jakości, ryzyka, rodzajów testów, projektowania przypadków i komunikacji defektów.
+Automatyzacja jest skuteczna tylko wtedy, gdy zespół rozumie, **jaką informację chce uzyskać** i **na jakim poziomie najlepiej ją zdobyć**. Test jednostkowy, integracyjny, API, kontraktowy, E2E, eksploracyjny, regresyjny czy akceptacyjny nie konkurują ze sobą. Każdy odpowiada na inne pytanie i ma inny koszt.
 
-## Jak czytać ten moduł
+Piramida testów nie jest dogmatem. To model ekonomii informacji: im niżej testujesz, tym szybciej i taniej dostajesz feedback, ale tym mniej sprawdzasz realne połączenie całego systemu. Im wyżej testujesz, tym większy realizm, ale też większy koszt, wolniejsze wykonanie i trudniejsza diagnoza.
 
-Czytaj ten moduł niezależnie od narzędzi. Playwright, API, CI i baza danych są sposobami zdobywania informacji. Tester musi wiedzieć, jakiej informacji potrzebuje zespół, zanim wybierze narzędzie.
+## 1. Testowanie jako informacja o ryzyku
 
-Trzy zasady modułu:
+Tester nie „odhacza przypadków”. Tester dostarcza zespołowi informację:
 
-1. **Tester dostarcza informację o ryzyku.** Nie tylko wykonuje przypadki testowe.
-2. **Technika testowania dobiera się do problemu.** Nie każdy błąd wymaga E2E, nie każde ryzyko da się złapać testem jednostkowym.
-3. **Komunikacja jest częścią jakości.** Źle opisany błąd wydłuża naprawę nawet wtedy, gdy został poprawnie znaleziony.
+- czy produkt spełnia istotne wymagania;
+- jakie ryzyka pozostają;
+- czy regresja jest prawdopodobna;
+- gdzie system jest niestabilny;
+- czy można podjąć decyzję o wdrożeniu.
 
+Zanim wybierzesz narzędzie, nazwij ryzyko. Dla funkcji rabatów ryzyka mogą być różne:
 
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **testy jednostkowe, integracyjne, kontraktowe, API, end-to-end, smoke, sanity, regresyjne i akceptacyjne oraz ekonomia informacji**. Główne ryzyko: **zespół sprawdza zbyt wiele reguł przez wolne testy E2E albo zbyt wiele ryzyk pomija, bo ma tylko testy jednostkowe**. Po lekturze powinieneś umieć używać wiedzy testerskiej do projektowania lepszych testów manualnych, eksploracyjnych i automatycznych.
-
-## Sytuacja przewodnia
-
-funkcja rabatów wymaga testów kalkulacji, kontraktu API, integracji z koszykiem i jednego krytycznego przepływu UI
-
-## 1. Piramida jako model ekonomii
-
-Piramida testów nie jest dogmatem. To model kosztu informacji: im niżej testujesz, tym szybciej i taniej dostajesz feedback, ale z mniejszym realizmem pełnego systemu.
+| Ryzyko | Najlepszy poziom testu |
+|---|---|
+| źle obliczony rabat procentowy | unit |
+| API zwraca `discountTotal` jako string zamiast number | contract/API |
+| koszyk nie zapisuje rabatu po odświeżeniu | integration/E2E |
+| użytkownik nie może użyć kuponu w checkout | E2E smoke |
+| admin może zobaczyć raport rabatów | UI/API role test |
 
 ## 2. Testy jednostkowe
 
-Testy jednostkowe są dobre do logiki deterministycznej: obliczeń, walidacji, mapowania i reguł biznesowych bez zależności zewnętrznych.
+Testy jednostkowe sprawdzają mały fragment logiki w izolacji. Są szybkie, tanie i precyzyjne. Dobrze nadają się do:
+
+- obliczeń;
+- walidacji;
+- mapowania danych;
+- reguł domenowych;
+- funkcji bez zależności zewnętrznych.
+
+Przykład: funkcja obliczająca cenę po rabacie powinna mieć wiele testów jednostkowych, bo wariantów jest dużo, a uruchamianie każdego przez UI byłoby kosztowne.
+
+Test jednostkowy nie mówi jednak, czy frontend poprawnie wysyła dane, API zapisuje wynik, a użytkownik widzi dobrą kwotę. Dlatego potrzebne są inne poziomy.
 
 ## 3. Testy integracyjne
 
-Testy integracyjne sprawdzają współpracę kilku elementów: serwisu z bazą, kontrolera z walidacją, komponentu z adapterem.
+Test integracyjny sprawdza współpracę kilku elementów:
 
-## 4. Testy kontraktowe i API
+- serwis + repozytorium;
+- API + baza danych;
+- komponent + provider;
+- backend + kolejka;
+- moduł płatności + adapter dostawcy sandbox.
 
-Testy kontraktowe chronią konsumentów API. Testy API sprawdzają zachowanie usługi szybciej niż UI. W profesjonalnej pracy z Playwrightem, to zagadnienie jest kluczowe dla stabilności i wydajności całego procesu. Należy pamiętać o izolacji, odpowiednim doborze API oraz unikaniu typowych antywzorców, takich jak sztywne timeouty czy nadmierne poleganie na strukturze DOM.
+Testy integracyjne są droższe niż unit, ale lepiej wykrywają problemy na granicach. Przykład: kalkulator rabatów może działać jednostkowo, ale integracja koszyka może zaokrąglać kwoty inaczej.
 
-## 5. Testy E2E
+## 4. Testy API
 
-Testy end-to-end są najdroższe, ale potwierdzają realny przepływ użytkownika przez wiele warstw. Używaj ich dla krytycznych ścieżek.
+Testy API są bardzo ważne dla Full Stack Testera. Sprawdzają zachowanie systemu bez kosztu pełnego UI:
 
-## Przykład referencyjny
+- statusy HTTP;
+- body odpowiedzi;
+- nagłówki;
+- autoryzację;
+- scenariusze negatywne;
+- paginację;
+- kontrakty danych.
 
-```markdown
-# Rozkład testów dla funkcji rabatów
+Test API jest często najlepszym miejscem dla walidacji ról, błędów 400/401/403/404, kontraktu i reguł biznesowych.
 
-- Unit: obliczanie rabatu, zaokrąglenia, limity
-- Integration: koszyk + silnik promocji
-- API: zastosowanie kuponu, błędy, autoryzacja
-- Contract: odpowiedź /api/cart zawiera discountTotal jako number
-- E2E: klient używa kuponu w checkout i widzi poprawną kwotę
-- Smoke: najważniejszy kupon działa po deployu
+## 5. Testy kontraktowe
+
+Testy kontraktowe chronią granicę między konsumentem i dostawcą API. Kontrakt może być opisany przez OpenAPI, Pact, JSON Schema albo AsyncAPI.
+
+Przykłady pytań kontraktowych:
+
+- Czy provider nadal zwraca pole `total` jako number?
+- Czy błąd walidacji ma stabilny `code`?
+- Czy event `OrderPaid` zawiera wymagane pola?
+- Czy konsument używa tylko tego, co provider gwarantuje?
+
+Kontrakt jest tańszy niż test E2E i szybciej wykrywa breaking changes.
+
+## 6. Testy E2E
+
+Testy end-to-end sprawdzają realny przepływ użytkownika przez wiele warstw. Są najdroższe, ale dają najwyższy realizm. Używaj ich dla krytycznych ścieżek:
+
+- logowanie;
+- checkout;
+- płatność;
+- rejestracja z aktywacją konta;
+- najważniejszy przepływ SaaS;
+- smoke po deployu.
+
+Nie używaj E2E do każdej walidacji formularza. Jeśli test E2E pada, diagnoza może dotyczyć UI, API, danych, bazy, sieci, sesji albo środowiska. Dlatego E2E powinny być nieliczne, krytyczne i dobrze raportowane.
+
+## 7. Smoke, sanity i regresja
+
+**Smoke tests** odpowiadają na pytanie: „czy system w ogóle żyje po zmianie?”. Powinny być szybkie i krytyczne.
+
+**Sanity tests** sprawdzają wąski obszar po konkretnej zmianie, np. tylko płatności po zmianie bramki płatniczej.
+
+**Regression tests** sprawdzają, czy istniejące zachowania nie zostały zepsute. Mogą być szerokie, ale nadal powinny być oparte na ryzyku.
+
+Przykład strategii:
+
+```text
+PR: unit + API smoke + E2E smoke
+main: pełniejsza regresja API + UI
+nightly: cross-browser + visual + accessibility + performance smoke
+release: krytyczne E2E + kontrakty + raporty
 ```
 
-Przykład pokazuje, że praca testera zaczyna się od jasnego opisu ryzyka, danych, oczekiwań i dowodów. Narzędzie wykonawcze jest dopiero kolejnym krokiem.
+## 8. Testy akceptacyjne
 
-## Lista kontrolna
+Testy akceptacyjne potwierdzają, że funkcja spełnia kryteria akceptacji. Mogą być manualne, automatyczne, API lub E2E. Ważne, aby były powiązane z wymaganiem i zrozumiałe dla biznesu.
 
-- Czy znasz ryzyko, które sprawdzasz?
-- Czy wybrałeś właściwy poziom testu?
-- Czy przypadki testowe nie powielają się bez wartości?
-- Czy uwzględniasz wartości brzegowe i scenariusze negatywne?
-- Czy wynik testu jest zrozumiały dla zespołu?
-- Czy raport błędu pozwala odtworzyć problem?
+Dobre kryterium:
 
+```text
+Given klient ma produkt w koszyku
+When używa aktywnego kuponu 10%
+Then suma zamówienia jest pomniejszona o 10%, ale nie więcej niż 50 zł
+```
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+## 9. Antywzorce doboru poziomu testu
+
+- Wszystko przez UI, bo „tak widzi użytkownik”.
+- Same testy jednostkowe bez sprawdzenia integracji.
+- Brak testów kontraktowych mimo wielu konsumentów API.
+- Smoke suite trwająca 40 minut.
+- Regresja bez priorytetów ryzyka.
+- Testy E2E zależne od kolejności i wspólnych danych.
+
+## 10. Checklista wyboru rodzaju testu
+
+- Jakie ryzyko chcę sprawdzić?
+- Jaki najniższy poziom da wiarygodny dowód?
+- Czy potrzebuję realizmu całego systemu?
+- Czy awaria wskaże konkretną przyczynę?
+- Czy test będzie działał w odpowiednim pipeline?
+- Czy ten scenariusz nie jest już pokryty taniej niżej?
+- Czy wynik testu będzie zrozumiały dla zespołu?
+
+## Linki
+
+- [ISTQB Certified Tester Foundation Level](https://www.istqb.org/certifications/certified-tester-foundation-level)
+- [ISO/IEC/IEEE 29119](https://www.iso.org/standard/81291.html)
+- [Vitest Guide](https://vitest.dev/guide/)
+- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+- [Pact — Contract Testing](https://docs.pact.io/)

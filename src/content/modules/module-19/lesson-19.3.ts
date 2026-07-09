@@ -5,7 +5,7 @@ export const lesson19_3: Lesson = {
   "id": "19.3",
   "moduleId": 19,
   "title": "React Testing Library i testowanie komponentów",
-  "description": "Testowanie komponentów przez zachowanie użytkownika, zapytania dostępnościowe, zdarzenia, granice komponentów i relacja z testowaniem komponentów w Playwright.",
+  "description": "React Testing Library: guiding principles, queries priority, screen, within, userEvent, async queries, MSW i porównanie RTL/CT/E2E.",
   "order": 3,
   "difficulty": "intermediate",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson19_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Vitest Guide",
-        "url": "https://vitest.dev/guide/",
-        "description": "Dokumentacja nowoczesnego runnera testów jednostkowych dla ekosystemu Vite."
+        "title": "React Testing Library",
+        "url": "https://testing-library.com/docs/react-testing-library/intro/",
+        "description": "Oficjalny wstęp do RTL."
       },
       {
-        "title": "Jest Documentation",
-        "url": "https://jestjs.io/docs/getting-started",
-        "description": "Klasyczne narzędzie testowe, którego pojęcia są nadal powszechne w projektach JavaScript/TypeScript."
+        "title": "Testing Library Guiding Principles",
+        "url": "https://testing-library.com/docs/guiding-principles",
+        "description": "Zasada testowania jak użytkownik."
       },
       {
-        "title": "Testing Library Documentation",
-        "url": "https://testing-library.com/docs/",
-        "description": "Podejście do testowania komponentów przez zachowanie użytkownika, a nie szczegóły implementacji."
-      },
-      {
-        "title": "Martin Fowler - Test Double",
-        "url": "https://martinfowler.com/bliki/TestDouble.html",
-        "description": "Klasyczny opis dublerów testowych: dummy, fake, stub, spy i mock."
+        "title": "Playwright Component Testing",
+        "url": "https://playwright.dev/docs/test-components",
+        "description": "Porównanie z component testing w prawdziwej przeglądarce."
       }
     ],
     "tipsAndTricks": [

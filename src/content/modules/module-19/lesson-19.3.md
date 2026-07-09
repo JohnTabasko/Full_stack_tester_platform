@@ -1,90 +1,222 @@
 # React Testing Library i testowanie komponentów
 
-> Moduł dziewiętnasty pokazuje, jak testować niższe poziomy aplikacji, aby nie przepychać każdego ryzyka przez wolne testy end-to-end. Testy jednostkowe, komponentowe i integracyjne skracają feedback oraz pomagają precyzyjniej wskazać przyczynę awarii.
+React Testing Library pomaga testować komponenty z perspektywy użytkownika. Jej podstawowa zasada brzmi: im bardziej test przypomina sposób użycia aplikacji przez użytkownika, tym większą daje pewność. To podejście jest spójne z Playwright: preferuj role, label, tekst i dostępność zamiast szczegółów implementacji.
 
-## Jak czytać ten moduł
+RTL nie jest runnerem testów. Najczęściej używa się jej z Vitest albo Jest. RTL dostarcza narzędzia do renderowania komponentów, wyszukiwania elementów i wykonywania interakcji.
 
-Czytaj ten moduł jako uzupełnienie Playwright E2E. Pytanie nie brzmi „czy pisać E2E albo unit”, lecz „który poziom testu da najlepszą informację przy najniższym koszcie”. Dobrze zaprojektowana automatyzacja łączy poziomy.
+## 1. Kiedy używać React Testing Library
 
-Trzy zasady modułu:
+RTL jest dobra dla:
 
-1. **Testuj możliwie nisko, ale wystarczająco realistycznie.** Reguły domenowe nie muszą iść przez UI.
-2. **Mocki zmniejszają koszt i realizm.** Używaj ich świadomie.
-3. **Komponent i integracja mają własną wartość.** Nie są tylko etapem pośrednim między unit i E2E.
+- komponentów formularzy;
+- modali;
+- menu;
+- komponentów z walidacją;
+- komponentów reagujących na propsy;
+- komponentów z prostym stanem;
+- dostępności i keyboard interactions.
 
+Nie zastępuje E2E. RTL sprawdza komponent w izolacji, a Playwright E2E sprawdza cały system.
 
-## Cel lekcji
+## 2. Minimalny test
 
-Ta lekcja koncentruje się na: **testowanie komponentów przez zachowanie użytkownika, zapytania dostępnościowe, zdarzenia, granice komponentów i relacja z testami komponentowymi Playwright**. Główne ryzyko: **test komponentu sprawdza stan wewnętrzny Reacta albo klasy CSS zamiast zachowania widocznego dla użytkownika**. Po lekturze powinieneś umieć dobrać poziom testu do ryzyka i zaprojektować test niższego poziomu, który uzupełnia E2E.
-
-## Sytuacja przewodnia
-
-formularz logowania ma walidację pól, komunikat błędu i wywołanie callbacka po poprawnym wysłaniu
-
-## 1. Filozofia RTL
-
-React Testing Library zachęca do testowania komponentu tak, jak używa go użytkownik: przez tekst, role, etykiety i zdarzenia.
-
-## 2. Zapytania dostępnościowe
-
-getByRole i getByLabelText są lepsze niż selektory klas, bo sprawdzają publiczny interfejs komponentu i dostępność.
-
-## 3. userEvent
-
-userEvent symuluje interakcje bliższe użytkownikowi niż bezpośrednie wywołanie handlera. Dzięki temu test obejmuje walidację i zdarzenia DOM.
-
-## 4. Granica komponentu
-
-Komponent powinien być testowany w swoim zakresie. Jeżeli test wymaga pełnego routingu, backendu i przeglądarki, być może powinien być E2E.
-
-## 5. RTL a Playwright CT
-
-RTL jest szybkie i świetne dla logiki komponentu. Playwright Component Testing daje prawdziwsze środowisko przeglądarki i lepsze testy wizualne.
-
-## Przykład referencyjny
-
-```tsx
+```typescript
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { expect, it, vi } from 'vitest';
 import { LoginForm } from './LoginForm';
 
-it('pokazuje błąd dla pustego hasła', async () => {
+test('wysyła formularz logowania', async () => {
+  const user = userEvent.setup();
   const onSubmit = vi.fn();
+
   render(<LoginForm onSubmit={onSubmit} />);
 
-  await userEvent.type(screen.getByLabelText('Adres e-mail'), 'anna@example.test');
-  await userEvent.click(screen.getByRole('button', { name: 'Zaloguj' }));
+  await user.type(screen.getByLabelText('Email'), 'user@example.com');
+  await user.type(screen.getByLabelText('Hasło'), 'secret');
+  await user.click(screen.getByRole('button', { name: 'Zaloguj' }));
 
-  expect(screen.getByRole('alert')).toHaveTextContent('Hasło jest wymagane');
-  expect(onSubmit).not.toHaveBeenCalled();
+  expect(onSubmit).toHaveBeenCalledWith({
+    email: 'user@example.com',
+    password: 'secret',
+  });
 });
 ```
 
-Przykład pokazuje, że niższy poziom testu powinien mieć jasną odpowiedzialność. Test jednostkowy, komponentowy i integracyjny nie konkurują z E2E — uzupełniają go.
+Test używa labeli i roli przycisku — tak jak użytkownik i czytnik ekranu.
 
-## Lista kontrolna
+## 3. Priorytet queries
 
-- Czy wybrany poziom testu pasuje do ryzyka?
-- Czy test nie sprawdza prywatnej implementacji bez potrzeby?
-- Czy mock nie kłamie o kontrakcie zależności?
-- Czy dane testowe są małe i czytelne?
-- Czy awaria wskazuje konkretną warstwę?
-- Czy test niższego poziomu ogranicza potrzebę wolnego testu E2E?
+Testing Library promuje kolejność queries:
 
+1. `getByRole`;
+2. `getByLabelText`;
+3. `getByPlaceholderText`;
+4. `getByText`;
+5. `getByDisplayValue`;
+6. `getByAltText`;
+7. `getByTitle`;
+8. `getByTestId` jako escape hatch.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+`data-testid` jest użyteczne, ale nie powinno zastępować poprawnej semantyki HTML.
 
-## Głębsza analiza: Dostępność
+## 4. `screen`, `within` i kontenery
 
-Playwright integruje się z silnikiem `axe-core`. Możesz automatycznie skanować strony pod kątem zgodności z WCAG:
 ```typescript
-import { injectAxe, checkA11y } from 'axe-playwright';
-await injectAxe(page);
-await checkA11y(page);
+const dialog = screen.getByRole('dialog', { name: 'Potwierdź usunięcie' });
+await user.click(within(dialog).getByRole('button', { name: 'Usuń' }));
 ```
-To pozwala na wykrycie błędów kontrastu, brakujących atrybutów `alt` czy niepoprawnej struktury nagłówków.
+
+`within` ogranicza wyszukiwanie do konkretnego kontenera, podobnie jak zagnieżdżone locatory w Playwright.
+
+## 5. Async queries
+
+Jeśli element pojawia się po czasie:
+
+```typescript
+await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+expect(await screen.findByText('Zapisano')).toBeInTheDocument();
+```
+
+`findBy` czeka na element. `getBy` jest natychmiastowe i rzuca błąd, jeśli elementu nie ma.
+
+`waitFor` jest dobre, gdy czekasz na warunek:
+
+```typescript
+await waitFor(() => {
+  expect(api.save).toHaveBeenCalledTimes(1);
+});
+```
+
+## 6. userEvent zamiast fireEvent
+
+`userEvent` lepiej symuluje realne zachowanie użytkownika: focus, keyboard, input events. `fireEvent` jest niższopoziomowe i powinno być używane rzadziej.
+
+## 7. Mockowanie API w komponentach
+
+Jeśli komponent pobiera dane, użyj MSW albo przekaż dane przez propsy. MSW jest dobre, gdy chcesz testować zachowanie komponentu wobec HTTP:
+
+```typescript
+server.use(
+  http.get('/api/products', () => HttpResponse.json([{ id: 'p1', name: 'Laptop' }]))
+);
+```
+
+Nie mockuj wewnętrznych szczegółów komponentu, jeśli możesz mockować granicę HTTP.
+
+## 8. RTL vs Playwright Component Testing vs E2E
+
+RTL:
+
+- szybkie testy komponentów w jsdom;
+- dobre dla logiki UI i formularzy;
+- nie jest prawdziwą przeglądarką.
+
+Playwright Component Testing:
+
+- komponent w prawdziwej przeglądarce;
+- dobre dla layoutu, focusu, visual snapshots;
+- cięższe niż RTL.
+
+Playwright E2E:
+
+- cały system;
+- najlepsze dla krytycznych flow;
+- najdroższe.
+
+## 9. Antywzorce
+
+- Testowanie state hooków zamiast zachowania UI.
+- Wyszukiwanie po klasach CSS.
+- Nadużywanie `data-testid`.
+- Mockowanie całych komponentów potomnych bez potrzeby.
+- Asercje na szczegóły implementacji.
+- Brak testów klawiatury dla komponentów interaktywnych.
+
+## 10. Checklista RTL
+
+- Czy test używa queries jak użytkownik?
+- Czy komponent ma accessible roles/labels?
+- Czy interakcje używają `userEvent`?
+- Czy async UI używa `findBy`/`waitFor`?
+- Czy mocki są na granicy systemu, np. HTTP?
+- Czy test nie dubluje pełnego E2E bez potrzeby?
+
+## Linki
+
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+- [Testing Library Guiding Principles](https://testing-library.com/docs/guiding-principles)
+- [Vitest Guide](https://vitest.dev/guide/)
+- [MSW Documentation](https://mswjs.io/docs/)
+- [Playwright Component Testing](https://playwright.dev/docs/test-components)
+
+## 11. Testowanie formularzy
+
+Formularze testuj przez etykiety i komunikaty:
+
+```typescript
+await user.click(screen.getByRole('button', { name: 'Zapisz' }));
+expect(await screen.findByRole('alert')).toHaveTextContent('Email jest wymagany');
+```
+
+To sprawdza zachowanie użytkownika, a nie implementację walidatora.
+
+## 12. Testy klawiatury
+
+Komponenty dostępne powinny działać klawiaturą:
+
+```typescript
+await user.tab();
+expect(screen.getByRole('button', { name: 'Zapisz' })).toHaveFocus();
+await user.keyboard('{Enter}');
+```
+
+Takie testy często wykrywają problemy dostępności wcześniej niż E2E.
+
+## 13. Antywzorce RTL
+
+- `container.querySelector('.btn')` zamiast `getByRole`;
+- sprawdzanie nazw klas CSS;
+- testowanie wewnętrznego state;
+- nadużywanie snapshotów;
+- brak `await` przy async UI;
+- zbyt dużo mocków komponentów potomnych.
+
+## 14. Render z providerami
+
+Komponenty często wymagają routera, store, i18n albo theme providera. Stwórz helper:
+
+```typescript
+function renderWithProviders(ui: React.ReactElement) {
+  return render(
+    <TestProviders locale="pl" theme="light">
+      {ui}
+    </TestProviders>
+  );
+}
+```
+
+Helper powinien być mały i jawny. Jeśli odtwarza całą aplikację, test komponentu traci sens.
+
+## 15. Testowanie błędów API w komponencie
+
+Komponent powinien pokazać błąd, gdy API zwróci 500:
+
+```typescript
+server.use(http.get('/api/products', () => HttpResponse.json({ code: 'ERROR' }, { status: 500 })));
+renderWithProviders(<ProductsList />);
+expect(await screen.findByRole('alert')).toHaveTextContent('Nie udało się pobrać produktów');
+```
+
+Taki test jest szybszy niż E2E i pozwala sprawdzić edge case, który trudno wywołać w stagingu.
+
+## 16. RTL a dostępność
+
+Jeśli test nie może znaleźć pola przez label albo przycisku przez role/name, prawdopodobnie komponent ma problem dostępności. Nie traktuj `data-testid` jako pierwszego rozwiązania. Najpierw popraw semantykę.
+
+## 17. Zasada końcowa
+
+Test komponentu powinien dawać pewność, że użytkownik może wykonać interakcję, a nie że wewnętrzne hooki zmieniły stan w oczekiwany sposób.
+
+Koniec.
+ Gotowe.
+ Teraz.

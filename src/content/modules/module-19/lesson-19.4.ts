@@ -5,7 +5,7 @@ export const lesson19_4: Lesson = {
   "id": "19.4",
   "moduleId": 19,
   "title": "Testy integracyjne backendu",
-  "description": "Testy endpointów, uruchamianie aplikacji w testach, Supertest, baza testowa, transakcje, migracje i izolacja danych.",
+  "description": "Testy integracyjne backendu: API+baza, Testcontainers, transakcje, rollback, HTTP server, kolejki, eventy, cleanup i granica z E2E.",
   "order": 4,
   "difficulty": "intermediate",
   "tags": [
@@ -157,22 +157,17 @@ export const lesson19_4: Lesson = {
       {
         "title": "Vitest Guide",
         "url": "https://vitest.dev/guide/",
-        "description": "Dokumentacja nowoczesnego runnera testów jednostkowych dla ekosystemu Vite."
+        "description": "Runner do testów integracyjnych w ekosystemie Vite."
       },
       {
-        "title": "Jest Documentation",
-        "url": "https://jestjs.io/docs/getting-started",
-        "description": "Klasyczne narzędzie testowe, którego pojęcia są nadal powszechne w projektach JavaScript/TypeScript."
+        "title": "PostgreSQL Docs",
+        "url": "https://www.postgresql.org/docs/current/",
+        "description": "Dokumentacja bazy używanej w testach integracyjnych."
       },
       {
-        "title": "Testing Library Documentation",
-        "url": "https://testing-library.com/docs/",
-        "description": "Podejście do testowania komponentów przez zachowanie użytkownika, a nie szczegóły implementacji."
-      },
-      {
-        "title": "Martin Fowler - Test Double",
-        "url": "https://martinfowler.com/bliki/TestDouble.html",
-        "description": "Klasyczny opis dublerów testowych: dummy, fake, stub, spy i mock."
+        "title": "Testcontainers",
+        "url": "https://testcontainers.com/",
+        "description": "Uruchamianie realnych zależności w kontenerach."
       }
     ],
     "tipsAndTricks": [

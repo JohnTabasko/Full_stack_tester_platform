@@ -5,7 +5,7 @@ export const lesson17_4: Lesson = {
   "id": "17.4",
   "moduleId": 17,
   "title": "Testowanie eksploracyjne i raportowanie błędów",
-  "description": "Testowanie eksploracyjne, heurystyki, testowanie sesyjne, reprodukcja błędów, waga błędu, priorytet i profesjonalne raporty defektów.",
+  "description": "Testowanie eksploracyjne, session-based testing, heurystyki, severity vs priority, reprodukcja i profesjonalne raportowanie defektów.",
   "order": 4,
   "difficulty": "beginner",
   "tags": [
@@ -154,19 +154,19 @@ export const lesson17_4: Lesson = {
     ],
     "references": [
       {
-        "title": "ISTQB Glossary",
-        "url": "https://glossary.istqb.org/",
-        "description": "Słownik pojęć testowych przydatny do ujednolicania terminologii w zespole."
+        "title": "ISTQB CTFL",
+        "url": "https://www.istqb.org/certifications/certified-tester-foundation-level",
+        "description": "Podstawowe pojęcia defektów, raportowania i technik testowania."
       },
       {
-        "title": "Agile Testing Quadrants",
-        "url": "https://lisacrispin.com/agile-testing-quadrants/",
-        "description": "Klasyczny model rozmowy o różnych rodzajach testów w zespołach zwinnych."
+        "title": "OWASP WSTG",
+        "url": "https://owasp.org/www-project-web-security-testing-guide/",
+        "description": "Heurystyki i podejście eksploracyjne w testowaniu bezpieczeństwa."
       },
       {
-        "title": "Google Testing Blog",
-        "url": "https://testing.googleblog.com/",
-        "description": "Praktyczne artykuły o strategii testów, utrzymywalności i kosztach jakości."
+        "title": "Atlassian Bug Report",
+        "url": "https://www.atlassian.com/agile/software-development/bug-report",
+        "description": "Praktyczny opis elementów dobrego raportu błędu."
       }
     ],
     "tipsAndTricks": [

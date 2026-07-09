@@ -5,7 +5,7 @@ export const lesson17_2: Lesson = {
   "id": "17.2",
   "moduleId": 17,
   "title": "Rodzaje testów i piramida testów",
-  "description": "Testy jednostkowe, integracyjne, kontraktowe, API, end-to-end, smoke, sanity, regresyjne i akceptacyjne oraz ich miejsce w strategii jakości.",
+  "description": "Rodzaje testów, piramida testów, testy jednostkowe, integracyjne, API, kontraktowe, E2E, smoke/sanity/regresja i dobór poziomu do ryzyka.",
   "order": 2,
   "difficulty": "beginner",
   "tags": [
@@ -155,19 +155,19 @@ export const lesson17_2: Lesson = {
     ],
     "references": [
       {
-        "title": "ISTQB Glossary",
-        "url": "https://glossary.istqb.org/",
-        "description": "Słownik pojęć testowych przydatny do ujednolicania terminologii w zespole."
+        "title": "ISTQB CTFL",
+        "url": "https://www.istqb.org/certifications/certified-tester-foundation-level",
+        "description": "Fundamenty rodzajów testów i strategii testowania."
       },
       {
-        "title": "Agile Testing Quadrants",
-        "url": "https://lisacrispin.com/agile-testing-quadrants/",
-        "description": "Klasyczny model rozmowy o różnych rodzajach testów w zespołach zwinnych."
+        "title": "ISO/IEC/IEEE 29119",
+        "url": "https://www.iso.org/standard/81291.html",
+        "description": "Standardy procesu testowania oprogramowania."
       },
       {
-        "title": "Google Testing Blog",
-        "url": "https://testing.googleblog.com/",
-        "description": "Praktyczne artykuły o strategii testów, utrzymywalności i kosztach jakości."
+        "title": "Pact",
+        "url": "https://docs.pact.io/",
+        "description": "Testy kontraktowe jako tańsza alternatywa dla części integracji E2E."
       }
     ],
     "tipsAndTricks": [

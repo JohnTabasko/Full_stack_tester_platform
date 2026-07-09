@@ -5,7 +5,7 @@ export const lesson19_1: Lesson = {
   "id": "19.1",
   "moduleId": 19,
   "title": "Podstawy Vitest i Jest",
-  "description": "Struktura testów jednostkowych, matchery, setup, pokrycie kodu, testowanie funkcji domenowych i rola testów jednostkowych w piramidzie testów.",
+  "description": "Vitest i Jest: struktura testów jednostkowych, matchery, setup/teardown, testy parametryzowane, coverage, fake timers i wybór narzędzia.",
   "order": 1,
   "difficulty": "intermediate",
   "tags": [
@@ -157,22 +157,17 @@ export const lesson19_1: Lesson = {
       {
         "title": "Vitest Guide",
         "url": "https://vitest.dev/guide/",
-        "description": "Dokumentacja nowoczesnego runnera testów jednostkowych dla ekosystemu Vite."
+        "description": "Oficjalny przewodnik Vitest."
       },
       {
-        "title": "Jest Documentation",
+        "title": "Jest Getting Started",
         "url": "https://jestjs.io/docs/getting-started",
-        "description": "Klasyczne narzędzie testowe, którego pojęcia są nadal powszechne w projektach JavaScript/TypeScript."
+        "description": "Oficjalny start z Jest."
       },
       {
-        "title": "Testing Library Documentation",
-        "url": "https://testing-library.com/docs/",
-        "description": "Podejście do testowania komponentów przez zachowanie użytkownika, a nie szczegóły implementacji."
-      },
-      {
-        "title": "Martin Fowler - Test Double",
-        "url": "https://martinfowler.com/bliki/TestDouble.html",
-        "description": "Klasyczny opis dublerów testowych: dummy, fake, stub, spy i mock."
+        "title": "Jest Matchers",
+        "url": "https://jestjs.io/docs/using-matchers",
+        "description": "Matchery expect w Jest."
       }
     ],
     "tipsAndTricks": [

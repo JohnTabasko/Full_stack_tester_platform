@@ -1,82 +1,163 @@
 # Testy integracyjne backendu
 
-> Moduł dziewiętnasty pokazuje, jak testować niższe poziomy aplikacji, aby nie przepychać każdego ryzyka przez wolne testy end-to-end. Testy jednostkowe, komponentowe i integracyjne skracają feedback oraz pomagają precyzyjniej wskazać przyczynę awarii.
+Testy integracyjne backendu sprawdzają współpracę kilku elementów systemu: API, serwisu, bazy danych, kolejek, cache, autoryzacji albo zewnętrznego adaptera. Są wolniejsze niż unit tests, ale znacznie szybciej i precyzyjniej wykrywają problemy niż pełne E2E przez UI.
 
-## Jak czytać ten moduł
+Dla Full Stack Testera to kluczowa warstwa. Dzięki niej wiele ryzyk można sprawdzić bez przeglądarki, a E2E zostawić dla najważniejszych przepływów użytkownika.
 
-Czytaj ten moduł jako uzupełnienie Playwright E2E. Pytanie nie brzmi „czy pisać E2E albo unit”, lecz „który poziom testu da najlepszą informację przy najniższym koszcie”. Dobrze zaprojektowana automatyzacja łączy poziomy.
+## 1. Co testować integracyjnie
 
-Trzy zasady modułu:
+Dobre kandydaty:
 
-1. **Testuj możliwie nisko, ale wystarczająco realistycznie.** Reguły domenowe nie muszą iść przez UI.
-2. **Mocki zmniejszają koszt i realizm.** Używaj ich świadomie.
-3. **Komponent i integracja mają własną wartość.** Nie są tylko etapem pośrednim między unit i E2E.
+- endpoint API + walidacja + baza;
+- autoryzacja ról;
+- zapis i odczyt danych;
+- transakcje;
+- migracje;
+- obsługa błędów 400/401/403/404/409;
+- publikacja eventu po zmianie stanu;
+- integracja z cache;
+- adapter zewnętrznego systemu przez sandbox/mock.
 
+Przykład: zamiast testować przez UI wszystkie błędy walidacji zamówienia, większość sprawdź przez API integration tests.
 
-## Cel lekcji
+## 2. Test database
 
-Ta lekcja koncentruje się na: **testy endpointów, uruchamianie aplikacji w testach, Supertest, baza testowa, transakcje, migracje i izolacja danych**. Główne ryzyko: **testy jednostkowe z mockami są zielone, ale prawdziwy endpoint nie działa z bazą, walidacją, middleware lub autoryzacją**. Po lekturze powinieneś umieć dobrać poziom testu do ryzyka i zaprojektować test niższego poziomu, który uzupełnia E2E.
+Testy integracyjne powinny używać kontrolowanej bazy:
 
-## Sytuacja przewodnia
+- osobna baza testowa;
+- kontener PostgreSQL/MySQL;
+- SQLite in-memory, jeśli zgodne z produkcyjną semantyką;
+- migracje przed testami;
+- seed danych referencyjnych;
+- cleanup po teście lub transakcja.
 
-endpoint tworzenia zamówienia musi zwalidować dane, zapisać rekord, utworzyć pozycje zamówienia i zwrócić poprawny kontrakt odpowiedzi
+Nie uruchamiaj testów integracyjnych na bazie współdzielonego stagingu bez izolacji.
 
-## 1. Po co test integracyjny backendu
+## 3. Testcontainers
 
-Test integracyjny backendu sprawdza współpracę warstw: routing, middleware, walidację, serwis, bazę i serializację odpowiedzi.
-
-## 2. Supertest
-
-Supertest pozwala testować endpoint bez uruchamiania prawdziwego serwera HTTP na porcie. To szybkie i wygodne dla aplikacji Node.js.
-
-## 3. Baza testowa
-
-Test integracyjny potrzebuje kontrolowanej bazy. Może to być osobna baza testowa, kontener, transakcja lub baza in-memory, zależnie od technologii.
-
-## 4. Migracje
-
-Schemat bazy w testach musi odpowiadać aplikacji. Migracje powinny być uruchamiane w setupie albo obraz testowy powinien zawierać aktualny schemat.
-
-## 5. Izolacja danych
-
-Każdy test powinien mieć własne dane albo transakcję. Współdzielone rekordy prowadzą do zależności od kolejności i flaky testów.
-
-## Przykład referencyjny
+Testcontainers pozwala uruchomić prawdziwe zależności w kontenerach:
 
 ```typescript
-import request from 'supertest';
-import { describe, expect, it } from 'vitest';
-import { app } from '../app';
-
-describe('POST /api/orders', () => {
-  it('tworzy zamówienie z poprawnymi pozycjami', async () => {
-    const response = await request(app)
-      .post('/api/orders')
-      .send({ productId: 'book-1', quantity: 2 })
-      .expect(201);
-
-    expect(response.body).toEqual(expect.objectContaining({
-      id: expect.any(String),
-      status: 'NEW',
-    }));
-  });
-});
+const postgres = await new PostgreSqlContainer('postgres:16').start();
+process.env.DATABASE_URL = postgres.getConnectionUri();
 ```
 
-Przykład pokazuje, że niższy poziom testu powinien mieć jasną odpowiedzialność. Test jednostkowy, komponentowy i integracyjny nie konkurują z E2E — uzupełniają go.
+To daje większy realizm niż in-memory fake, ale kosztuje więcej czasu. Warto używać dla krytycznych integracji z bazą.
 
-## Lista kontrolna
+## 4. Transakcje i rollback
 
-- Czy wybrany poziom testu pasuje do ryzyka?
-- Czy test nie sprawdza prywatnej implementacji bez potrzeby?
-- Czy mock nie kłamie o kontrakcie zależności?
-- Czy dane testowe są małe i czytelne?
-- Czy awaria wskazuje konkretną warstwę?
-- Czy test niższego poziomu ogranicza potrzebę wolnego testu E2E?
+W wielu testach integracyjnych można otworzyć transakcję i wycofać ją po teście. To szybkie, ale nie zawsze wystarczy:
 
+- eventy wysłane do kolejki nie cofną się;
+- pliki zapisane w storage zostaną;
+- cache może mieć stary stan;
+- procesy asynchroniczne mogą działać poza transakcją.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Dlatego rollback jest dobry, ale nie jest uniwersalnym cleanupem.
+
+## 5. HTTP server w teście
+
+Test integracyjny API może uruchomić aplikację lub jej część i wysyłać requesty:
+
+```typescript
+const response = await request(app).post('/orders').send(buildOrder());
+expect(response.status).toBe(201);
+expect(response.body.status).toBe('NEW');
+```
+
+W Node często używa się Supertest, Fastify inject albo natywnego klienta HTTP. Ważne, aby test przechodził przez prawdziwą walidację i routing.
+
+## 6. MSW i testy backend/frontend boundary
+
+MSW może mockować HTTP w testach frontendu i integracyjnych. Dla backendu częściej użyjesz fake servera, sandboxa lub kontraktu. Zasada jest taka sama: mock ma być zgodny z kontraktem.
+
+## 7. Kolejki i eventy
+
+Jeśli endpoint publikuje event, test może sprawdzić:
+
+- czy event został wysłany;
+- czy ma poprawny schema;
+- czy consumer go przetwarza;
+- czy duplicate event jest idempotentny;
+- czy błąd trafia do DLQ.
+
+Nie wszystko musi być jednym testem. Możesz mieć osobny test producenta i osobny test konsumenta.
+
+## 8. Antywzorce
+
+- Test integracyjny bez realnej integracji.
+- Test używa produkcyjnej bazy.
+- Cleanup działa tylko po sukcesie.
+- Test zależy od kolejności innych testów.
+- Mock niezgodny z kontraktem.
+- E2E UI używane do każdej walidacji backendu.
+- Brak migracji w test environment.
+
+## 9. Checklista testu integracyjnego
+
+- Czy test przechodzi przez realną granicę integracji?
+- Czy baza jest izolowana?
+- Czy migracje i seed są kontrolowane?
+- Czy cleanup działa po awarii?
+- Czy scenariusze negatywne są pokryte?
+- Czy eventy/cache/pliki są uwzględnione?
+- Czy wynik awarii wskazuje konkretną warstwę?
+
+## Linki
+
+- [Vitest Guide](https://vitest.dev/guide/)
+- [Jest Getting Started](https://jestjs.io/docs/getting-started)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/current/)
+- [Testcontainers](https://testcontainers.com/)
+- [MSW Documentation](https://mswjs.io/docs/)
+
+## 10. Testowanie migracji
+
+Jeśli aplikacja używa migracji bazy, test integracyjny może uruchomić migracje na pustej bazie i sprawdzić, czy aplikacja startuje. Dla krytycznych migracji warto testować także migrację z przykładowego starego schematu.
+
+## 11. Testowanie błędów infrastrukturalnych
+
+Test integracyjny może symulować błąd zależności:
+
+- baza niedostępna;
+- timeout zewnętrznego API;
+- konflikt unikalnego klucza;
+- błąd walidacji eventu;
+- brak uprawnień do zasobu.
+
+Nie każdy taki przypadek musi być E2E. Warstwa backend integration jest zwykle szybsza i bardziej precyzyjna.
+
+## 12. Integracja a obserwowalność
+
+W testach integracyjnych warto sprawdzać, czy system generuje diagnostykę: correlation ID, log błędu, metrykę albo event. To pomaga później w debugowaniu E2E i produkcji.
+
+## 13. Testy integracyjne a kontrakty
+
+Test integracyjny może sprawdzić rzeczywiste zachowanie provider endpointu, ale kontrakt powinien być opisany jawnie. Jeśli API jest używane przez frontend, warto połączyć test integracyjny z walidacją OpenAPI albo JSON Schema.
+
+## 14. Równoległość testów integracyjnych
+
+Testy integracyjne często współdzielą bazę. Aby działały równolegle:
+
+- używaj unikalnych danych;
+- izoluj schemat lub bazę per worker;
+- sprzątaj po `runId`;
+- unikaj globalnych rekordów modyfikowanych przez testy;
+- nie zakładaj kolejności.
+
+## 15. Kiedy test integracyjny jest za duży
+
+Jeśli test uruchamia frontend, backend, bazę, kolejkę, zewnętrzne API i przeglądarkę, to prawdopodobnie jest E2E. Test integracyjny powinien mieć jasną granicę. Im większy zakres, tym trudniejsza diagnoza.
+
+## 16. Checklista review testu integracyjnego
+
+- Czy zależności są kontrolowane?
+- Czy test działa lokalnie i w CI?
+- Czy dane są izolowane?
+- Czy cleanup jest idempotentny?
+- Czy wynik awarii wskazuje konkretny komponent systemu?
+- Czy test nie powinien być rozbity na mniejsze warstwy?
+
+## 17. Zasada końcowa
+
+Test integracyjny jest najbardziej wartościowy wtedy, gdy sprawdza realną granicę systemu i nadal pozwala szybko wskazać przyczynę awarii.

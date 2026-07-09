@@ -1,80 +1,202 @@
 # Testowanie eksploracyjne i raportowanie błędów
 
-> Moduł siedemnasty wraca do fundamentów zawodu testera. Automatyzacja jest skuteczna tylko wtedy, gdy wynika z dobrego rozumienia jakości, ryzyka, rodzajów testów, projektowania przypadków i komunikacji defektów.
+Testowanie eksploracyjne nie jest chaotycznym klikaniem. To jednoczesne projektowanie, wykonywanie i uczenie się o systemie. Tester eksploruje produkt, buduje hipotezy, sprawdza ryzyka i dokumentuje obserwacje. Automatyzacja nie zastępuje eksploracji — często z niej wynika. Dobry test automatyczny zaczyna się od dobrego zrozumienia ryzyka.
 
-## Jak czytać ten moduł
-
-Czytaj ten moduł niezależnie od narzędzi. Playwright, API, CI i baza danych są sposobami zdobywania informacji. Tester musi wiedzieć, jakiej informacji potrzebuje zespół, zanim wybierze narzędzie.
-
-Trzy zasady modułu:
-
-1. **Tester dostarcza informację o ryzyku.** Nie tylko wykonuje przypadki testowe.
-2. **Technika testowania dobiera się do problemu.** Nie każdy błąd wymaga E2E, nie każde ryzyko da się złapać testem jednostkowym.
-3. **Komunikacja jest częścią jakości.** Źle opisany błąd wydłuża naprawę nawet wtedy, gdy został poprawnie znaleziony.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **testowanie eksploracyjne, heurystyki, session-based testing, reprodukcja błędów, severity, priority i profesjonalne raporty defektów**. Główne ryzyko: **tester znajduje błędy, ale raporty są nieprecyzyjne, trudne do odtworzenia i nie pomagają zespołowi podjąć decyzji**. Po lekturze powinieneś umieć używać wiedzy testerskiej do projektowania lepszych testów manualnych, eksploracyjnych i automatycznych.
-
-## Sytuacja przewodnia
-
-podczas eksploracji checkoutu tester zauważa, że po odświeżeniu strony znika rabat, ale status zamówienia pozostaje niejednoznaczny
+Raportowanie błędów jest równie ważne jak ich znajdowanie. Źle opisany defekt wydłuża naprawę, powoduje nieporozumienia i zmniejsza zaufanie do testera. Dobry raport pomaga zespołowi szybko podjąć decyzję.
 
 ## 1. Eksploracja jako uczenie się
 
-Testowanie eksploracyjne łączy projektowanie, wykonanie i uczenie się. Nie jest chaotycznym klikaniem, lecz świadomą sesją badania ryzyka.
+W eksploracji tester stale odpowiada na pytania:
 
-## 2. Heurystyki
+- czego jeszcze nie wiemy o systemie?
+- gdzie może być ryzyko?
+- jakie dane mogą ujawnić problem?
+- co się stanie przy przerwaniu procesu?
+- czy system zachowuje się spójnie między UI, API i bazą?
 
-Heurystyki pomagają szukać problemów: granice, role, dane puste, przerwana sieć, cofnięcie, odświeżenie, wiele kart, uprawnienia.
+Eksploracja jest szczególnie wartościowa, gdy:
 
-## 3. Session-based testing
+- wymagania są niepełne;
+- funkcja jest nowa;
+- ryzyko UX jest wysokie;
+- integracji jest dużo;
+- automatyzacja jeszcze nie istnieje;
+- zespół szuka nieoczywistych problemów.
 
-Sesja eksploracyjna ma charter, czas, notatki, obserwacje i podsumowanie. Dzięki temu eksploracja jest rozliczalna.
+## 2. Session-Based Test Management
 
-## 4. Severity i priority
+Session-based testing porządkuje eksplorację. Sesja ma:
 
-Severity opisuje wpływ błędu, priority kolejność naprawy. Krytyczny błąd może mieć niski priorytet, jeśli dotyczy rzadkiego przypadku — i odwrotnie.
+- **charter** — cel eksploracji;
+- **timebox** — np. 60–90 minut;
+- **notatki** — co sprawdzono;
+- **defekty** — co znaleziono;
+- **pytania** — czego nie udało się rozstrzygnąć;
+- **podsumowanie** — decyzja lub rekomendacja.
 
-## 5. Dobry raport defektu
+Przykład charteru:
 
-Raport powinien zawierać kroki, dane, środowisko, rezultat rzeczywisty, oczekiwany, dowody i wpływ. Celem jest szybka decyzja, nie udowodnienie winy.
+```text
+Eksploruj checkout dla sytuacji przerwania procesu: refresh, back button, utrata sieci, wygasła sesja, drugi tab. Skup się na spójności koszyka, rabatu i statusu zamówienia.
+```
 
-## Przykład referencyjny
+## 3. Heurystyki eksploracyjne
+
+Heurystyki pomagają znaleźć ryzyka. Przykłady:
+
+- granice danych: minimum, maksimum, puste, bardzo długie;
+- role: admin, klient, gość, brak uprawnień;
+- stan: nowy, opłacony, anulowany, wygasły;
+- czas: data graniczna, wygasły token, timezone;
+- sieć: offline, timeout, 500, retry;
+- przeglądarka: refresh, back, wiele kart;
+- bezpieczeństwo: cudzy zasób, manipulacja ID, XSS;
+- dostępność: klawiatura, focus, label, role;
+- integracje: email, webhook, płatność, kolejka.
+
+## 4. Notatki eksploracyjne
+
+Notatki powinny być użyteczne po sesji. Dobry format:
 
 ```markdown
-# Raport błędu
+Charter: Checkout interruption
+Środowisko: staging, Chrome, user qa+run123@example.test
+Dane: product=BOOK-1, coupon=PROMO10
 
-Tytuł: Rabat znika po odświeżeniu checkoutu
+Obserwacje:
+- Refresh na /checkout usuwa rabat z UI, ale API nadal zwraca discountTotal=10.
+- Back do koszyka pokazuje poprawną kwotę.
+- Po ponownym wejściu do checkoutu rabat wraca.
 
-Środowisko: staging, Chrome, użytkownik qa+checkout@example.test
+Hipoteza:
+- frontend nie odtwarza rabatu z API przy pierwszym renderze checkoutu.
+
+Dowody:
+- screenshot
+- HAR
+- cartId=CART-123
+```
+
+## 5. Severity vs priority
+
+**Severity** opisuje wpływ techniczny lub biznesowy błędu.
+**Priority** opisuje kolejność naprawy.
+
+Przykłady:
+
+| Błąd | Severity | Priority |
+|---|---|---|
+| checkout nie działa dla wszystkich użytkowników | critical | high |
+| literówka w stopce | low | low |
+| rzadki błąd w raporcie rocznym dzień przed zamknięciem roku | medium/high | high |
+| crash w funkcji eksperymentalnej wyłączonej flagą | high | low/medium |
+
+Nie mieszaj tych pojęć. Błąd może być poważny, ale mieć niższy priorytet, jeśli nie dotyczy aktywnego zakresu release.
+
+## 6. Dobry raport defektu
+
+Raport powinien zawierać:
+
+- tytuł opisujący problem;
+- środowisko;
+- wersję/commit;
+- użytkownika/rolę;
+- dane testowe;
+- kroki reprodukcji;
+- wynik rzeczywisty;
+- wynik oczekiwany;
+- wpływ biznesowy;
+- dowody: screenshot, video, trace, HAR, logi, request id;
+- częstotliwość;
+- workaround, jeśli znany.
+
+Przykład:
+
+```markdown
+Tytuł: Rabat znika z UI po odświeżeniu checkoutu
+
+Środowisko: staging, Chrome, commit abc123
+Użytkownik: qa+checkout-run42@example.test
+Dane: cartId=CART-123, coupon=PROMO10
+
 Kroki:
-1. Dodaj produkt BOOK-1 do koszyka
-2. Zastosuj kupon PROMO10
+1. Dodaj BOOK-1 do koszyka
+2. Zastosuj PROMO10
 3. Przejdź do checkoutu
 4. Odśwież stronę
 
-Rezultat rzeczywisty: suma wraca do pełnej kwoty
-Rezultat oczekiwany: rabat pozostaje aktywny
+Rzeczywisty: UI pokazuje pełną kwotę 100 zł
+Oczekiwany: UI pokazuje 90 zł po rabacie
 Wpływ: klient może zapłacić więcej niż oczekuje
-Dowody: screenshot, HAR, orderId=12345
+Dowody: trace.zip, screenshot, response /api/cart
 ```
 
-Przykład pokazuje, że praca testera zaczyna się od jasnego opisu ryzyka, danych, oczekiwań i dowodów. Narzędzie wykonawcze jest dopiero kolejnym krokiem.
+## 7. Reprodukcja błędu
 
-## Lista kontrolna
+Jeśli błąd trudno odtworzyć, zapisz:
 
-- Czy znasz ryzyko, które sprawdzasz?
-- Czy wybrałeś właściwy poziom testu?
-- Czy przypadki testowe nie powielają się bez wartości?
-- Czy uwzględniasz wartości brzegowe i scenariusze negatywne?
-- Czy wynik testu jest zrozumiały dla zespołu?
-- Czy raport błędu pozwala odtworzyć problem?
+- dokładne dane;
+- czas;
+- przeglądarkę;
+- rolę;
+- flagi funkcji;
+- request/correlation ID;
+- czy problem występuje po refresh;
+- czy problem występuje lokalnie i w CI;
+- czy problem występuje dla innego konta.
 
+Celem raportu nie jest udowodnienie winy. Celem jest skrócenie czasu od wykrycia do naprawy.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+## 8. Kiedy automatyzować znaleziony błąd
+
+Nie każdy błąd wymaga automatycznego testu regresji. Automatyzuj, gdy:
+
+- błąd dotyczy krytycznego ryzyka;
+- łatwo go odtworzyć deterministycznie;
+- regresja jest prawdopodobna;
+- test będzie stabilny;
+- koszt automatyzacji jest uzasadniony.
+
+Jeśli błąd wynika z jednorazowej migracji danych, lepszy może być test migracji lub checklist release, a nie E2E.
+
+## 9. Checklista eksploracji i raportowania
+
+- Czy sesja ma charter?
+- Czy notatki pozwalają odtworzyć myślenie testera?
+- Czy defekt zawiera dane, środowisko i dowody?
+- Czy severity i priority są rozdzielone?
+- Czy raport opisuje wpływ biznesowy?
+- Czy wiadomo, czy błąd warto automatyzować?
+- Czy nie ujawniono sekretów w załącznikach?
+
+## Linki
+
+- [ISTQB Certified Tester Foundation Level](https://www.istqb.org/certifications/certified-tester-foundation-level)
+- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [Atlassian — Bug report template](https://www.atlassian.com/agile/software-development/bug-report)
+
+## 10. Eksploracja wspierana artefaktami
+
+Podczas eksploracji aplikacji webowej zbieraj dowody tak, jak w automatyzacji:
+
+- screenshot;
+- HAR lub logi network;
+- response body kluczowego API;
+- identyfikatory danych testowych;
+- correlation ID;
+- nagranie krótkiego flow;
+- notatkę, czy problem jest powtarzalny.
+
+Dzięki temu raport błędu jest bardziej techniczny i szybciej trafia do właściwej osoby.
+
+## 11. Od eksploracji do regresji
+
+Po znalezieniu błędu zapytaj:
+
+1. Czy błąd dotyczy ważnego ryzyka?
+2. Czy może wrócić po refaktorze?
+3. Czy da się go odtworzyć deterministycznie?
+4. Czy test regresyjny będzie stabilny?
+5. Jaki poziom testu jest najlepszy?
+
+Nie każdy bug znaleziony eksploracyjnie musi stać się testem E2E. Czasem najlepszy test regresyjny to unit, API albo contract test.

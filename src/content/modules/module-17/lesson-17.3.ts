@@ -5,7 +5,7 @@ export const lesson17_3: Lesson = {
   "id": "17.3",
   "moduleId": 17,
   "title": "Techniki projektowania testów",
-  "description": "Klasy równoważności, wartości brzegowe, tablice decyzyjne, przejścia stanów, testowanie parami i projektowanie danych testowych.",
+  "description": "Techniki projektowania testów: klasy równoważności, wartości brzegowe, tablice decyzyjne, przejścia stanów, pairwise, use case i error guessing.",
   "order": 3,
   "difficulty": "beginner",
   "tags": [
@@ -155,19 +155,19 @@ export const lesson17_3: Lesson = {
     ],
     "references": [
       {
-        "title": "ISTQB Glossary",
-        "url": "https://glossary.istqb.org/",
-        "description": "Słownik pojęć testowych przydatny do ujednolicania terminologii w zespole."
+        "title": "ISTQB CTFL",
+        "url": "https://www.istqb.org/certifications/certified-tester-foundation-level",
+        "description": "Oficjalny sylabus technik projektowania testów."
       },
       {
-        "title": "Agile Testing Quadrants",
-        "url": "https://lisacrispin.com/agile-testing-quadrants/",
-        "description": "Klasyczny model rozmowy o różnych rodzajach testów w zespołach zwinnych."
+        "title": "ISO/IEC/IEEE 29119",
+        "url": "https://www.iso.org/standard/81291.html",
+        "description": "Standardowa terminologia i proces testowania."
       },
       {
-        "title": "Google Testing Blog",
-        "url": "https://testing.googleblog.com/",
-        "description": "Praktyczne artykuły o strategii testów, utrzymywalności i kosztach jakości."
+        "title": "NIST ACTS",
+        "url": "https://csrc.nist.gov/projects/automated-combinatorial-testing-for-software",
+        "description": "Combinatorial testing i pairwise testing."
       }
     ],
     "tipsAndTricks": [
