@@ -1,74 +1,206 @@
 # Analiza wąskich gardeł i budżet wydajności
 
-> Moduł dwudziesty czwarty uczy prowadzić testy wydajnościowe jako eksperyment inżynierski. Obciążenie bez hipotezy, metryk i progów jest tylko ruchem generowanym w systemie.
+Test wydajnościowy bez analizy jest tylko generowaniem ruchu. Najważniejsza praca zaczyna się po teście: interpretacja metryk, korelacja z logami i infrastrukturą, wskazanie wąskiego gardła oraz decyzja, czy wynik spełnia budżet wydajności.
 
-## Jak czytać ten moduł
+Wąskie gardło to element systemu, który ogranicza przepustowość lub zwiększa opóźnienia. Może znajdować się w aplikacji, bazie, cache, sieci, zewnętrznym API, konfiguracji kontenerów albo w samym generatorze obciążenia.
 
-Czytaj ten moduł przez pryzmat pytania: jaką decyzję ma wspierać test wydajnościowy? Czy system wytrzyma normalny ruch, gdzie jest granica, co stanie się przy piku, czy długotrwała praca degraduje usługę i czy wynik mieści się w budżecie?
+## 1. Latency, throughput i error rate
 
-Trzy zasady modułu:
+Podstawowe metryki:
 
-1. **Najpierw hipoteza, potem ruch.** Test bez celu nie daje wiedzy.
-2. **Percentyle są ważniejsze niż średnia.** Użytkownik w ogonie rozkładu też jest użytkownikiem.
-3. **Wynik wymaga metryk systemu.** Bez CPU, pamięci, bazy i logów znasz objaw, nie przyczynę.
+- **latency** — czas odpowiedzi;
+- **throughput** — liczba obsłużonych requestów na sekundę;
+- **error rate** — procent błędów;
+- **concurrency** — liczba równoległych użytkowników/operacji;
+- **saturation** — stopień wykorzystania zasobów.
 
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **p95/p99, RPS, throughput, error rate, zasoby, baseline, wąskie gardła, regresje i raportowanie wyników wydajnościowych**. Główne ryzyko: **zespół ma wyniki testu obciążeniowego, ale nie potrafi odróżnić objawu od przyczyny ani podjąć decyzji technicznej**. Po lekturze powinieneś umieć zaprojektować test wydajnościowy z hipotezą, profilem obciążenia, progami i interpretacją wyników.
-
-## Sytuacja przewodnia
-
-pod obciążeniem rośnie p95 checkoutu, ale nie wiadomo, czy przyczyną jest baza, API płatności, CPU, kolejka czy brak cache
-
-## 1. Objaw a przyczyna
-
-Wysoki p95 jest objawem. Przyczyną może być baza, CPU, sieć, locki, kolejka, zewnętrzne API, GC albo kod aplikacji.
+Nie interpretuj czasu odpowiedzi bez błędów. System może być szybki, bo zwraca 500 dla połowy żądań.
 
 ## 2. Percentyle
 
-P95 i P99 pokazują doświadczenie użytkowników w ogonie rozkładu. Średnia może wyglądać dobrze, gdy część użytkowników cierpi.
+Średnia jest często myląca. Percentyle pokazują ogon rozkładu:
 
-## 3. Throughput i RPS
+- p50 — mediana;
+- p90 — 90% requestów było nie wolniejsze niż ta wartość;
+- p95 — standardowy próg dla wielu SLA/SLO;
+- p99 — doświadczenie najwolniejszych użytkowników.
 
-RPS mówi o liczbie żądań na sekundę, throughput o przepustowości. Interpretuj je razem z błędami i opóźnieniami.
+Przykład:
 
-## 4. Baseline i regresja
-
-Baseline pozwala wykryć zmianę względem wcześniejszego stanu. Bez baseline trudno ocenić, czy wynik jest problemem.
-
-## 5. Budżet wydajności
-
-Performance budget powinien być liczbowy, uzasadniony i powiązany z ryzykiem. Może dotyczyć p95, błędów, rozmiaru zasobów albo czasu procesu.
-
-## Przykład referencyjny
-
-```markdown
-# Raport wydajności checkoutu
-
-Baseline: p95 = 420 ms przy 100 RPS
-Aktualny wynik: p95 = 870 ms przy 100 RPS
-Error rate: 0.3% → 2.8%
-CPU payment-api: 40% → 85%
-DB slow queries: wzrost z 2/min do 120/min
-Wniosek: regresja prawdopodobnie w zapytaniu pobierania metod płatności
-Decyzja: blokada wydania do analizy indeksu i cache
+```text
+avg = 220 ms
+p95 = 900 ms
+p99 = 2500 ms
 ```
 
-Przykład pokazuje, że test wydajnościowy powinien mieć profil ruchu, checks, thresholds i sposób interpretacji. Samo wysłanie wielu żądań nie wystarcza.
+Średnia wygląda dobrze, ale część użytkowników czeka bardzo długo. To może oznaczać locki, GC, cold cache, wolne zapytania albo zewnętrzną zależność.
 
-## Lista kontrolna
+## 3. Saturation
 
-- Czy test ma hipotezę?
-- Czy profil obciążenia odpowiada realnemu lub planowanemu ruchowi?
-- Czy są progi p95/p99, error rate i throughput?
-- Czy środowisko jest kontrolowane?
-- Czy zbierasz metryki aplikacji i infrastruktury?
-- Czy raport prowadzi do decyzji technicznej?
+Saturation mówi, czy zasób jest blisko limitu:
 
+- CPU 95%;
+- pula połączeń DB zajęta;
+- kolejka rośnie;
+- dysk ma wysokie I/O wait;
+- liczba połączeń HTTP przekracza limit;
+- memory rośnie bez spadku.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Jeśli latency rośnie wraz z saturacją, masz silny trop.
+
+## 4. Baza danych jako wąskie gardło
+
+Objawy:
+
+- rosnące p95/p99;
+- wolne zapytania;
+- lock waits;
+- wysoki CPU DB;
+- pula połączeń wyczerpana;
+- brak indeksu;
+- zbyt duży payload.
+
+Diagnostyka:
+
+- slow query log;
+- `EXPLAIN ANALYZE`;
+- metryki połączeń;
+- lock monitoring;
+- porównanie danych testowych z produkcyjnymi.
+
+## 5. Aplikacja jako wąskie gardło
+
+Objawy:
+
+- wysokie CPU aplikacji;
+- długie GC;
+- thread pool wyczerpany;
+- event loop lag;
+- rosnący memory usage;
+- endpointy synchronicznie czekają na zewnętrzne API.
+
+Dla Node.js warto obserwować event loop delay, CPU, heap, liczbę requestów i błędy.
+
+## 6. Zewnętrzne API
+
+Jeżeli system zależy od płatności, email, SMS albo SSO, p95 może być ograniczony przez dostawcę. Wtedy test powinien rozróżniać:
+
+- wydajność własnego systemu;
+- wydajność integracji;
+- zachowanie fallback/retry;
+- wpływ timeoutów.
+
+Nie optymalizuj aplikacji, jeśli bottleneck jest po stronie sandboxa dostawcy.
+
+## 7. Generator obciążenia jako wąskie gardło
+
+Czasem problemem nie jest system, ale maszyna generująca ruch. Objawy:
+
+- CPU generatora 100%;
+- brak sieci;
+- błędy połączeń lokalnie;
+- wyniki różnią się przy większym injectorze.
+
+Monitoruj generatory tak samo jak system testowany.
+
+## 8. Budżet wydajności
+
+Budżet wydajności to jawny próg akceptacji:
+
+```text
+GET /api/products p95 < 500 ms
+POST /api/orders p95 < 1000 ms
+error rate < 1%
+payload produktów < 200 KB
+checkout API flow < 2 s
+```
+
+Budżet musi mieć właściciela. Jeśli nikt nie reaguje na przekroczenie, metryka staje się szumem.
+
+## 9. Korelacja z obserwowalnością
+
+Najlepsza analiza łączy:
+
+- wynik k6/JMeter;
+- metryki Prometheus;
+- dashboard Grafana;
+- logi Loki/Kibana;
+- traces OpenTelemetry;
+- slow query log;
+- deployment/change log.
+
+Pytanie nie brzmi tylko „czy było wolno?”, ale „co było wąskim gardłem i dlaczego?”.
+
+## 10. Raport z analizy
+
+Dobry raport zawiera:
+
+- cel testu;
+- wersję aplikacji;
+- środowisko;
+- profil obciążenia;
+- dataset;
+- wyniki p50/p95/p99;
+- error rate;
+- throughput;
+- metryki infrastruktury;
+- hipotezę bottlenecku;
+- rekomendacje;
+- decyzję: pass/fail/needs investigation.
+
+## 11. Checklista analizy
+
+- Czy odpowiedzi były poprawne funkcjonalnie?
+- Czy patrzysz na p95/p99, nie tylko średnią?
+- Czy error rate jest akceptowalny?
+- Czy generator obciążenia nie jest limitem?
+- Czy dataset jest realistyczny?
+- Czy masz metryki aplikacji, DB i infrastruktury?
+- Czy raport wskazuje konkretną rekomendację?
+
+## Linki
+
+- [k6 Metrics](https://grafana.com/docs/k6/latest/using-k6/metrics/)
+- [k6 Thresholds](https://grafana.com/docs/k6/latest/using-k6/thresholds/)
+- [JMeter Dashboard Report](https://jmeter.apache.org/usermanual/generating-dashboard.html)
+- [Prometheus Overview](https://prometheus.io/docs/introduction/overview/)
+- [OpenTelemetry Docs](https://opentelemetry.io/docs/)
+
+## 12. Przykład diagnozy
+
+Sytuacja:
+
+```text
+p95 /api/orders = 2200 ms
+error rate = 0.5%
+CPU API = 45%
+CPU DB = 95%
+slow query: SELECT orders with missing index
+```
+
+Wniosek: aplikacja nie jest głównym bottleneckiem. Najpierw sprawdź indeksy, plan zapytania i rozmiar tabeli. Optymalizacja kodu kontrolera prawdopodobnie nie rozwiąże problemu.
+
+## 13. Budżet frontend vs backend
+
+Budżet wydajności może dotyczyć różnych warstw:
+
+- API p95;
+- czas renderowania strony;
+- rozmiar JS bundle;
+- LCP/CLS/INP;
+- czas pełnego checkoutu;
+- czas generowania raportu.
+
+Nie mieszaj ich w jednym wyniku. Każda warstwa ma inne narzędzia i właścicieli.
+
+## 14. Zasada końcowa
+
+Analiza wydajności jest pracą detektywistyczną. Wynik testu wskazuje symptom, ale dopiero korelacja z metrykami, logami i traces pozwala znaleźć przyczynę.
+
+## 15. Capacity planning
+
+Wyniki testów wydajnościowych można wykorzystać do planowania pojemności. Jeśli system obsługuje 200 RPS przy CPU 70%, a biznes oczekuje 400 RPS w kampanii promocyjnej, potrzebujesz skalowania albo optymalizacji. Test powinien pokazywać nie tylko pass/fail, ale też zapas względem celu.
+
+## 16. Regresja wydajności
+
+Regresja to pogorszenie względem baseline. Dlatego zapisuj wyniki historyczne. Pojedynczy test mówi, jak było dziś. Trend mówi, czy system zwalnia po kolejnych zmianach.

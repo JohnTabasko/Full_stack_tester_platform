@@ -5,7 +5,7 @@ export const lesson24_3: Lesson = {
   "id": "24.3",
   "moduleId": 24,
   "title": "JMeter i testy protokołów",
-  "description": "Grupy wątków, samplery, asercje, timery, listenery, parametryzacja, korelacja i praca z dużymi planami testów protokołów.",
+  "description": "JMeter: Test Plan, Thread Groups, Samplers, Config Elements, Timers, Assertions, Listeners, CSV data, non-GUI mode i raport HTML.",
   "order": 3,
   "difficulty": "advanced",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson24_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Grafana k6 Documentation",
-        "url": "https://grafana.com/docs/k6/latest/",
-        "description": "Dokumentacja k6: scenariusze, metryki, progi jakości i uruchamianie testów obciążeniowych."
-      },
-      {
-        "title": "Apache JMeter User Manual",
+        "title": "JMeter Getting Started",
         "url": "https://jmeter.apache.org/usermanual/get-started.html",
-        "description": "Podręcznik JMetera do testów protokołów i planów obciążenia."
+        "description": "Oficjalny start z JMeter."
       },
       {
-        "title": "Google Web.dev Performance",
-        "url": "https://web.dev/performance/",
-        "description": "Materiały o wydajności aplikacji webowych i doświadczeniu użytkownika."
+        "title": "JMeter Best Practices",
+        "url": "https://jmeter.apache.org/usermanual/best-practices.html",
+        "description": "Dobre praktyki JMeter, w tym non-GUI mode."
       },
       {
-        "title": "SRE Book - Monitoring Distributed Systems",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i niezawodności w systemach produkcyjnych."
+        "title": "JMeter Component Reference",
+        "url": "https://jmeter.apache.org/usermanual/component_reference.html",
+        "description": "Opis elementów Test Planu."
       }
     ],
     "tipsAndTricks": [

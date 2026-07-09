@@ -3,56 +3,29 @@
 Data: 2026-07-09  
 Gałąź: `arena/workspace-changes`
 
-## Wykonane w tej iteracji
+## Wykonane dotychczas
 
-Rozpoczęto poprawki zgodnie z audytem `docs/audit/fullstack-modules-17-28-official-coverage-audit.md`. Priorytetem były fundamenty testowania w module 17 oraz najsłabszy objętościowo moduł 19.
+Poprawki są prowadzone zgodnie z audytem `docs/audit/fullstack-modules-17-28-official-coverage-audit.md`.
 
-### Moduł 17 — Fundamenty pracy testera i strategia jakości
+### Moduł 17 — Fundamenty testowania
 
-Poprawiono:
+Rozbudowano lekcje `17.2`, `17.3`, `17.4` oraz metadane `.ts`. Dodano rodzaje testów, piramidę jako model ekonomii informacji, techniki ISTQB, session-based testing i profesjonalne raportowanie defektów.
 
-- `lesson-17.2.md`
-- `lesson-17.3.md`
-- `lesson-17.4.md`
-- odpowiadające im metadane `.ts` w zakresie `description` i `references`
+### Moduł 19 — Unit, integration, component testing
 
-Zakres zmian:
+Rozbudowano lekcje `19.1`–`19.4` oraz metadane `.ts`. Dodano Vitest/Jest, mocki/spies/fakes, React Testing Library, MSW, Testcontainers, testy integracyjne backendu, migracje, kolejki i granice z E2E.
 
-- rodzaje testów i ekonomia informacji;
-- piramida testów jako model kosztu i realizmu;
-- unit, integration, API, contract, E2E, smoke, sanity, regression i acceptance testing;
-- terminologia: test basis, test condition, test case, test procedure, test oracle;
-- klasy równoważności;
-- analiza wartości brzegowych;
-- tablice decyzyjne;
-- przejścia stanów;
-- pairwise testing;
-- use case testing;
-- error guessing;
-- session-based exploratory testing;
-- severity vs priority;
-- profesjonalne raportowanie defektów;
-- decyzja, kiedy automatyzować bug regresyjny.
+### Moduł 24 — k6 i JMeter
 
-### Moduł 19 — Testy jednostkowe, integracyjne i komponentowe
+Rozbudowano lekcje `24.2`, `24.3`, `24.4` oraz metadane `.ts`. Dodano lifecycle k6, VUs, scenarios, thresholds, custom metrics, JMeter Test Plan, Thread Groups, Samplers, non-GUI mode, analizę bottlenecków, percentyle, saturation i budżety wydajności.
 
-Poprawiono:
+### Moduł 25 — DevOps i środowiska
 
-- `lesson-19.1.md`
-- `lesson-19.2.md`
-- `lesson-19.3.md`
-- `lesson-19.4.md`
-- odpowiadające im metadane `.ts` w zakresie `description` i `references`
+Rozbudowano lekcje `25.2`, `25.3`, `25.4` oraz metadane `.ts`. Dodano DNS, HTTP, TLS, CORS, cookies, Docker Compose services/networks/volumes/healthcheck/profiles, Kubernetes Pod/Deployment/Service/Ingress/ConfigMap/Secret/probes/kubectl diagnostics i feature flags.
 
-Zakres zmian:
+### Moduł 27 — AI/LLM w testowaniu
 
-- Vitest i Jest: struktura testów, matchery, setup/teardown, testy parametryzowane, coverage, fake timers;
-- mocki, stuby, fake, spy, `vi.fn`, `jest.fn`, `spyOn`, mockowanie modułów, reset mocków;
-- MSW i mockowanie HTTP zgodne z kontraktem;
-- React Testing Library: guiding principles, queries priority, `screen`, `within`, `userEvent`, `findBy`, `waitFor`;
-- RTL vs Playwright Component Testing vs E2E;
-- testy integracyjne backendu: API + baza, Testcontainers, transakcje, rollback, migracje, kolejki, eventy i cleanup;
-- granice unit/integration/component/E2E.
+Rozbudowano lekcje `27.2`, `27.3`, `27.4` oraz metadane `.ts`. Dodano prompt patterns, traceability, review AI-generated tests, synthetic data, AI-assisted debugging, log redaction, OWASP LLM Top 10, NIST AI RMF, prompt injection, excessive agency, overreliance, governance i guardrails.
 
 ## Metryki modułów 17–28
 
@@ -87,21 +60,21 @@ Zakres zmian:
 | 23 | 23.3 | Grafana, Prometheus, Loki i Kibana — Praktyczna Analiza Diagnostyczna | 2361 |
 | 23 | 23.4 | SLO, SLA, SLI i Testowanie Odporności — Mierzalna Jakość i Niezawodność | 2458 |
 | 24 | 24.1 | Testy wydajnościowe i obciążeniowe — kompletny przewodnik | 1890 |
-| 24 | 24.2 | Podstawy k6 | 520 |
-| 24 | 24.3 | JMeter i testy protokołów | 501 |
-| 24 | 24.4 | Analiza wąskich gardeł i budżet wydajności | 493 |
+| 24 | 24.2 | Podstawy k6 | 756 |
+| 24 | 24.3 | JMeter i testy protokołów | 819 |
+| 24 | 24.4 | Analiza wąskich gardeł i budżet wydajności | 766 |
 | 25 | 25.1 | Wiersz poleceń i Bash dla Testera — kompletny przewodnik | 2342 |
-| 25 | 25.2 | Podstawy sieci | 507 |
-| 25 | 25.3 | Docker Compose dla środowisk testowych | 469 |
-| 25 | 25.4 | Kubernetes, sekrety i flagi funkcji | 494 |
+| 25 | 25.2 | Podstawy sieci | 799 |
+| 25 | 25.3 | Docker Compose dla środowisk testowych | 810 |
+| 25 | 25.4 | Kubernetes, sekrety i flagi funkcji | 784 |
 | 26 | 26.1 | Aplikacje mobilne webowe, natywne i hybrydowe | 3835 |
 | 26 | 26.2 | Podstawy Appium | 3712 |
 | 26 | 26.3 | Emulatory, prawdziwe urządzenia i farmy urządzeń | 3970 |
 | 26 | 26.4 | Uprawnienia, linki głębokie i tryb offline | 4193 |
 | 27 | 27.1 | AI i LLM w pracy Testera — kompletny przewodnik | 2287 |
-| 27 | 27.2 | Generowanie przypadków testowych i danych testowych | 509 |
-| 27 | 27.3 | Debugowanie wspierane przez sztuczną inteligencję i analiza logów | 530 |
-| 27 | 27.4 | Ryzyka sztucznej inteligencji: prywatność, halucynacje i zarządzanie | 553 |
+| 27 | 27.2 | Generowanie przypadków testowych i danych testowych | 770 |
+| 27 | 27.3 | Debugowanie wspierane przez sztuczną inteligencję i analiza logów | 796 |
+| 27 | 27.4 | Ryzyka sztucznej inteligencji: prywatność, halucynacje i zarządzanie | 823 |
 | 28 | 28.1 | Projekt końcowy: interfejs użytkownika, API, baza danych i CI | 2849 |
 | 28 | 28.2 | GitHub, CV i prezentacja portfolio | 2255 |
 | 28 | 28.3 | Matryca kompetencji testera full stack | 2833 |
@@ -109,13 +82,8 @@ Zakres zmian:
 
 ## Walidacja
 
-Uruchomiono `git diff --check` — brak problemów whitespace.
+Ostatnio uruchamiane walidacje: `git diff --check`, `npm run lint`, `npm run build`.
 
 ## Następny krok
 
-Zgodnie z audytem kolejne moduły o najwyższym priorytecie to:
-
-1. `24` — k6 i JMeter;
-2. `25` — DevOps, sieci, Docker Compose, Kubernetes;
-3. `27` — AI/LLM, OWASP LLM Top 10, NIST AI RMF;
-4. następnie doprecyzowanie modułów `21`, `22`, `23`.
+Kolejne rekomendowane obszary: `21` AsyncAPI/contract drift, `22` Kafka/RabbitMQ/NATS/CloudEvents, `23` OpenTelemetry Collector/PromQL/semantic conventions, a następnie doprecyzowanie `18`, `20`, `26`, `28`.

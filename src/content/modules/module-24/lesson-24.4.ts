@@ -5,7 +5,7 @@ export const lesson24_4: Lesson = {
   "id": "24.4",
   "moduleId": 24,
   "title": "Analiza wąskich gardeł i budżet wydajności",
-  "description": "p95/p99, RPS, przepustowość, współczynnik błędów, zasoby, baseline, wąskie gardła, regresje i raportowanie wyników wydajnościowych.",
+  "description": "Analiza bottlenecków: latency, throughput, error rate, percentyle, saturation, DB/app/API/generator, budżety wydajności i raport.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson24_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Grafana k6 Documentation",
-        "url": "https://grafana.com/docs/k6/latest/",
-        "description": "Dokumentacja k6: scenariusze, metryki, progi jakości i uruchamianie testów obciążeniowych."
+        "title": "k6 Metrics",
+        "url": "https://grafana.com/docs/k6/latest/using-k6/metrics/",
+        "description": "Metryki k6."
       },
       {
-        "title": "Apache JMeter User Manual",
-        "url": "https://jmeter.apache.org/usermanual/get-started.html",
-        "description": "Podręcznik JMetera do testów protokołów i planów obciążenia."
+        "title": "Prometheus Overview",
+        "url": "https://prometheus.io/docs/introduction/overview/",
+        "description": "Metryki i monitoring systemów."
       },
       {
-        "title": "Google Web.dev Performance",
-        "url": "https://web.dev/performance/",
-        "description": "Materiały o wydajności aplikacji webowych i doświadczeniu użytkownika."
-      },
-      {
-        "title": "SRE Book - Monitoring Distributed Systems",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i niezawodności w systemach produkcyjnych."
+        "title": "OpenTelemetry",
+        "url": "https://opentelemetry.io/docs/",
+        "description": "Traces, metrics i logs do diagnozy."
       }
     ],
     "tipsAndTricks": [

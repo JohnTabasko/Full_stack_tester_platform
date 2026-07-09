@@ -1,77 +1,182 @@
 # JMeter i testy protokołów
 
-> Moduł dwudziesty czwarty uczy prowadzić testy wydajnościowe jako eksperyment inżynierski. Obciążenie bez hipotezy, metryk i progów jest tylko ruchem generowanym w systemie.
+Apache JMeter to dojrzałe narzędzie do testów obciążeniowych i testów protokołów. W przeciwieństwie do k6, JMeter jest oparty o JVM i ma graficzny interfejs do budowania planów testów. W praktyce JMeter jest często spotykany w firmach enterprise, gdzie testuje się HTTP, JDBC, JMS, SOAP, LDAP, FTP i inne protokoły.
 
-## Jak czytać ten moduł
+Najważniejsza zasada z oficjalnej dokumentacji JMeter: **plan testu można budować i debugować w GUI, ale load testy uruchamia się w trybie CLI/non-GUI**. GUI zużywa zasoby i zniekształca wyniki.
 
-Czytaj ten moduł przez pryzmat pytania: jaką decyzję ma wspierać test wydajnościowy? Czy system wytrzyma normalny ruch, gdzie jest granica, co stanie się przy piku, czy długotrwała praca degraduje usługę i czy wynik mieści się w budżecie?
+## 1. Test Plan
 
-Trzy zasady modułu:
+Test Plan to główny kontener konfiguracji. Zawiera Thread Groups, samplers, config elements, timers, assertions i listeners. Test Plan powinien mieć jasny cel: np. „load test katalogu produktów przy 500 użytkownikach”.
 
-1. **Najpierw hipoteza, potem ruch.** Test bez celu nie daje wiedzy.
-2. **Percentyle są ważniejsze niż średnia.** Użytkownik w ogonie rozkładu też jest użytkownikiem.
-3. **Wynik wymaga metryk systemu.** Bez CPU, pamięci, bazy i logów znasz objaw, nie przyczynę.
+Nie traktuj `.jmx` jak przypadkowego pliku klikniętego w GUI. To kod testowy i powinien być wersjonowany, reviewowany i opisany.
 
+## 2. Thread Group
 
-## Cel lekcji
+Thread Group definiuje użytkowników wirtualnych:
 
-Ta lekcja koncentruje się na: **thread groups, samplers, assertions, timers, listeners, parametryzacja, korelacja i utrzymywanie dużych planów testów protokołów**. Główne ryzyko: **plan JMeter staje się nieczytelnym zbiorem samplerów, który trudno wersjonować, parametryzować i uruchamiać w CI**. Po lekturze powinieneś umieć zaprojektować test wydajnościowy z hipotezą, profilem obciążenia, progami i interpretacją wyników.
+- liczba threads;
+- ramp-up;
+- liczba iteracji;
+- czas trwania;
+- zachowanie przy błędzie.
 
-## Sytuacja przewodnia
-
-organizacja ma istniejące testy JMeter dla HTTP i JMS, ale raporty są trudne do interpretacji, a dane użytkowników są wpisane na stałe
-
-## 1. JMeter jako narzędzie protokołów
-
-JMeter jest mocny w testach protokołów i starszych ekosystemach. Dobrze obsługuje HTTP, JDBC, JMS i złożone plany, ale wymaga dyscypliny organizacyjnej.
-
-## 2. Thread groups i samplers
-
-Thread group definiuje użytkowników i czas wykonania, a sampler wykonuje konkretną operację protokołu. Nazwy powinny opisywać zachowanie, nie tylko endpoint.
-
-## 3. Assertions i timers
-
-Assertions sprawdzają poprawność odpowiedzi, a timers kształtują ruch. Bez timerów test może generować nierealistyczne obciążenie.
-
-## 4. Parametryzacja i korelacja
-
-Dane powinny pochodzić z plików, zmiennych lub setupu, a nie być wpisane na stałe. Korelacja pozwala przenosić tokeny i identyfikatory między żądaniami.
-
-## 5. Utrzymywalność planów
-
-Duży plan JMeter wymaga konwencji nazw, modułów, wersjonowania i uruchamiania headless w CI. GUI jest dobre do projektowania, nie do pipeline.
-
-## Przykład referencyjny
+Przykład interpretacji:
 
 ```text
-Plan testu JMeter:
-
-Thread Group: Checkout users
-  CSV Data Set Config: users.csv
-  HTTP Request Defaults: ${BASE_URL}
-  Transaction Controller: Checkout
-    HTTP Request: GET /products/${productId}
-    HTTP Request: POST /cart
-    HTTP Request: POST /checkout
-  Response Assertion: status 2xx
-  Constant Throughput Timer: 120 req/min
-  Summary Report / JTL output
+100 threads
+ramp-up 5 minut
+czas trwania 20 minut
 ```
 
-Przykład pokazuje, że test wydajnościowy powinien mieć profil ruchu, checks, thresholds i sposób interpretacji. Samo wysłanie wielu żądań nie wystarcza.
+To oznacza stopniowe dojście do 100 równoległych użytkowników w ciągu 5 minut i utrzymanie obciążenia.
 
-## Lista kontrolna
+## 3. Samplers
 
-- Czy test ma hipotezę?
-- Czy profil obciążenia odpowiada realnemu lub planowanemu ruchowi?
-- Czy są progi p95/p99, error rate i throughput?
-- Czy środowisko jest kontrolowane?
-- Czy zbierasz metryki aplikacji i infrastruktury?
-- Czy raport prowadzi do decyzji technicznej?
+Sampler wykonuje operację:
 
+- HTTP Request;
+- JDBC Request;
+- JMS Publisher/Subscriber;
+- SOAP/XML-RPC;
+- TCP Sampler.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Dla testów web/API najczęściej używasz HTTP Request. Ustawiaj metodę, URL, body, headers i parametry. Nie zapominaj o `Content-Type` i autoryzacji.
+
+## 4. Config Elements
+
+Config Elements dostarczają wspólną konfigurację:
+
+- HTTP Request Defaults;
+- HTTP Header Manager;
+- Cookie Manager;
+- Cache Manager;
+- CSV Data Set Config;
+- JDBC Connection Configuration.
+
+Dzięki nim nie powtarzasz base URL, nagłówków i danych użytkowników w każdym samplerze.
+
+## 5. Timers
+
+Bez timerów JMeter może generować nienaturalny ruch: każdy thread wysyła requesty natychmiast po sobie. Timery symulują think time użytkownika.
+
+Przykłady:
+
+- Constant Timer;
+- Gaussian Random Timer;
+- Uniform Random Timer;
+- Throughput Shaping Timer.
+
+Think time powinien wynikać z realnego profilu ruchu, nie z przypadku.
+
+## 6. Assertions
+
+Assertions sprawdzają poprawność odpowiedzi:
+
+- Response Assertion;
+- JSON Assertion;
+- Duration Assertion;
+- Size Assertion;
+- JSR223 Assertion.
+
+Test wydajnościowy bez asercji może mierzyć szybkość błędnych odpowiedzi. Najpierw sprawdź, że odpowiedź jest poprawna, dopiero potem interpretuj latency.
+
+## 7. Listeners
+
+Listeners pokazują wyniki, ale w dużych testach mogą spowalniać JMeter. Do debugowania w GUI używa się View Results Tree. Do load testów lepiej zapisywać wyniki do pliku JTL i generować HTML report.
+
+Uruchomienie CLI:
+
+```bash
+jmeter -n -t test-plan.jmx -l results.jtl -e -o report/
+```
+
+- `-n` — non-GUI mode;
+- `-t` — plik test planu;
+- `-l` — wyniki JTL;
+- `-e -o` — generowanie HTML dashboard.
+
+## 8. CSV Data Set Config
+
+CSV Data Set Config pozwala zasilać test danymi:
+
+```text
+email,password
+user1@example.test,secret
+user2@example.test,secret
+```
+
+Dane powinny być unikalne, jeśli operacje modyfikują stan. W przeciwnym razie wirtualni użytkownicy będą blokować się nawzajem.
+
+## 9. Distributed testing
+
+JMeter może działać rozproszony: jeden controller i wiele generatorów obciążenia. To przydatne przy dużym ruchu, ale wymaga synchronizacji wersji JMeter, pluginów, danych i sieci.
+
+Zanim skalujesz generator, sprawdź, czy wąskim gardłem nie jest sam injector. Monitoruj CPU, RAM, GC i sieć maszyn JMeter.
+
+## 10. JMeter vs k6
+
+JMeter:
+
+- mocny w enterprise i wielu protokołach;
+- GUI ułatwia start;
+- JVM i pluginy;
+- dobry dla JDBC/JMS/SOAP.
+
+k6:
+
+- skrypty jako kod JS;
+- łatwiejszy w CI/Git review;
+- lekki i nowoczesny;
+- mocny dla HTTP/API i automatyzacji.
+
+Wybór zależy od ekosystemu i protokołów.
+
+## 11. Checklista JMeter
+
+- Czy load test uruchamiasz w non-GUI mode?
+- Czy Test Plan ma opisany cel i profil obciążenia?
+- Czy są assertions poprawności odpowiedzi?
+- Czy dane z CSV są izolowane?
+- Czy listeners nie spowalniają testu?
+- Czy monitorujesz maszynę generującą obciążenie?
+- Czy raport HTML jest archiwizowany?
+
+## Linki
+
+- [Apache JMeter Getting Started](https://jmeter.apache.org/usermanual/get-started.html)
+- [JMeter Best Practices](https://jmeter.apache.org/usermanual/best-practices.html)
+- [JMeter Component Reference](https://jmeter.apache.org/usermanual/component_reference.html)
+- [JMeter Dashboard Report](https://jmeter.apache.org/usermanual/generating-dashboard.html)
+
+## 12. Korelacja i zmienne
+
+JMeter potrafi wyciągać dane z odpowiedzi i używać ich w kolejnych requestach, np. token CSRF albo ID zamówienia. Służą do tego extractory:
+
+- JSON Extractor;
+- Regular Expression Extractor;
+- XPath Extractor;
+- CSS/JQuery Extractor.
+
+Bez korelacji test może działać tylko na nagranym, statycznym scenariuszu i szybko przestanie być realistyczny.
+
+## 13. CLI w CI
+
+W CI używaj non-GUI mode:
+
+```bash
+jmeter -n -t checkout.jmx -l results.jtl -e -o report
+```
+
+Publikuj `results.jtl` i `report/` jako artefakty. Jeśli test ma progi jakości, pipeline powinien zakończyć się błędem przy ich przekroczeniu.
+
+## 14. Dane i środowisko
+
+JMeter potrafi wygenerować bardzo duży ruch. Nie uruchamiaj testów na współdzielonym stagingu bez uzgodnienia. Ustal okno testowe, dane, limity i monitoring. W przeciwnym razie test wydajnościowy stanie się incydentem dla innych zespołów.
+
+## 15. Progi w JMeter
+
+JMeter nie ma identycznego mechanizmu thresholds jak k6, ale możesz egzekwować progi przez assertions, analizę JTL albo pluginy. W CI często stosuje się skrypt, który czyta `results.jtl` i sprawdza p95, error rate oraz liczbę błędów.
+
+## 16. Zasada końcowa
+
+JMeter jest najcenniejszy, gdy traktujesz Test Plan jak kod: wersjonujesz, uruchamiasz w CLI, publikujesz raport i opisujesz profil obciążenia.

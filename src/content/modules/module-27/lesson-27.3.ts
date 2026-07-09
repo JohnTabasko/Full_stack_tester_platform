@@ -5,7 +5,7 @@ export const lesson27_3: Lesson = {
   "id": "27.3",
   "moduleId": 27,
   "title": "Debugowanie wspierane przez sztuczną inteligencję i analiza logów",
-  "description": "Podsumowanie trace, logów, stack trace, hipotezy przyczyn, analiza niestabilnych testów i ograniczenia automatycznych rekomendacji.",
+  "description": "AI-assisted debugging: analiza logów, trace, stack trace, hipotezy, redakcja danych, evals jakości odpowiedzi i human verification.",
   "order": 3,
   "difficulty": "intermediate",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson27_3: Lesson = {
     ],
     "references": [
       {
-        "title": "OWASP Top 10 for LLM Applications",
+        "title": "OWASP LLM Top 10",
         "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "description": "Najważniejsze ryzyka bezpieczeństwa aplikacji korzystających z modeli językowych."
+        "description": "Bezpieczeństwo i ryzyka LLM."
       },
       {
-        "title": "NIST AI Risk Management Framework",
-        "url": "https://www.nist.gov/itl/ai-risk-management-framework",
-        "description": "Ramy zarządzania ryzykiem systemów AI."
+        "title": "OpenTelemetry",
+        "url": "https://opentelemetry.io/docs/",
+        "description": "Telemetry data: traces, metrics, logs."
       },
       {
-        "title": "Google People + AI Guidebook",
-        "url": "https://pair.withgoogle.com/guidebook/",
-        "description": "Praktyczne wskazówki projektowania systemów wspieranych przez AI z człowiekiem w pętli decyzyjnej."
-      },
-      {
-        "title": "Microsoft Responsible AI",
-        "url": "https://www.microsoft.com/ai/responsible-ai",
-        "description": "Materiały o odpowiedzialnym użyciu AI, prywatności i kontroli jakości."
+        "title": "Playwright Trace Viewer",
+        "url": "https://playwright.dev/docs/trace-viewer",
+        "description": "Trace jako źródło dowodów."
       }
     ],
     "tipsAndTricks": [

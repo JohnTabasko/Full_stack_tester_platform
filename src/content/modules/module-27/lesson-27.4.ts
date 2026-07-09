@@ -5,7 +5,7 @@ export const lesson27_4: Lesson = {
   "id": "27.4",
   "moduleId": 27,
   "title": "Ryzyka sztucznej inteligencji: prywatność, halucynacje i zarządzanie",
-  "description": "Bezpieczeństwo danych, redakcja sekretów, deterministyczność, human-in-the-loop, polityki zespołowe i odpowiedzialne użycie AI.",
+  "description": "Ryzyka AI: prywatność, halucynacje, prompt injection, insecure output handling, excessive agency, overreliance, NIST AI RMF i governance.",
   "order": 4,
   "difficulty": "intermediate",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson27_4: Lesson = {
     ],
     "references": [
       {
-        "title": "OWASP Top 10 for LLM Applications",
+        "title": "OWASP LLM Top 10",
         "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "description": "Najważniejsze ryzyka bezpieczeństwa aplikacji korzystających z modeli językowych."
+        "description": "Najważniejsze ryzyka aplikacji LLM."
       },
       {
-        "title": "NIST AI Risk Management Framework",
+        "title": "OWASP GenAI Security",
+        "url": "https://genai.owasp.org/",
+        "description": "Projekt bezpieczeństwa GenAI."
+      },
+      {
+        "title": "NIST AI RMF",
         "url": "https://www.nist.gov/itl/ai-risk-management-framework",
-        "description": "Ramy zarządzania ryzykiem systemów AI."
-      },
-      {
-        "title": "Google People + AI Guidebook",
-        "url": "https://pair.withgoogle.com/guidebook/",
-        "description": "Praktyczne wskazówki projektowania systemów wspieranych przez AI z człowiekiem w pętli decyzyjnej."
-      },
-      {
-        "title": "Microsoft Responsible AI",
-        "url": "https://www.microsoft.com/ai/responsible-ai",
-        "description": "Materiały o odpowiedzialnym użyciu AI, prywatności i kontroli jakości."
+        "description": "Govern, map, measure, manage dla AI risk."
       }
     ],
     "tipsAndTricks": [

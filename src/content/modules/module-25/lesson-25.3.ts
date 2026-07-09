@@ -5,7 +5,7 @@ export const lesson25_3: Lesson = {
   "id": "25.3",
   "moduleId": 25,
   "title": "Docker Compose dla środowisk testowych",
-  "description": "Uruchamianie aplikacji, baz i zależności, healthchecki, sieci, wolumeny, seedowanie kontenerów i powtarzalność środowiska.",
+  "description": "Docker Compose dla testów: services, networks, volumes, environment, healthcheck, seed, migracje, profiles, logi, CI i sekrety.",
   "order": 3,
   "difficulty": "intermediate",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson25_3: Lesson = {
     ],
     "references": [
       {
-        "title": "The Linux Command Line",
-        "url": "https://linuxcommand.org/tlcl.php",
-        "description": "Przystępne wprowadzenie do pracy w terminalu Linux."
-      },
-      {
-        "title": "Docker Compose Documentation",
+        "title": "Docker Compose",
         "url": "https://docs.docker.com/compose/",
-        "description": "Dokumentacja uruchamiania wielokontenerowych środowisk lokalnych i testowych."
+        "description": "Oficjalna dokumentacja Compose."
       },
       {
-        "title": "Kubernetes Documentation",
-        "url": "https://kubernetes.io/docs/home/",
-        "description": "Oficjalna dokumentacja Kubernetes."
+        "title": "Dockerfile Reference",
+        "url": "https://docs.docker.com/reference/dockerfile/",
+        "description": "Budowanie obrazów."
       },
       {
-        "title": "Mozilla MDN - HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Rzetelne źródło wiedzy o HTTP, nagłówkach, ciasteczka, CORS i TLS."
+        "title": "Playwright Docker",
+        "url": "https://playwright.dev/docs/docker",
+        "description": "Playwright w kontenerach."
       }
     ],
     "tipsAndTricks": [

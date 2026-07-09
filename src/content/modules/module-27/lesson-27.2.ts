@@ -5,7 +5,7 @@ export const lesson27_2: Lesson = {
   "id": "27.2",
   "moduleId": 27,
   "title": "Generowanie przypadków testowych i danych testowych",
-  "description": "Tworzenie macierzy przypadków, danych brzegowych, scenariuszy negatywnych, danych syntetycznych i walidacja wyników AI.",
+  "description": "AI do generowania przypadków i danych: prompt patterns, traceability, review, dane syntetyczne, prywatność, halucynacje i poziom testu.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson27_2: Lesson = {
     ],
     "references": [
       {
-        "title": "OWASP Top 10 for LLM Applications",
-        "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "description": "Najważniejsze ryzyka bezpieczeństwa aplikacji korzystających z modeli językowych."
-      },
-      {
-        "title": "NIST AI Risk Management Framework",
+        "title": "NIST AI RMF",
         "url": "https://www.nist.gov/itl/ai-risk-management-framework",
-        "description": "Ramy zarządzania ryzykiem systemów AI."
+        "description": "Ramy zarządzania ryzykiem AI."
       },
       {
-        "title": "Google People + AI Guidebook",
-        "url": "https://pair.withgoogle.com/guidebook/",
-        "description": "Praktyczne wskazówki projektowania systemów wspieranych przez AI z człowiekiem w pętli decyzyjnej."
+        "title": "OWASP LLM Top 10",
+        "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+        "description": "Ryzyka aplikacji LLM."
       },
       {
-        "title": "Microsoft Responsible AI",
-        "url": "https://www.microsoft.com/ai/responsible-ai",
-        "description": "Materiały o odpowiedzialnym użyciu AI, prywatności i kontroli jakości."
+        "title": "OpenAI API Docs",
+        "url": "https://platform.openai.com/docs",
+        "description": "Dokumentacja API i pracy z modelami."
       }
     ],
     "tipsAndTricks": [

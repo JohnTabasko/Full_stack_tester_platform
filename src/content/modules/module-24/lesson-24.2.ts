@@ -5,7 +5,7 @@ export const lesson24_2: Lesson = {
   "id": "24.2",
   "moduleId": 24,
   "title": "Podstawy k6",
-  "description": "Scenariusze k6, wirtualni użytkownicy, stages, progi jakości, checks, custom metrics, raportowanie i uruchamianie testów wydajnościowych w CI.",
+  "description": "Podstawy k6: lifecycle, VUs, scenarios, executors, checks, thresholds, custom metrics, typy testów, dane i CI quality gates.",
   "order": 2,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson24_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Grafana k6 Documentation",
+        "title": "Grafana k6",
         "url": "https://grafana.com/docs/k6/latest/",
-        "description": "Dokumentacja k6: scenariusze, metryki, progi jakości i uruchamianie testów obciążeniowych."
+        "description": "Oficjalna dokumentacja k6."
       },
       {
-        "title": "Apache JMeter User Manual",
-        "url": "https://jmeter.apache.org/usermanual/get-started.html",
-        "description": "Podręcznik JMetera do testów protokołów i planów obciążenia."
+        "title": "k6 Scenarios",
+        "url": "https://grafana.com/docs/k6/latest/using-k6/scenarios/",
+        "description": "Scenarios i executors."
       },
       {
-        "title": "Google Web.dev Performance",
-        "url": "https://web.dev/performance/",
-        "description": "Materiały o wydajności aplikacji webowych i doświadczeniu użytkownika."
-      },
-      {
-        "title": "SRE Book - Monitoring Distributed Systems",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i niezawodności w systemach produkcyjnych."
+        "title": "k6 Thresholds",
+        "url": "https://grafana.com/docs/k6/latest/using-k6/thresholds/",
+        "description": "Progi jakości jako quality gates."
       }
     ],
     "tipsAndTricks": [

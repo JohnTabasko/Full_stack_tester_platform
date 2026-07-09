@@ -5,7 +5,7 @@ export const lesson25_2: Lesson = {
   "id": "25.2",
   "moduleId": 25,
   "title": "Podstawy sieci",
-  "description": "DNS, HTTP/TLS, porty, proxy, CORS, ciasteczka, nagłówki i debugowanie problemów sieciowych w środowiskach testowych.",
+  "description": "Podstawy sieci dla testera: DNS, localhost, porty, HTTP, status codes, headers, cookies, TLS, CORS, proxy, VPN i narzędzia diagnostyczne.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -156,24 +156,19 @@ export const lesson25_2: Lesson = {
     ],
     "references": [
       {
-        "title": "The Linux Command Line",
-        "url": "https://linuxcommand.org/tlcl.php",
-        "description": "Przystępne wprowadzenie do pracy w terminalu Linux."
-      },
-      {
-        "title": "Docker Compose Documentation",
-        "url": "https://docs.docker.com/compose/",
-        "description": "Dokumentacja uruchamiania wielokontenerowych środowisk lokalnych i testowych."
-      },
-      {
-        "title": "Kubernetes Documentation",
-        "url": "https://kubernetes.io/docs/home/",
-        "description": "Oficjalna dokumentacja Kubernetes."
-      },
-      {
-        "title": "Mozilla MDN - HTTP",
+        "title": "MDN HTTP",
         "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Rzetelne źródło wiedzy o HTTP, nagłówkach, ciasteczka, CORS i TLS."
+        "description": "HTTP, statusy, nagłówki i podstawy web."
+      },
+      {
+        "title": "MDN CORS",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+        "description": "CORS w przeglądarce."
+      },
+      {
+        "title": "Docker Networking",
+        "url": "https://docs.docker.com/network/",
+        "description": "Sieci kontenerów i nazwy usług."
       }
     ],
     "tipsAndTricks": [

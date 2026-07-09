@@ -1,87 +1,225 @@
 # Docker Compose dla środowisk testowych
 
-> Moduł dwudziesty piąty daje testerowi praktyczny warsztat pracy ze środowiskiem: terminalem, siecią, kontenerami, Kubernetes, sekretami i flagami funkcji. Wiele awarii testów nie wynika z Playwrighta, lecz z infrastruktury i konfiguracji.
+Docker Compose pozwala uruchomić aplikację i jej zależności w powtarzalny sposób: bazę danych, cache, broker wiadomości, mail server, mocki API, aplikację backendową i frontend. Dla Full Stack Testera to narzędzie do eliminowania problemu „u mnie działa”.
 
-## Jak czytać ten moduł
+Środowisko testowe jest częścią automatyzacji. Jeśli nie jest wersjonowane, obserwowalne i możliwe do odtworzenia, testy będą niestabilne.
 
-Czytaj ten moduł jak zestaw narzędzi diagnostycznych. Nie chodzi o zostanie administratorem systemów, lecz o umiejętność samodzielnego sprawdzenia, czy aplikacja działa, czy API jest osiągalne, czy kontener jest gotowy, czy sekret istnieje i czy flaga funkcji ma właściwy stan.
+## 1. Podstawowe pojęcia Compose
 
-Trzy zasady modułu:
+Compose opisuje usługi w pliku `compose.yml`:
 
-1. **Środowisko jest częścią testu.** Jeśli jest niejawne, wynik testu jest niepewny.
-2. **Diagnozuj warstwami.** DNS, sieć, proces, kontener, aplikacja, dane i test to różne klasy problemów.
-3. **Nie loguj sekretów.** Diagnostyka nie może naruszać bezpieczeństwa.
+```yaml
+services:
+  db:
+    image: postgres:16
+  redis:
+    image: redis:7
+  api:
+    build: .
+```
 
+Najważniejsze elementy:
 
-## Cel lekcji
+- **services** — kontenery;
+- **networks** — sieci między kontenerami;
+- **volumes** — trwałe dane;
+- **environment** — zmienne środowiskowe;
+- **ports** — mapowanie portów na hosta;
+- **depends_on** — zależności startu;
+- **healthcheck** — gotowość usługi.
 
-Ta lekcja koncentruje się na: **uruchamianie aplikacji, baz i zależności, healthchecki, sieci, wolumeny, seedowanie kontenerów i powtarzalność środowiska**. Główne ryzyko: **środowisko testowe jest uruchamiane ręcznie, zależności startują w przypadkowej kolejności, a dane w wolumenach powodują niepowtarzalne wyniki**. Po lekturze powinieneś umieć diagnozować środowisko testowe i odróżniać problem infrastruktury od błędu aplikacji lub testu.
-
-## Sytuacja przewodnia
-
-lokalny smoke test wymaga aplikacji, PostgreSQL, Redis i Mailpit, które mają startować jedną komendą i być gotowe przed testami
-
-## 1. Compose jako opis środowiska
-
-Docker Compose pozwala opisać aplikację i jej zależności w jednym pliku. Dzięki temu środowisko jest łatwiejsze do odtworzenia lokalnie i w CI.
-
-## 2. Healthcheck
-
-depends_on bez healthchecka oznacza tylko, że kontener wystartował, nie że usługa jest gotowa. Testy powinny startować po gotowości zależności.
-
-## 3. Sieci
-
-Kontenery komunikują się po nazwach usług w sieci Compose. To inny model niż localhost na komputerze hosta.
-
-## 4. Wolumeny
-
-Wolumeny przechowują stan. Są przydatne, ale w testach mogą powodować zależność od poprzednich uruchomień, jeśli nie są czyszczone.
-
-## 5. Seedowanie
-
-Seed kontenerów powinien być deterministyczny i idempotentny. Wielokrotne uruchomienie nie powinno psuć środowiska.
-
-## Przykład referencyjny
+## 2. Przykład środowiska testowego
 
 ```yaml
 services:
   db:
     image: postgres:16
     environment:
+      POSTGRES_USER: app
       POSTGRES_PASSWORD: test
       POSTGRES_DB: app_test
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ["CMD-SHELL", "pg_isready -U app -d app_test"]
       interval: 5s
       timeout: 3s
       retries: 20
+
   mailpit:
     image: axllent/mailpit:latest
-    ports: ['8025:8025']
-  app:
+    ports:
+      - "8025:8025"
+
+  api:
     build: .
+    environment:
+      DATABASE_URL: postgres://app:test@db:5432/app_test
+      SMTP_HOST: mailpit
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgres://postgres:test@db:5432/app_test
 ```
 
-Przykład pokazuje, że diagnostyka środowiska powinna być konkretna: sprawdzamy healthcheck, sieć, konfigurację i stan zależności, zamiast zgadywać przyczynę awarii.
+Aplikacja w kontenerze `api` łączy się z bazą przez host `db`, nie `localhost`.
 
-## Lista kontrolna
+## 3. Healthcheck zamiast sleep
 
-- Czy umiesz sprawdzić healthcheck aplikacji?
-- Czy potrafisz odróżnić błąd DNS, TLS, CORS i cookie?
-- Czy kontenery mają healthchecki?
-- Czy dane w wolumenach nie zanieczyszczają testów?
-- Czy sekrety są poza logami i repozytorium?
-- Czy stan flag funkcji jest jawny dla testu?
+Antywzorzec:
 
-## Głębsza analiza tematu: SQL
+```bash
+sleep 20
+npm test
+```
 
-Bezpośredni dostęp do bazy danych w testach Playwright pozwala na:
-1. **Weryfikację danych**: Sprawdź czy po rejestracji rekord w tabeli `users` faktycznie powstał.
-2. **Setup danych**: Wstaw zamówienie bezpośrednio do bazy, aby od razu przetestować stronę jego szczegółów.
-3. **Cleanup**: Usuń użytkownika po teście, aby nie zaśmiecać środowiska.
-Używaj bibliotek takich jak `pg` (PostgreSQL) czy `mysql2` wewnątrz swoich testów lub fikstur.
+Lepsze: healthcheck w Compose i czekanie na gotowość. Baza może wystartować w 3 sekundy albo 40 sekund. Sleep zawsze będzie albo za długi, albo za krótki.
+
+## 4. Sieci
+
+Compose tworzy domyślną sieć. Usługi widzą się po nazwach:
+
+```text
+api -> db:5432
+api -> redis:6379
+api -> mailpit:1025
+```
+
+Jeśli test uruchamiasz na hoście, używa mapowanego portu, np. `localhost:8025`. Jeśli test uruchamiasz w kontenerze, używa nazwy usługi.
+
+## 5. Volumes i czystość danych
+
+W testach często chcesz świeżą bazę. Uważaj na named volumes, bo przechowują dane między uruchomieniami.
+
+Komendy:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+`-v` usuwa volumes. Używaj świadomie, aby nie skasować danych potrzebnych do diagnostyki.
+
+## 6. Seed i migracje
+
+Środowisko powinno wykonywać migracje i seed danych referencyjnych:
+
+```bash
+npm run db:migrate
+npm run db:seed:test
+```
+
+Możesz zrobić to w skrypcie CI po `docker compose up` albo jako osobny kontener job.
+
+## 7. Profiles
+
+Profiles pozwalają uruchamiać tylko część usług:
+
+```yaml
+services:
+  grafana:
+    image: grafana/grafana
+    profiles: ["observability"]
+```
+
+Uruchomienie:
+
+```bash
+docker compose --profile observability up -d
+```
+
+To przydatne, gdy lokalnie nie zawsze potrzebujesz pełnego stosu.
+
+## 8. Logi i diagnostyka
+
+Przy awarii zbierz:
+
+```bash
+docker compose ps
+docker compose logs --no-color > compose.log
+docker compose logs api
+docker compose exec db psql -U app -d app_test
+```
+
+Logi Compose powinny być artefaktem CI przy awarii testów integracyjnych.
+
+## 9. Compose w CI
+
+Typowy flow:
+
+```bash
+docker compose up -d --build
+docker compose ps
+npm run db:migrate
+npm run test:integration
+docker compose logs --no-color > compose.log
+docker compose down -v
+```
+
+Cleanup w `finally`/`post` jest ważny, aby runner CI nie zostawiał kontenerów.
+
+## 10. Sekrety
+
+Nie wkładaj prawdziwych sekretów do `compose.yml`. Używaj `.env.test`, zmiennych CI albo secret managera. Dane lokalne powinny być testowe i rotowalne.
+
+## 11. Checklista Compose
+
+- Czy każda zależność ma healthcheck?
+- Czy baza jest czysta albo świadomie wersjonowana?
+- Czy migracje i seed są automatyczne?
+- Czy test wie, czy działa na hoście czy w kontenerze?
+- Czy logi Compose są zbierane przy awarii?
+- Czy sekrety nie są zapisane w repozytorium?
+- Czy `docker compose down -v` jest używane świadomie?
+
+## Linki
+
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [Dockerfile Reference](https://docs.docker.com/reference/dockerfile/)
+- [Docker Networking](https://docs.docker.com/network/)
+- [Playwright Docker](https://playwright.dev/docs/docker)
+
+## 12. Mocki i usługi pomocnicze
+
+Compose świetnie nadaje się do uruchomienia usług pomocniczych:
+
+- Mailpit/MailHog dla emaili;
+- WireMock dla zewnętrznych API;
+- LocalStack dla usług AWS;
+- Redis dla cache;
+- Kafka/RabbitMQ dla eventów.
+
+Dzięki temu lokalne testy integracyjne mogą działać bez prawdziwych dostawców.
+
+## 13. Compose override
+
+Możesz mieć bazowy plik i override dla testów:
+
+```bash
+docker compose -f compose.yml -f compose.test.yml up -d
+```
+
+W override ustawiasz testowe zmienne, inne porty, mniejsze zasoby albo mocki. To utrzymuje konfigurację produkcyjnie podobną, ale bezpieczną dla testów.
+
+## 14. Zasada końcowa
+
+Compose nie jest tylko narzędziem uruchomienia. Jest wykonywalną dokumentacją zależności systemu. Jeśli nowa osoba nie może uruchomić testowego środowiska jedną komendą, automatyzacja nie jest kompletna.
+
+## 15. Czekanie na aplikację
+
+Aplikacja może wystartować jako proces, ale nie być gotowa. Dodaj endpoint health i sprawdzaj go przed testami:
+
+```bash
+until curl -f http://localhost:3000/health; do sleep 1; done
+```
+
+To nadal pętla, ale czeka na stan, nie na arbitralny czas.
+
+## 16. Deterministyczność obrazów
+
+Nie używaj bezmyślnie `latest` dla krytycznych zależności. Obraz `postgres:latest` może zmienić wersję i zachowanie. Preferuj konkretne wersje, np. `postgres:16`, i aktualizuj je świadomie.
+
+## 17. Zasada końcowa
+
+Dobre środowisko Compose jest małe, szybkie, opisane i możliwe do usunięcia bez żalu. Jeśli boisz się wykonać `down -v`, dane testowe nie są dobrze zaprojektowane.
+
+## 18. Compose a testy równoległe
+
+Jeśli kilka pipeline’ów uruchamia Compose na jednej maszynie, porty mogą kolidować. Rozwiązania: dynamiczne porty, osobne project name przez `COMPOSE_PROJECT_NAME`, albo osobne runnery. Dane również muszą być izolowane, np. osobna baza lub `runId`.

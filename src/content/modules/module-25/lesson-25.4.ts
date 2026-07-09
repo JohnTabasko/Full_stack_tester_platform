@@ -5,7 +5,7 @@ export const lesson25_4: Lesson = {
   "id": "25.4",
   "moduleId": 25,
   "title": "Kubernetes, sekrety i flagi funkcji",
-  "description": "Podstawy Kubernetes, pody, services, config maps, sekrety, rollout, środowiska efemeryczne, flagi funkcji i kontrolowane wdrożenia.",
+  "description": "Kubernetes dla testera: Pod, Deployment, Service, Ingress, ConfigMap, Secret, probes, kubectl diagnostics, feature flags i environments.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson25_4: Lesson = {
     ],
     "references": [
       {
-        "title": "The Linux Command Line",
-        "url": "https://linuxcommand.org/tlcl.php",
-        "description": "Przystępne wprowadzenie do pracy w terminalu Linux."
-      },
-      {
-        "title": "Docker Compose Documentation",
-        "url": "https://docs.docker.com/compose/",
-        "description": "Dokumentacja uruchamiania wielokontenerowych środowisk lokalnych i testowych."
-      },
-      {
-        "title": "Kubernetes Documentation",
+        "title": "Kubernetes Docs",
         "url": "https://kubernetes.io/docs/home/",
         "description": "Oficjalna dokumentacja Kubernetes."
       },
       {
-        "title": "Mozilla MDN - HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Rzetelne źródło wiedzy o HTTP, nagłówkach, ciasteczka, CORS i TLS."
+        "title": "kubectl Quick Reference",
+        "url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/",
+        "description": "Podstawowe komendy diagnostyczne kubectl."
+      },
+      {
+        "title": "Kubernetes Secrets",
+        "url": "https://kubernetes.io/docs/concepts/configuration/secret/",
+        "description": "Obsługa sekretów w Kubernetes."
       }
     ],
     "tipsAndTricks": [

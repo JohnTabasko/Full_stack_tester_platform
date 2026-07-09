@@ -1,82 +1,175 @@
 # Debugowanie wspierane przez sztuczną inteligencję i analiza logów
 
-> Moduł dwudziesty siódmy uczy korzystać ze sztucznej inteligencji jako wsparcia pracy testera, a nie jako zamiennika myślenia. AI może przyspieszyć analizę, generowanie pomysłów i porządkowanie logów, ale wymaga kontroli prywatności, weryfikacji i odpowiedzialnego procesu.
+AI może pomóc w analizie błędów, logów, trace, stack trace i raportów testów. Może streścić długi log, zaproponować hipotezy, wskazać podobne symptomy i przygotować checklistę diagnostyczną. Nie może jednak zastąpić dowodów z systemu. Debugowanie nadal wymaga weryfikacji w logach, metrykach, trace, kodzie i testach.
 
-## Jak czytać ten moduł
+## 1. AI jako asystent hipotez
 
-Czytaj ten moduł przez pryzmat odpowiedzialności. Model językowy może pomóc wygenerować listę pytań, przypadków, danych lub hipotez, ale nie zna pełnego kontekstu produktu, decyzji biznesowych i ograniczeń prawnych. Tester nadal odpowiada za jakość wniosków.
+Dobry workflow:
 
-Trzy zasady modułu:
+1. Zbierz dane diagnostyczne.
+2. Usuń sekrety i dane osobowe.
+3. Poproś AI o hipotezy, nie o wyrok.
+4. Zweryfikuj hipotezy w systemie.
+5. Dopiero potem popraw test lub produkt.
 
-1. **AI generuje hipotezy, nie prawdę.** Każdy wynik wymaga weryfikacji.
-2. **Dane są granicą bezpieczeństwa.** Nie wklejaj sekretów ani danych osobowych bez zatwierdzonego procesu.
-3. **Review człowieka jest obowiązkowe.** Kod, testy i decyzje wspierane przez AI muszą być sprawdzone.
+Zły workflow: wkleić cały log produkcyjny z tokenami i przyjąć pierwszą odpowiedź jako prawdę.
 
+## 2. Co można analizować z AI
 
-## Cel lekcji
+Bezpieczne po anonimizacji:
 
-Ta lekcja koncentruje się na: **podsumowanie trace, logów, stack trace, hipotezy przyczyn, analiza flaky testów i ograniczenia automatycznych rekomendacji**. Główne ryzyko: **tester wkleja do AI wrażliwe logi albo przyjmuje halucynowaną przyczynę awarii bez weryfikacji w dowodach**. Po lekturze powinieneś umieć korzystać z AI tak, aby zwiększać jakość pracy testera bez utraty kontroli nad prywatnością i poprawnością decyzji.
+- stack trace;
+- fragment logu aplikacji;
+- komunikat błędu Playwright;
+- opis trace;
+- response body bez danych wrażliwych;
+- konfigurację testu;
+- pseudokod;
+- syntetyczny przykład danych.
 
-## Sytuacja przewodnia
+Nie wklejaj:
 
-test płatności pada w CI, raport zawiera trace, logi konsoli i kilka odpowiedzi API, a tester chce uporządkować hipotezy przyczyn
+- tokenów;
+- cookies;
+- danych osobowych;
+- haseł;
+- pełnych logów produkcyjnych bez redakcji;
+- prywatnego kodu, jeśli polityka organizacji tego zabrania.
 
-## 1. AI porządkuje, ale nie dowodzi
+## 3. Prompt do analizy awarii testu
 
-Model może streścić logi i zaproponować hipotezy. Nie ma jednak dostępu do prawdy systemu, jeśli nie dostarczysz dowodów. Hipotezy trzeba potwierdzić.
+```text
+Przeanalizuj awarię testu Playwright. Nie zakładaj jednej przyczyny. Podaj 5 hipotez w kategoriach: locator, dane, auth, network, środowisko. Dla każdej hipotezy podaj, jaki dowód ją potwierdzi lub obali.
 
-## 2. Anonimizacja
-
-Przed wklejeniem logów usuń tokeny, hasła, dane osobowe, identyfikatory klientów i sekrety. Najlepiej używać narzędzia zatwierdzonego przez organizację.
-
-## 3. Hipotezy przyczyn
-
-Dobry prompt prosi o hipotezy i dowody, nie o jedną pewną odpowiedź. To zmniejsza ryzyko halucynacji i wspiera myślenie diagnostyczne.
-
-## 4. Flaky testy
-
-AI może pomóc grupować objawy niestabilności: timeouty, dane, sieć, równoległość, środowisko. Nadal potrzebujesz metryk i powtarzalnych eksperymentów.
-
-## 5. Ograniczenia rekomendacji
-
-Model może zasugerować nieistniejącą opcję Playwrighta albo błędną komendę. Każdą rekomendację techniczną sprawdź w dokumentacji lub eksperymencie.
-
-## Przykład referencyjny
-
-```markdown
-# Prompt do analizy awarii
-
-Oto zanonimizowane dane z awarii testu Playwright.
-Nie zgaduj jednej przyczyny. Przygotuj listę hipotez z dowodami do sprawdzenia.
-
-Dane:
-- krok: kliknięcie „Zapłać”
-- oczekiwano: status „Opłacone”
-- aktualny URL: /checkout
-- response POST /api/payments: 502
-- console error: Payment provider unavailable
-
-Zwróć:
-1. najbardziej prawdopodobne hipotezy
-2. dowody za i przeciw
-3. kolejne komendy lub artefakty do sprawdzenia
-4. czego nie da się ustalić z tych danych
+Kontekst:
+- test: checkout applies coupon
+- error: expect(locator).toHaveText('90 zł') timeout
+- actual UI: 100 zł
+- API /cart response: discountTotal=10
+- środowisko: staging
 ```
 
-Przykład pokazuje, że dobry prompt ogranicza zakres, wymaga uzasadnienia i przypomina o założeniach. AI ma wspierać analizę, a nie zastępować odpowiedzialność testera.
+Dobry wynik AI powinien proponować dowody: sprawdzić render checkoutu, mapping API→UI, cache, feature flag, stan koszyka.
 
-## Lista kontrolna
+## 4. Analiza logów
 
-- Czy prompt zawiera kontekst i oczekiwany format?
-- Czy wynik AI został zweryfikowany?
-- Czy nie przekazano danych osobowych ani sekretów?
-- Czy oznaczono założenia i niewiadome?
-- Czy decyzja końcowa należy do człowieka?
-- Czy zespół ma politykę użycia AI?
+AI może streścić logi, ale przedtem je zredukuj:
 
+- wybierz zakres czasu;
+- filtruj po correlation ID;
+- usuń sekrety;
+- zachowaj statusy, request id, błędy, nazwy usług;
+- dodaj informację o oczekiwanym zachowaniu.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Prompt:
+
+```text
+Podsumuj logi dla correlationId=e2e-123. Wskaż pierwszą anomalię czasową, błędy 5xx, timeouty oraz usługę, która najprawdopodobniej jest źródłem problemu. Nie wymyślaj brakujących danych.
+```
+
+## 5. AI i trace Playwright
+
+Trace zawiera DOM, screenshoty, network i console. Nie zawsze wkleisz trace do AI, ale możesz wkleić streszczenie:
+
+```text
+Trace summary:
+- click Apply coupon succeeded
+- /api/cart returned 200 with discountTotal=10
+- console error: Cannot read property 'amount' of undefined
+- UI total remained 100 zł
+```
+
+AI może zaproponować hipotezę, ale dowód jest w trace i kodzie.
+
+## 6. Debugowanie kodu testu
+
+AI może pomóc znaleźć antywzorce:
+
+- brak `await`;
+- zły locator;
+- `waitForTimeout`;
+- asercja negatywna przechodząca przypadkiem;
+- współdzielone dane;
+- brak cleanupu;
+- race condition eventu.
+
+Prompt powinien zawierać ograniczenie: „Nie zmieniaj celu testu, popraw stabilność i diagnostykę”.
+
+## 7. Evals dla AI debugging
+
+Jeśli zespół intensywnie używa AI, warto oceniać jakość odpowiedzi:
+
+- czy odpowiedź wskazała prawdopodobną przyczynę?
+- czy poprosiła o brakujące dane?
+- czy nie ujawniła niebezpiecznych sugestii?
+- czy nie zaproponowała ukrycia błędu?
+- czy podała kroki weryfikacji?
+
+## 8. Antywzorce
+
+- Wklejanie sekretów do promptu.
+- Przyjmowanie odpowiedzi AI bez weryfikacji.
+- Proszenie AI o „napraw test, żeby przeszedł” bez kontekstu ryzyka.
+- Generowanie dużych zmian bez review.
+- Użycie AI do obejścia asercji zamiast diagnozy.
+- Brak dokumentowania hipotez i dowodów.
+
+## 9. Checklista AI-assisted debugging
+
+- Czy dane są zanonimizowane?
+- Czy prompt zawiera kontekst i oczekiwany rezultat?
+- Czy AI ma podać hipotezy i dowody, a nie jedną pewną odpowiedź?
+- Czy hipotezy zostały sprawdzone w systemie?
+- Czy wynik nie ukrywa defektu?
+- Czy poprawka przeszła review człowieka?
+
+## Linki
+
+- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+- [OpenTelemetry Docs](https://opentelemetry.io/docs/)
+- [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer)
+
+## 10. AI jako rubber duck
+
+Czasem warto użyć AI jak rozmówcy: opisać problem i poprosić o pytania diagnostyczne. Dobry model powinien zapytać o brakujące dane, np. status API, role użytkownika, trace, logi konsoli albo ostatni deploy.
+
+## 11. Bezpieczny format logów
+
+Przed analizą logów przygotuj format:
+
+```json
+{
+  "timestamp": "2026-07-09T10:00:00Z",
+  "service": "orders-api",
+  "level": "error",
+  "message": "payment provider timeout",
+  "correlationId": "e2e-123"
+}
+```
+
+Brak danych osobowych i sekretów, ale zachowany kontekst diagnostyczny.
+
+## 12. Zasada końcowa
+
+AI pomaga szybciej tworzyć hipotezy, ale tylko system może dostarczyć dowód. Każdą sugestię trzeba potwierdzić obserwacją, testem albo dokumentacją.
+
+## 13. AI a root cause analysis
+
+Model może pomóc ułożyć drzewo przyczyn, ale nie powinien sam ogłaszać root cause. Root cause wymaga dowodu: commit, log, metryka, trace, reprodukcja albo eksperyment. Użyj AI do uporządkowania hipotez, a nie do zastąpienia analizy.
+
+## 14. Przykład dobrego pytania
+
+```text
+Na podstawie poniższego zanonimizowanego logu wypisz hipotezy i dowody potrzebne do ich weryfikacji. Nie proponuj zmian w kodzie bez wskazania, jaki dowód je uzasadnia.
+```
+
+Takie ograniczenie zmniejsza ryzyko halucynacyjnej „naprawy”.
+
+## 15. AI a porównywanie runów
+
+AI może pomóc porównać dwa raporty: ostatni zielony run i aktualny czerwony. Przygotuj różnice: commit, lista failed tests, nowe błędy konsoli, zmiana endpointów, czas odpowiedzi. Model może wskazać wzorce, ale nadal wymagany jest dowód w systemie.
+
+## 16. Bezpieczne streszczanie raportów
+
+Raport dla zespołu może być generowany z pomocą AI, jeśli dane są bezpieczne. Dobry prompt powinien prosić o: streszczenie wpływu, pogrupowanie awarii po domenie, wskazanie właścicieli i listę brakujących danych diagnostycznych.
