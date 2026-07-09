@@ -216,3 +216,35 @@ To dobre dla eventual consistency, kolejek, webhooków i procesów backendowych.
 - [GenericAssertions API](https://playwright.dev/docs/api/class-genericassertions)
 - [Jest Expect](https://jestjs.io/docs/expect)
 - [API testing](https://playwright.dev/docs/api-testing)
+
+## 13. Asymmetric matchers
+
+Asymmetric matchers pomagają sprawdzać tylko istotne fragmenty danych:
+
+```typescript
+expect(order).toEqual(expect.objectContaining({
+  id: expect.any(String),
+  status: 'PAID',
+  total: expect.any(Number),
+}));
+```
+
+To dobre dla API, które zwraca dynamiczne pola, np. `createdAt`, `updatedAt`, `requestId`.
+
+## 14. Własny komunikat asercji
+
+W trudnych przypadkach dodaj opis:
+
+```typescript
+expect(order.total, 'suma zamówienia po rabacie powinna być dodatnia').toBeGreaterThan(0);
+```
+
+Komunikat powinien wyjaśniać intencję domenową, nie powtarzać matcher.
+
+## 15. Snapshoty danych — ostrożnie
+
+Snapshot dużego obiektu bywa wygodny, ale często stabilizuje zbyt dużo szczegółów. Preferuj jawne asercje pól ważnych dla kontraktu. Snapshot ma sens dla stabilnych struktur, które są reviewowane i nie zawierają danych losowych.
+
+## 16. Zasada końcowa
+
+Asercje ogólne są najmocniejsze, gdy wyrażają kontrakt danych: typ, format, wymagane pola, kolejność i obsługę błędów. Nie porównuj więcej, niż wymaga scenariusz.

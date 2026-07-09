@@ -201,3 +201,25 @@ To zaawansowany temat, używany np. przy testowaniu rozszerzeń Chrome. W zwykł
 - [Authentication](https://playwright.dev/docs/auth)
 - [Emulation](https://playwright.dev/docs/emulation)
 - [BrowserContext API](https://playwright.dev/docs/api/class-browsercontext)
+
+## 11. BrowserName i projekty Playwright
+
+W Playwright Test rzadko wybierasz przeglądarkę ręcznie przez `chromium.launch()`. Najczęściej robi to runner przez projekty w `playwright.config.ts`:
+
+```typescript
+projects: [
+  { name: 'chromium', use: { browserName: 'chromium' } },
+  { name: 'firefox', use: { browserName: 'firefox' } },
+  { name: 'webkit', use: { browserName: 'webkit' } },
+]
+```
+
+Dzięki temu ten sam test może działać na różnych silnikach, a kod testu nadal używa fixture `page`.
+
+## 12. Kiedy tworzyć kontekst ręcznie
+
+Ręczne `browser.newContext()` ma sens, gdy testujesz wielu użytkowników, wiele ról albo izolowane sesje w jednym scenariuszu. Nie rób tego w każdym teście bez potrzeby, bo Playwright Test już zapewnia izolowany kontekst per test.
+
+## 13. Zasada końcowa
+
+Browser jest kosztowny, context izoluje sesję, a page reprezentuje kartę. Profesjonalny test Playwright zwykle używa fixture `page`, a ręcznie tworzy dodatkowe konteksty tylko wtedy, gdy wymaga tego scenariusz.

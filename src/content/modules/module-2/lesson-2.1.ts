@@ -5,7 +5,7 @@ export const lesson2_1: Lesson = {
   "id": "2.1",
   "moduleId": 2,
   "title": "Przeglądarka, kontekst i strona",
-  "description": "Zrozum hierarchię przeglądarka → kontekst → strona oraz zarządzanie instancjami przeglądarki",
+  "description": "Browser, BrowserContext i Page: projekty, browserName, izolacja kontekstów, storageState, wielu użytkowników, emulacja i ręczne konteksty.",
   "order": 1,
   "difficulty": "beginner",
   "tags": [
@@ -151,26 +151,21 @@ export const lesson2_1: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Dokumentacja obiektów Page, Browser i BrowserContext."
+            "title": "Browser contexts",
+            "url": "https://playwright.dev/docs/browser-contexts",
+            "description": "Izolacja sesji przez BrowserContext."
       },
       {
-        "title": "Playwright Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Oficjalny przewodnik po lokatorach i strategiach wyszukiwania elementów."
+            "title": "Pages",
+            "url": "https://playwright.dev/docs/pages",
+            "description": "Page jako karta i obsługa wielu stron."
       },
       {
-        "title": "Playwright Auto-waiting",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Opis mechanizmu sprawdzanie gotowości elementu do akcji i automatycznego oczekiwania."
-      },
-      {
-        "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/screenshots",
-        "description": "Dokumentacja screenshotów i testów wizualnych."
+            "title": "Projects",
+            "url": "https://playwright.dev/docs/test-projects",
+            "description": "Uruchamianie testów w wielu przeglądarkach i wariantach."
       }
-    ],
+],
     "tipsAndTricks": [
       "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
       "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",

@@ -216,3 +216,22 @@ Uważaj: asercja negatywna może przejść z nieoczekiwanego powodu. `not.toBeVi
 - [LocatorAssertions API](https://playwright.dev/docs/api/class-locatorassertions)
 - [PageAssertions API](https://playwright.dev/docs/api/class-pageassertions)
 - [Best practices](https://playwright.dev/docs/best-practices)
+
+## 15. Asercje dostępnościowe
+
+Playwright udostępnia asercje związane z dostępnością, np. accessible name, description czy error message. Są przydatne, gdy chcesz wykryć regresję niewidoczną wizualnie, ale ważną dla technologii asystujących.
+
+```typescript
+await expect(page.getByRole('button', { name: 'Zapisz' })).toHaveAccessibleName('Zapisz');
+await expect(page.getByLabel('Email')).toHaveAccessibleErrorMessage('Email jest wymagany');
+```
+
+Nie zastępuje to pełnego audytu WCAG, ale wzmacnia zwykłe testy UI.
+
+## 16. Asercje snapshotowe
+
+Dla wybranych przypadków możesz użyć snapshotów wizualnych lub ARIA. Nie stosuj ich jako zamiennika jasnej asercji biznesowej. Snapshot jest dobry dla struktury lub layoutu, ale komunikat „zamówienie opłacone” nadal warto sprawdzić przez `toHaveText`.
+
+## 17. Zasada końcowa
+
+Dobra asercja webowa odpowiada na pytanie: jaki stan użytkownik lub system ma zobaczyć po akcji? Jeśli asercja nie odpowiada na to pytanie, prawdopodobnie jest zbyt techniczna albo zbyt słaba.

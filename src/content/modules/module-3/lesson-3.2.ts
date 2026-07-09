@@ -5,7 +5,7 @@ export const lesson3_2: Lesson = {
   "id": "3.2",
   "moduleId": 3,
   "title": "Asercje ogólne",
-  "description": "Uniwersalne matchery expect: toBe, toEqual, toStrictEqual, toMatch, toContain, toThrow i asercje na danych.",
+  "description": "Generic assertions: toBe, toEqual, toStrictEqual, matchery asymetryczne, tablice, regex, liczby, błędy sync/async, poll/toPass i snapshoty danych.",
   "order": 2,
   "difficulty": "beginner",
   "tags": [
@@ -153,26 +153,21 @@ export const lesson3_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Assertions",
-        "url": "https://playwright.dev/docs/test-assertions",
-        "description": "Oficjalny opis asercji Playwright i mechanizmu web-first assertions."
+            "title": "GenericAssertions",
+            "url": "https://playwright.dev/docs/api/class-genericassertions",
+            "description": "Asercje ogólne Playwright."
       },
       {
-        "title": "Playwright Testowanie API",
-        "url": "https://playwright.dev/docs/api-testing",
-        "description": "Dokumentacja testowania API w Playwright Test."
+            "title": "Assertions",
+            "url": "https://playwright.dev/docs/test-assertions",
+            "description": "expect, soft assertions, poll i toPass."
       },
       {
-        "title": "Jest Expect",
-        "url": "https://jestjs.io/docs/expect",
-        "description": "Opis matcherów expect, przydatny również dla rozumienia wielu asercji w ekosystemie JS."
-      },
-      {
-        "title": "Vitest Expect API",
-        "url": "https://vitest.dev/api/expect.html",
-        "description": "Matcher API w Vitest, użyteczne przy własne asercje i testach niższych poziomów."
+            "title": "Jest Expect",
+            "url": "https://jestjs.io/docs/expect",
+            "description": "Matcher API kompatybilne z ekosystemem JS."
       }
-    ],
+],
     "tipsAndTricks": [
       "Asercja powinna opisywać oczekiwany rezultat, a nie tylko potwierdzać, że kod się wykonał.",
       "Web-first assertions są retry-aware — używaj ich zamiast ręcznego pollingu interfejsu użytkownika.",
