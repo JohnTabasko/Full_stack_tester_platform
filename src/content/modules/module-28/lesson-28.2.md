@@ -337,7 +337,7 @@ Portfolio techniczne powinno zawierać elementy wizualne, które pokazują wynik
 ### Co warto pokazać
 
 **Screenshot raportu HTML Playwright:**
-Umieść screenshot z przykładowym wynikiem testów. Pokaż, że raport jest czytelny, zawiera metryki i screenshots przy awarii.
+Umieść screenshot z przykładowym wynikiem testów. Pokaż, że raport jest czytelny, zawiera metryki i zrzuty ekranu przy awarii.
 
 **Screenshot trace viewer:**
 Trace viewer to najpotężniejsze narzędzie diagnostyczne Playwright. Screenshot z otwartym trace (steps, network, console) pokazuje zaawansowanie.

@@ -1,7 +1,7 @@
 # Azure DevOps i inne platformy CI/CD
 
 > **Perspektywa Full Stack Testera**
-> Każda organizacja ma swoją platformę CI/CD — i to determinuje, jak integrujesz Playwright. Nie chodzi o to, którą platformę wybrać, lecz o to, jak rozumieć zasady CI/CD, które są wspólne dla wszystkich: powtarzalność, secrets, artifacts, parallelism i feedback speed. Ta lekcja pokazuje, jak te zasady manifestują się w Azure DevOps, CircleCI i Bitbucket Pipelines — oraz kiedy i jak włączyć cloud-based browser testing (BrowserStack, Sauce Labs) jako uzupełnienie lokalnego execution.
+> Każda organizacja ma swoją platformę CI/CD — i to determinuje, jak integrujesz Playwright. Nie chodzi o to, którą platformę wybrać, lecz o to, jak rozumieć zasady CI/CD, które są wspólne dla wszystkich: powtarzalność, secrets, artefakty, parallelism i feedback speed. Ta lekcja pokazuje, jak te zasady manifestują się w Azure DevOps, CircleCI i Bitbucket Pipelines — oraz kiedy i jak włączyć cloud-based browser testing (BrowserStack, Sauce Labs) jako uzupełnienie lokalnego execution.
 
 ---
 
@@ -12,7 +12,7 @@ Po tej lekcji będziesz potrafić:
 - **Konfigurować Azure Pipelines** z Playwright — azure-pipelines.yml, stages, jobs, tasks
 - **Konfigurować CircleCI** — config.yml z executors, jobs, workflows, parallelism
 - **Konfigurować Bitbucket Pipelines** — bitbucket-pipelines.yml
-- **Rozumieć cross-platform patterns** — cache, artifacts, secrets, matrix builds
+- **Rozumieć cross-platform patterns** — cache, artefakty, secrets, matrix builds
 - **Integrować BrowserStack/Sauce Labs** z Playwright dla cross-browser testing
 - **Decydować, kiedy local vs. cloud** — trade-offs cost, speed i coverage
 
@@ -746,7 +746,7 @@ strategy:
         BROWSER: chromium
         LOCATION: local
       
-      # Cloud — szerokie pokrycie, wolniejsze, droższe, dobre dla periodic full runs
+      # Cloud — szerokie pokrycie, wolniejsze, droższe, dobre dla okresowych pełnych uruchomień
       - TEST_TYPE: regression
         BROWSER: chrome, firefox, safari, edge
         LOCATION: cloud
@@ -789,7 +789,7 @@ Reguła thumb: **Local execution dla 80% testów (smoke, fast regression), Cloud
 
 Jako Full Stack Tester pracujący z wieloma platformami CI/CD pamiętaj:
 
-**Składnia jest wtórna.** Gdy rozumiesz pięć zasad CI/CD (powtarzalność, cache, secrets, artifacts, parallelism), adaptacja do nowej platformy to kwestia godziny — nie dni. Ta lekcja pokazuje cztery platformy nie po to, byś uczył się wszystkich, lecz byś rozumiał, że problemy są wspólne.
+**Składnia jest wtórna.** Gdy rozumiesz pięć zasad CI/CD (powtarzalność, cache, secrets, artefakty, parallelism), adaptacja do nowej platformy to kwestia godziny — nie dni. Ta lekcja pokazuje cztery platformy nie po to, byś uczył się wszystkich, lecz byś rozumiał, że problemy są wspólne.
 
 **Cloud browser testing to kompromis.** BrowserStack i Sauce Labs dają coverage, ale kosztują i wprowadzają zależność zewnętrzną. Używaj strategicznie — full matrix na cloud, smoke na local.
 
@@ -802,7 +802,7 @@ Jako Full Stack Tester pracujący z wieloma platformami CI/CD pamiętaj:
 - **Azure DevOps** — `azure-pipelines.yml` z stages, jobs, containers. `PublishTestResults@2` task integruje JUnit z DevOps UI. Matrix builds dla cross-browser.
 - **CircleCI** — `config.yml` z orbs (node, browser-tools), executors, workflows. Parallelism przez wiele jobów. `store_test_results` / `store_artifacts`.
 - **Bitbucket Pipelines** — `bitbucket-pipelines.yml` z `pipelines:`, `definitions:` i `caches:`. Integracja z Bitbucket Deployments dla multi-environment.
-- **Wspólne wzorce** — cache npm/node_modules na wszystkich platformach, secrets przez environment variables, artifacts `when: always`.
+- **Wspólne wzorce** — cache npm/node_modules na wszystkich platformach, secrets przez environment variables, artefakty `when: always`.
 - **BrowserStack / Sauce Labs** — cloud execution dla cross-browser matrix, mobile, geo-testing. Strategia: local dla 80% testów, cloud dla 20%.
 - **Wybór platformy** — zależy od organizacji, istniejącej infrastruktury i team expertise. Zasady CI/CD są wspólne, składnia różna.
 

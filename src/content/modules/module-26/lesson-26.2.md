@@ -163,7 +163,7 @@ const ANDROID_CAPABILITIES = {
   
   // Timeouty
   'appium:newCommandTimeout': 30_000, // ms bez odpowiedzi przed timeoutem
-  'appium:androidScreenshotPath': '/sdcard/screenshots', // gdzie zapisywać screenshoty
+  'appium:androidScreenshotPath': '/sdcard/zrzuty ekranu', // gdzie zapisywać screenshoty
   
   // ChromeDriver (dla WebView testing)
   'appium:chromeDriverExecutable': '/path/to/chromedriver',
@@ -374,7 +374,7 @@ npx appium inspector
 // Strategia: accessibility ID w pierwszej kolejności
 
 // Jeśli developer dodał accessibility IDs:
-// ✅ '~login-email' — działa na Android i iOS (Accessibilty Label / Identifier)
+// ✅ '~login-email' — działa na Android i iOS (Accessibility Label / Identifier)
 // ✅ '~add-to-cart-button' — semantyczna nazwa
 // ✅ '~order-details-screen' — identyfikator ekranu
 
@@ -844,10 +844,10 @@ test('użytkownik loguje się i widzi panel klienta w WebView', async () => {
 
 ---
 
-## Przykład referencyjny — konfiguracja Appium z macierzą urządzeń i fikstrami
+## Przykład referencyjny — konfiguracja Appium z macierzą urządzeń i fiksturami
 
 ```typescript
-// appium.config.ts — kompletna konfiguracja Appium z fikstrą i macierzą
+// appium.config.ts — kompletna konfiguracja Appium z fiksturą i macierzą
 import { remote, WebdriverIO } from 'webdriverio';
 
 type DeviceProfile = {

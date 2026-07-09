@@ -19,7 +19,7 @@ export const lesson24_3: Lesson = {
     "objective": "Po ukończeniu lekcji rozumiesz model pracy JMetera, potrafisz odróżnić test protokołu od testu interfejs użytkownika i wiesz, jak projektować plany testów, które są czytelne, parametryzowane i możliwe do utrzymania.",
     "theory": theory24_3,
     "codeExamples": [
-      "# Build and debug in GUI, run load tests in non-GUI mode\njmeter -n -t checkout-load.jmx -l results.jtl -e -o report/\n\n# Archive results.jtl and report/ in CI artifacts"
+      "# Build and debug in GUI, run load tests in non-GUI mode\njmeter -n -t checkout-load.jmx -l results.jtl -e -o report/\n\n# Archive results.jtl and report/ in CI artefakty"
 ],
     "exercises": [
       {
@@ -127,7 +127,7 @@ export const lesson24_3: Lesson = {
       },
       {
             "mistake": "Brak artefaktów",
-            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artifacts."
+            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artefakty."
       }
 ]
   }

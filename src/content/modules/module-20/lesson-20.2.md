@@ -138,11 +138,11 @@ test('nie powinien pozwolić na dwa rekordy z tym samym ID', async ({ db }) => {
 
 ---
 
-## 2. Foreign Key — integralność referencyjna
+## 2. kluczy obcych — integralność referencyjna
 
 ### 2.1 Co to jest klucz obcy?
 
-Klucz obcy (Foreign Key) to kolumna w tabeli, która odnosi się do klucza głównego w innej tabeli. Zapewnia, że relacja między tabelami jest spójna — nie można utworzyć rekordu odnoszącego się do nieistniejącego rekordu w tabeli nadrzędnej.
+Klucz obcy (kluczy obcych) to kolumna w tabeli, która odnosi się do klucza głównego w innej tabeli. Zapewnia, że relacja między tabelami jest spójna — nie można utworzyć rekordu odnoszącego się do nieistniejącego rekordu w tabeli nadrzędnej.
 
 **Definicja relacji w schemacie:**
 
@@ -799,7 +799,7 @@ Pamiętaj: baza danych jest ostatnią linią obrony. Jeśli ograniczenia tam dzi
 ## Podsumowanie
 
 - **Primary Key** jednoznacznie identyfikuje każdy rekord i jest wymagany do diagnostyki, cleanupu i powiązań
-- **Foreign Key** chroni integralność referencyjną — zapobiega osieroconym rekordom i zapewnia spójność relacji
+- **kluczy obcych** chroni integralność referencyjną — zapobiega osieroconym rekordom i zapewnia spójność relacji
 - **UNIQUE** chroni przed duplikatami — numerów faktur, emaili, numerów zamówień
 - **NOT NULL** wymusza obecność wartości — tam, gdzie system absolutnie potrzebuje danych
 - **CHECK** waliduje zakres i format wartości — kwoty dodatnie, statusy z listy dozwolonych, format emaila

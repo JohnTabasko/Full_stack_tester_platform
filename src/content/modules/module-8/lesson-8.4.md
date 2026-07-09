@@ -113,7 +113,7 @@ Playwright testuje poprawność i lekkie progi. k6/JMeter testują zachowanie sy
 ## Linki
 
 - [Playwright API testing](https://playwright.dev/docs/api-testing)
-- [Test timeouts](https://playwright.dev/docs/test-timeouts)
+- [Test limity czasu](https://playwright.dev/docs/test-limity czasu)
 - [k6 documentation](https://grafana.com/docs/k6/latest/)
 - [JMeter](https://jmeter.apache.org/)
 

@@ -504,7 +504,7 @@ Tryb offline to stan, w którym urządzenie nie ma połączenia z internetem. Ap
 ### 3.2 Testowanie offline — Playwright (PWA / mobile web)
 
 ```typescript
-// Playwright — offline simulation z fikstrą
+// Playwright — offline simulation z fiksturą
 
 test.describe('Offline mode — PWA', () => {
   // Scenariusz 1: Aplikacja ładuje cached content

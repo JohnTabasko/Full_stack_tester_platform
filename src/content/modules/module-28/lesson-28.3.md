@@ -10,7 +10,7 @@ Trzy zasady lekcji:
 
 1. **Poziom kompetencji ≠ lata doświadczenia.** Senior nie jest tym, kto programuje od 10 lat — jest tym, kto rozumie, co testować, kiedy i jak, oraz umie komunikować te decyzje.
 2. **Dowód jest lepszy niż deklaracja.** „Znam Playwright" to deklaracja. „Napisałem 50 testów Playwright, które przechodzą na CI z 99% pass rate" to dowód.
-3. **Luki są Twojąmapą rozwoju.** Każda zidentyfikowana luka to nie porażka — to kierunek, w którym warto zainwestować czas.
+3. **Luki są Twoją mapą rozwoju.** Każda zidentyfikowana luka to nie porażka — to kierunek, w którym warto zainwestować czas.
 
 ---
 
@@ -22,7 +22,7 @@ Ta lekcja koncentruje się na: **oczekiwania wobec junior, mid i senior automati
 
 ---
 
-## Sytuacja przodnia
+## Sytuacja przewodnia
 
 Tester kończy kurs Playwright i chce ocenić, czy jest gotowy do roli junior automation QA, mid QA automation czy full stack testera w zespole produktowym. Nie ma pewności, gdzie jest luka — wie tylko, że nie wie wszystkiego. Matryca kompetencji pomoże mu zidentyfikować konkretne obszary i zaplanować rozwój.
 
@@ -38,14 +38,14 @@ Poniższa tabela pokazuje oczekiwania na trzech poziomach. Nie chodzi o to, żeb
 
 | Obszar | Junior Automation QA | Mid QA Automation | Senior QA Automation |
 |---|---|---|---|
-| **Playwright podstawy** | Pisze proste testy z pomocą. Rozumie locators i assertions. | Samodzielnie projektuje testy dla funkcji. Zna waits i timeouts. | Projektuje architekturę testów, refaktoryzuje istniejące, optymalizuje. |
+| **Playwright podstawy** | Pisze proste testy z pomocą. Rozumie locators i assertions. | Samodzielnie projektuje testy dla funkcji. Zna waits i limity czasu. | Projektuje architekturę testów, refaktoryzuje istniejące, optymalizuje. |
 | **Playwright zaawansowane** | Zna podstawowe config. | Retry, parallelizacja, sharding, custom reporters. | Trace viewer w CI, visual testing, multi-context testing, performance profiling. |
-| **Page Object Model** | Wie, że istnieje. Stosuje gotowy wzorzec. | Samodzielnie tworzy POM z fikstrami. Rozumie enkapsulację. | Projektuje hierarchię klas POM, decyduje o podziale odpowiedzialności. |
+| **Page Object Model** | Wie, że istnieje. Stosuje gotowy wzorzec. | Samodzielnie tworzy POM z fiksturami. Rozumie enkapsulację. | Projektuje hierarchię klas POM, decyduje o podziale odpowiedzialności. |
 | **API testing** | Potrafi wysłać request przez Postman. | Pisze testy API z APIRequestContext. Rozumie status codes. | Kontrakty API, walidacja schematu, testowanie edge cases, GraphQL. |
-| **Baza danych** | Potrafi przeczytać zapytanie SELECT. | Pisze SELECT, INSERT, UPDATE. Rozumie cleanup. | Optymalizuje zapytania, rozumie transakcje, indeksy, schematy. |
+| **baza danych** | Potrafi przeczytać zapytanie SELECT. | Pisze SELECT, INSERT, UPDATE. Rozumie cleanup. | Optymalizuje zapytania, rozumie transakcje, indeksy, schematy. |
 | **Dane testowe** | Wie, że dane są potrzebne. | Tworzy fikstury z setup/teardown. Stosuje data builders. | Architektura fikstur na poziomie projektu, mockowanie danych, testowanie na produkcyjnych snapshotach. |
 | **CI/CD** | Uruchamia testy w GitHub Actions z pomocą dokumentacji. | Konfiguruje pipeline, publishuje artefakty, integruje z notification. | Optymalizuje pipeline, wdraża gating, rollback strategies, trigger optimization. |
-| **Debugowanie** | Wie, że można otworzyć devtools. | Używa trace viewer, analizuje screenshots, rozumie network. | Klasyfikuje flaky tests, pisze regression suite dla konkretnych bugów. |
+| **Debugowanie** | Wie, że można otworzyć devtools. | Używa trace viewer, analizuje zrzuty ekranu, rozumie network. | Klasyfikuje flaky tests, pisze regression suite dla konkretnych bugów. |
 | **Raportowanie** | Wie, że Playwright generuje raport. | Konfiguruje raporty HTML + JUnit, rozumie metryki. | Buduje dashboard metryk, śledzi pass rate, flakiness rate, coverage trend. |
 | **Współpraca** | Raportuje bugi. Uczestniczy w refinements. | Proponuje testy dla user stories. Dyskutuje ryzyko z teamem. | Reprezentuje QA w architectural decisions. Mentoruje młodszych testerów. |
 | **Strategia** | Wykonuje zadania z instrukcją. | Projektuje testy dla feature'u, proponuje poziom testu. | Projektuje strategię jakości dla produktu, definiuje metryki jakości, zarządza test pyramid. |
@@ -109,12 +109,12 @@ Mid QA automation to osoba, która samodzielnie projektuje i realizuje testy dla
 ### Typowe oczekiwania
 
 - **Playwright:** Samodzielnie projektuje testy dla feature'u. Zna wszystkie typy `expect`, `waitFor`, `softExpect`. Konfiguruje retry, parallelizację, custom fixtures.
-- **POM:** Samodzielnie tworzy POM z fikstrami. Rozumie różnicę między fikstrą a helperem. Enkapsuluje logikę setup i teardown.
+- **POM:** Samodzielnie tworzy POM z fiksturami. Rozumie różnicę między fiksturą a helperem. Enkapsuluje logikę setup i teardown.
 - **API:** Pisze testy API z APIRequestContext. Rozumie REST semantics, waliduje status codes, nagłówki i ciała response. Potrafi napisać test kontraktu.
-- **Baza danych:** Pisze SELECT, INSERT, UPDATE. Tworzy cleanup. RozumieForeign Key constraints i cascade.
+- **baza danych:** Pisze SELECT, INSERT, UPDATE. Tworzy cleanup. Rozumiekluczy obcych constraints i cascade.
 - **Dane:** Stosuje data builder pattern. Tworzy fikstury z setup/teardown na poziomie pliku i projektu.
 - **CI/CD:** Konfiguruje pipeline z artefaktami, retry, sharding. Integruje z notification tools (Slack, email).
-- **Debugowanie:** Używa trace viewer, analizuje screenshots, rozumie network timeline. Klasyfikuje problemy jako timing vs. logic vs. data.
+- **Debugowanie:** Używa trace viewer, analizuje zrzuty ekranu, rozumie network timeline. Klasyfikuje problemy jako timing vs. logic vs. data.
 - **Raportowanie:** Konfiguruje raporty HTML + JUnit + JSON. Rozumie metryki: pass rate, flaky rate, coverage.
 - **Komunikacja:** Proponuje testy dla user stories. Dyskutuje ryzyko z zespołem. Prezentuje wyniki testów na stand-up.
 
@@ -353,7 +353,7 @@ Ta wypowiedź pokazuje:
 ## Playwright — poziom: mid
 **Obecny poziom:** 
 - Piszę testy dla funkcji samodzielnie
-- Stosuję POM z fikstrami
+- Stosuję POM z fiksturami
 - Konfiguruję CI z artefaktami i retry
 
 **Dowody:**
@@ -362,7 +362,7 @@ Ta wypowiedź pokazuje:
 - Pipeline na GitHub Actions z HTML report
 
 **Luki:**
-- Trace viewer w CI — używam tylko screenshots
+- Trace viewer w CI — używam tylko zrzuty ekranu
 - Visual testing — nie stosowałem nigdy
 - Performance profiling — wiem, że istnieje, nie stosowałem
 
@@ -385,11 +385,11 @@ Ta wypowiedź pokazuje:
 
 ---
 
-## Baza danych — poziom: junior+
+## baza danych — poziom: junior+
 **Obecny poziom:**
 - Piszę SELECT i rozumiem schemat
 - Tworzę cleanup danych po testach
-- Używam pg z fikstrą
+- Używam pg z fiksturą
 
 **Dowody:**
 - 6 testów z weryfikacją zapisu w bazie
@@ -397,7 +397,7 @@ Ta wypowiedź pokazuje:
 
 **Luki:**
 - Nie rozumiem transakcji i rollback
-- Nie wiem, jak testowaćForeign Key constraints
+- Nie wiem, jak testowaćkluczy obcych constraints
 - Nie optymalizowałem zapytań
 
 ---
@@ -452,7 +452,7 @@ Matryca kompetencji powinna mapować całe curriculum:
 | API | testy kontraktowe i negatywne |
 | Dane | buildery, factory, cleanup po runId |
 | SQL | zapytania weryfikujące stan i migracje |
-| CI/CD | workflow z artifacts i quality gate |
+| CI/CD | workflow z artefakty i quality gate |
 | Observability | correlation ID, logi, metryki, trace |
 | Performance | k6/JMeter smoke lub raport analizy |
 | Mobile | Appium/mobile web matrix lub opis strategii |

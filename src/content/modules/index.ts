@@ -157,7 +157,7 @@ export const allModules: Module[] = [
         "id": "2.1",
         "moduleId": 2,
         "title": "Przeglądarka, kontekst i strona",
-        "description": "Zrozum hierarchię przeglądarka → kontekst → strona oraz zarządzanie instancjami przeglądarki",
+        "description": "Zrozum hierarchię przeglądarka → kontekst → strona oraz zarządzania instancjami przeglądarki",
         "content": {
           "objective": "Po ukończeniu tej lekcji będziesz umiał:\n- Wyjaśnić hierarchię przeglądarka → kontekst → strona\n- Uruchamiać przeglądarkę z różnymi opcjami\n- Tworzyć konteksty przeglądarki i zarządzać nimi\n- Pracować z wieloma stronami w jednym kontekście\n- Używać trwałego kontekstu i zapisanego stanu sesji\n- Projektować pulę przeglądarek z myślą o wydajności",
           "theory": "",
@@ -709,7 +709,7 @@ export const allModules: Module[] = [
         "id": "5.1",
         "moduleId": 5,
         "title": "Runner testów Playwright — kompletny przewodnik",
-        "description": "Opanuj test(), describe(), hooks, kroki, adnotacje, retries, timeouts i tryby wykonania",
+        "description": "Opanuj test(), describe(), hooks, kroki, adnotacje, retries, limity czasu i tryby wykonania",
         "content": {
           "objective": "Po ukończeniu tej lekcji będziesz umiał:\n- Strukturyzować testy z test() i test.describe()\n- Używać hooków (beforeEach, afterAll, beforeAll, afterEach)\n- Stosować test.step() dla czytelnych raportów\n- Konfigurować ponowienia, timeouty i adnotacje (skip, only, fixme, fail)\n- Uruchamiać testy w trybie serial, parallel, interfejsu użytkownika i debug",
           "theory": "",
@@ -738,9 +738,9 @@ export const allModules: Module[] = [
         "id": "5.2",
         "moduleId": 5,
         "title": "Fikstury — omówienie szczegółowe",
-        "description": "Opanuj dependency injection z fiksturas: custom, worker-scoped, Page Object, API i auto-fiksturas",
+        "description": "Opanuj dependency injection z fiksturas: custom, worker-zakresd, Page Object, API i auto-fiksturas",
         "content": {
-          "objective": "Po ukończeniu tej lekcji będziesz umiał:\n- Rozumieć wbudowane fiksturas (page, context, browser, request)\n- Tworzyć custom fiksturas z test.extend()\n- Wybierać odpowiedni scope (test vs worker)\n- Tworzyć Page Object fiksturas i API fiksturas\n- Używać auto-fiksturas do automatycznego setupu",
+          "objective": "Po ukończeniu tej lekcji będziesz umiał:\n- Rozumieć wbudowane fiksturas (page, context, browser, request)\n- Tworzyć custom fiksturas z test.extend()\n- Wybierać odpowiedni zakres (test vs worker)\n- Tworzyć Page Object fiksturas i API fiksturas\n- Używać auto-fiksturas do automatycznego setupu",
           "theory": "",
           "codeExamples": [],
           "exercises": [],
@@ -754,7 +754,7 @@ export const allModules: Module[] = [
         "tags": [
           "fiksturas",
           "test-extend",
-          "worker-scope",
+          "worker-zakres",
           "auto-fikstura",
           "wzorzec obiektu strony",
           "dependency-injection"
@@ -992,9 +992,9 @@ export const allModules: Module[] = [
         "id": "6.6",
         "moduleId": 6,
         "title": "Wzorzec obiektu strony z fiksturami",
-        "description": "PageObject jako fikstura, Application fikstura, auto-fiksturas, worker-scoped, migracja z new PageObject()",
+        "description": "PageObject jako fikstura, Application fikstura, auto-fiksturas, worker-zakresd, migracja z new PageObject()",
         "content": {
-          "objective": "Po ukończeniu tej lekcji będziesz umiał:\n- Zamieniać PageObjects na fiksturas z test.extend() — czystszy kod, automatyczny lifecycle\n- Tworzyć Application fikstura z centralnym dostępem do wszystkich stron\n- Używać auto-fiksturas (auto: true) do automatycznego setupu\n- Stosować worker-scoped fiksturas dla wydajności\n- Migrować istniejące testy z new PageObject() na fiksturas",
+          "objective": "Po ukończeniu tej lekcji będziesz umiał:\n- Zamieniać PageObjects na fiksturas z test.extend() — czystszy kod, automatyczny lifecycle\n- Tworzyć Application fikstura z centralnym dostępem do wszystkich stron\n- Używać auto-fiksturas (auto: true) do automatycznego setupu\n- Stosować worker-zakresd fiksturas dla wydajności\n- Migrować istniejące testy z new PageObject() na fiksturas",
           "theory": "",
           "codeExamples": [],
           "exercises": [],
@@ -1323,7 +1323,7 @@ export const allModules: Module[] = [
         "title": "Narzędzia debugowania w Playwright",
         "description": "Playwright Inspector, Trace Viewer, tryb UI, page.pause(), VS Code, debugowanie konsoli i sieci, CI artefakty",
         "content": {
-          "objective": "Po ukończeniu tej lekcji będziesz umiał: uruchomić Inspector (--debug) i przechodzić test krok po kroku, analizować Trace Viewer (time-travel debugging), używać tryb UI, debugować w VS Code, zbierać artifacty w CI.",
+          "objective": "Po ukończeniu tej lekcji będziesz umiał: uruchomić Inspector (--debug) i przechodzić test krok po kroku, analizować Trace Viewer (time-travel debugging), używać tryb UI, debugować w VS Code, zbierać artefakty w CI.",
           "theory": "",
           "codeExamples": [],
           "exercises": [],

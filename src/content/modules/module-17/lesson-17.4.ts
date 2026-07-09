@@ -19,7 +19,7 @@ export const lesson17_4: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz przeprowadzić sesję testowania eksploracyjnego, używać heurystyk do odkrywania ryzyk oraz napisać raport błędu, który umożliwia szybką reprodukcję i właściwą decyzję priorytetową.",
     "theory": theory17_4,
     "codeExamples": [
-      "# Przykład charteru sesji eksploracyjnej\n\n## Misja\nZbadać odporność koszyka na równoległe działania użytkownika i problemy sieciowe.\n\n## Zakres\n- zmiana ilości produktów,\n- odświeżanie strony,\n- wolna sieć,\n- ponowienie żądań,\n- spójność interfejsu użytkownika/API/Baza danych.\n\n## Czas\n60 minut.\n\n## Oczekiwane artefakty\nNotatki, lista błędów, pytania do PO, rekomendacje automatyzacji.\n",
+      "# Przykład charteru sesji eksploracyjnej\n\n## Misja\nZbadać odporność koszyka na równoległe działania użytkownika i problemy sieciowe.\n\n## Zakres\n- zmiana ilości produktów,\n- odświeżanie strony,\n- wolna sieć,\n- ponowienie żądań,\n- spójność interfejsu użytkownika/API/baza danych.\n\n## Czas\n60 minut.\n\n## Oczekiwane artefakty\nNotatki, lista błędów, pytania do PO, rekomendacje automatyzacji.\n",
       "# Szablon raportu błędu\n\n## Tytuł\nKoszyk przywraca poprzednią ilość produktu po szybkim odświeżeniu strony.\n\n## Środowisko\nstaging, Chrome 124, użytkownik testowy qa+cart@example.com\n\n## Kroki reprodukcji\n1. Zaloguj się jako użytkownik testowy.\n2. Dodaj produkt „Laptop Pro” do koszyka.\n3. Zmień ilość z 1 na 2.\n4. Natychmiast odśwież stronę.\n\n## Wynik aktualny\nKoszyk pokazuje ilość 1, mimo że żądanie aktualizacji zwróciło 200.\n\n## Wynik oczekiwany\nKoszyk powinien zachować ilość 2 albo pokazać czytelny błąd synchronizacji.\n\n## Dowody\ntrace.zip, screenshot, correlationId=cart-2026-06-19-001\n"
     ],
     "exercises": [
@@ -98,7 +98,7 @@ export const lesson17_4: Lesson = {
           "Niczym",
           "Severity opisuje dotkliwość, priorytet pilność naprawy",
           "Priority jest zawsze ważniejsze",
-          "Severity dotyczy tylko interfejs użytkownika"
+          "Severity dotyczy tylko interfejsu użytkownika"
         ],
         "correctAnswer": 1,
         "explanation": "Błąd może być dotkliwy, ale niepilny, albo mało dotkliwy, lecz pilny biznesowo."

@@ -117,7 +117,7 @@ git commit --amend  # Zmienia SHA ostatniego commita!
 ### 2.1 Format Conventional Commits
 
 ```
-<type>(<scope>): <description>
+<type>(<zakres>): <description>
 
 [optional body]
 
@@ -601,7 +601,7 @@ node_modules/
 dist/
 build/
 
-# === Playwright artifacts ===
+# === Playwright artefakty ===
 test-results/
 playwright-report/
 playwright/.cache/

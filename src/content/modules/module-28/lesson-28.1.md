@@ -22,7 +22,7 @@ Ta lekcja koncentruje się na: **zakres projektu, architektura frameworka, plan 
 
 ---
 
-## Sytuacja przodnia
+## Sytuacja przewodnia
 
 Kandydat przygotowuje repozytorium z testami sklepu lub aplikacji SaaS, które ma pokazać UI, API, bazę danych, CI i raportowanie. Rekruter otwiera repozytorium i w trzy minuty powinien zrozumieć: co robi projekt, jak go uruchomić, jakie testy pokrywa, jak wygląda raport i jakie były kluczowe decyzje architektoniczne.
 
@@ -463,7 +463,7 @@ Flaky tests to zmora każdego pipeline'u. W profesjonalnym projekcie masz strate
 
 3. **Quarantine list:** Testy, które są flaky mimo retries, wrzuć do osobnej grupy `quarantine` i uruchamiaj ją rzadziej, z powiadomieniem do zespołu.
 
-4. **CI-specific timeouts:** W CI sieć jest mniej stabilna niż lokalnie. Ustaw dłuższe timeouty dla testów API i DB.
+4. **CI-specific limity czasu:** W CI sieć jest mniej stabilna niż lokalnie. Ustaw dłuższe timeouty dla testów API i DB.
 
 ```typescript
 // playwright.config.ts — CI-specific overrides
@@ -596,7 +596,7 @@ Projekt końcowy to nie sprint — to maraton ciągłego doskonalenia. Zacznij o
 
 - [Playwright Test — Configuration](https://playwright.dev/docs/test-configuration) — oficjalna dokumentacja konfiguracji Playwright, timeoutów, retry i reporterów
 - [Playwright Reporter API](https://playwright.dev/docs/test-reporters) — jak pisać własne reportery i integrować z CI
-- [GitHub Actions — Upload Artifact](https://docs.github.com/en/actions/managing-workflows/storing-workflow-data-as-artifacts) — jak publikować raporty HTML i trace viewer jako artefakty
+- [GitHub Actions — Upload Artifact](https://docs.github.com/en/actions/managing-workflows/storing-workflow-data-as-artefakty) — jak publikować raporty HTML i trace viewer jako artefakty
 - [Page Object Model — Martin Fowler](https://martinfowler.com/bliki/PageObject.html) — oryginalny artykuł o wzorcu Page Object
 - [Test Data Builder Pattern — Nat Pryce](https://www.natpryce.com/articles/000714.html) — wzorzec data builder dla danych testowych
 - [Test Automation Strategy — Amy Reichert](https://www.ministryoftesting.com/dojo/lessons/building-a-test-automation-strategy) — jak budować strategię testów, nie tylko zestaw testów

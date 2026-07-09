@@ -234,7 +234,7 @@ services:
       retries: 5
 
   # ============================================================
-  # Baza danych PostgreSQL (dla testów)
+  # baza danych PostgreSQL (dla testów)
   # ============================================================
   db:
     image: postgres:15-alpine

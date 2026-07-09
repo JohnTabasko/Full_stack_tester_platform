@@ -378,7 +378,7 @@ test('tworzenie zamówienia zapisuje dane do backendu', async ({ page, request }
 W raporcie HTML każdy załącznik pojawia się jako link lub podgląd w zakładce "Attachments" dla danego testu:
 
 ```
-Test: "tworzenie zamówienia zapiuje dane do backendu"
+Test: "tworzenie zamówienia zapisuje dane do backendu"
 Status: ✅ Passed (12.4s)
 
 Attachments:
@@ -478,7 +478,7 @@ Zasada: projektuj raportowanie z myślą o odbiorcy i decyzji, którą ma wspier
 3. **HTML**: Pełne raporty z screenshotami, trace, załącznikami.
 4. **JUnit**: Integracja z CI systems (Jenkins, Azure DevOps, GitLab).
 5. **JSON**: Surowe dane dla zewnętrznej analityki i narzędzi.
-6. **testInfo.attach**: Dowody w raporcie — odpowiedzi API, Correlation ID, screenshots.
+6. **testInfo.attach**: Dowody w raporcie — odpowiedzi API, Correlation ID, zrzuty ekranu.
 7. **Konfiguracja środowiskowa**: Różne konfiguracje dla lokalnego i CI.
 
 ---
@@ -487,5 +487,5 @@ Zasada: projektuj raportowanie z myślą o odbiorcy i decyzji, którą ma wspier
 
 - [Playwright Reporters](https://playwright.dev/docs/test-reporters)
 - [JUnit XML Format](https://github.com/testmoapp/junitxml)
-- [GitHub Actions Artifacts](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts)
+- [GitHub Actions Artifacts](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artefakty)
 - [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer)

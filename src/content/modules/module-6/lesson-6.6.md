@@ -196,16 +196,16 @@ tests/fixtures/
 - [API testing](https://playwright.dev/docs/api-testing)
 - [Best practices](https://playwright.dev/docs/best-practices)
 
-## 10. Worker-scoped fixtures a POM
+## 10. Worker-zakresd fixtures a POM
 
-Page Objecty zwykle są test-scoped, bo opierają się na `page`. Klienci API, konta per worker albo ciężkie dane mogą być worker-scoped. Nie mieszaj tych zakresów bez potrzeby.
+Page Objecty zwykle są test-zakresd, bo opierają się na `page`. Klienci API, konta per worker albo ciężkie dane mogą być worker-zakresd. Nie mieszaj tych zakresów bez potrzeby.
 
 ```typescript
 export const test = base.extend<{}, { workerAccount: Account }>({
   workerAccount: [async ({ request }, use, workerInfo) => {
     const account = await createAccount(request, `worker-${workerInfo.parallelIndex}`);
     await use(account);
-  }, { scope: 'worker' }],
+  }, { zakres: 'worker' }],
 });
 ```
 

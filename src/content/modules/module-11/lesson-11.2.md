@@ -11,7 +11,7 @@ Po tej lekcji będziesz potrafić:
 
 - **Projektować pipeline w .gitlab-ci.yml** z odpowiednimi stages, cache i zależnościami między jobami
 - **Konfigurować Playwright w kontenerze Docker** — oficjalny obraz lub własny Dockerfile
-- **Korzystać z artifacts i when: always** — publikacja raportów przy awarii, nie tylko przy sukcesie
+- **Korzystać z artefakty i when: always** — publikacja raportów przy awarii, nie tylko przy sukcesie
 - **Skalować testy równolegle** — parallel jobs, matrix strategy, test splitting
 - **Hostować raport HTML na GitLab Pages** z linkowaniem z merge requestów
 - **Zarządzać sekretami bezpiecznie** — zmienne CI/CD, maskowanie, zakresy
@@ -330,7 +330,7 @@ Bez `dind` przeglądarki Playwright mogą mieć problemy z uruchomieniem w niekt
 
 ## Sekcja 3: Artifacts — publikacja raportów i trace'ów
 
-### artifacts — kiedy i jak
+### artefakty — kiedy i jak
 
 Artyfakty w GitLab CI to pliki generowane przez job, które są dostępne po jego zakończeniu. Dla Playwright kluczowe jest `when: always`:
 
@@ -348,10 +348,10 @@ artifacts:
 
 | `when:` | Kiedy publikuje | Przypadek użycia |
 |---------|-----------------|-----------------|
-| `on_success` | Tylko przy sukcesie | Intermediate build artifacts |
+| `on_success` | Tylko przy sukcesie | Intermediate build artefakty |
 | `on_failure` | Tylko przy awarii | Crash dumps, debug logs |
 | `always` | Zawsze | **Playwright reports, traces** |
-| `manual` | Ręcznie przez użytkownika | On-demand artifacts |
+| `manual` | Ręcznie przez użytkownika | On-demand artefakty |
 
 ### GitLab Test Report UI — integracja JUnit
 
@@ -642,7 +642,7 @@ GitLab automatycznie wyświetla artefakty w MR UI:
 Pipeline: ✅ Passed (2min 34s)
 ├── verify (lint + types) — ✅
 ├── e2e (smoke) — ✅
-└── 📊 Playwright Report: [View](https://gitlab.example.com/-/jobs/artifacts/main/download?job=pages)
+└── 📊 Playwright Report: [View](https://gitlab.example.com/-/jobs/artefakty/main/download?job=pages)
 ```
 
 Dla lepszej widoczności w MR comment:
@@ -655,7 +655,7 @@ comment:mr:
     - playwright:regression
     - pages
   script: |
-    REPORT_URL="${CI_PROJECT_URL}/-/jobs/artifacts/main/download?job=pages"
+    REPORT_URL="${CI_PROJECT_URL}/-/jobs/artefakty/main/download?job=pages"
     
     curl --request POST \
       --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
@@ -753,7 +753,7 @@ script:
     echo "Using token: ${SECRET_MASKED}****"
 ```
 
-### Environment-scoped variables
+### Environment-zakresd variables
 
 ```yaml
 playwright:staging:
@@ -837,7 +837,7 @@ artifacts:
 
 ## Perspektywa Full Stack Testera
 
-GitLab CI to nie tylko miejsce, gdzie testy "działają" — to środowisko, które definiuje, jak zespół myśli o jakości. Pipeline w GitLab CI jest contractem między kodem a release'em:
+GitLab CI to nie tylko miejsce, gdzie testy "działają" — to środowisko, które definiuje, jak zespół myśli o jakości. Pipeline w GitLab CI jest kontraktem między kodem a release'em:
 
 - **Szybki feedback** — smoke na MR uruchamia się w 2-3 minuty, nie w 30
 - **Fail fast** — lint i types padają przed E2E, developer wie szybciej

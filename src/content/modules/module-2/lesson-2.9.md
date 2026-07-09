@@ -175,7 +175,7 @@ ARIA snapshot może wykryć, że przycisk stracił accessible name, nawet jeśli
 
 ## Linki
 
-- [Screenshots](https://playwright.dev/docs/screenshots)
+- [Screenshots](https://playwright.dev/docs/zrzuty ekranu)
 - [Visual comparisons](https://playwright.dev/docs/test-snapshots)
 - [Trace Viewer](https://playwright.dev/docs/trace-viewer)
 - [ARIA snapshots](https://playwright.dev/docs/aria-snapshots)

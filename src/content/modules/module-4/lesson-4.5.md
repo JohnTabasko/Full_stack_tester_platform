@@ -144,7 +144,7 @@ export const test = base.extend<{}, { workerStorageState: string }>({
     await page.close();
 
     await use(path);
-  }, { scope: 'worker' }],
+  }, { zakres: 'worker' }],
 });
 ```
 

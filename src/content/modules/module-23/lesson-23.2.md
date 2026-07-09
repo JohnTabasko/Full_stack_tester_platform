@@ -244,7 +244,7 @@ test.describe('Correlation Tracing — Auto-inject', () => {
     const correlationId = uuidv4();
     await setupCorrelationTracing(page, correlationId);
     
-    // Zapisz correlation ID do globalnego scope testu (dostępny później)
+    // Zapisz correlation ID do globalnego zakres testu (dostępny później)
     (global as { correlationId?: string }).correlationId = correlationId;
     
     console.log(`Correlation ID: ${correlationId}`);
@@ -346,7 +346,7 @@ Grafana: https://grafana.company.com/explore?left={"queries":[{"expr":"{service=
 Jaeger: https://jaeger.company.com/trace/a1b2c3d4e5f67890
 
 === Plik trace Playwright ===
-/artifacts/test-results/trace-a1b2c3d4.zip (załączony jako artifact CI)
+/artefakty/test-results/trace-a1b2c3d4.zip (załączony jako artifact CI)
 
 === Środowisko ===
 Branch: feature/new-payment-flow

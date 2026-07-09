@@ -218,7 +218,7 @@ Pomaga zidentyfikować:
 **4. Console (Logi JavaScript):**
 ```
 Wszystkie console.log(), console.error(), console.warn() z danej chwili:
-[INFO] Application initialized
+[INFO] Application początkowyized
 [INFO] User session loaded from localStorage
 [WARN] API response time exceeded 1000ms
 [ERROR] Failed to fetch product data: NetworkError

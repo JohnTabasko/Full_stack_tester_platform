@@ -127,7 +127,7 @@ export const lesson25_3: Lesson = {
       },
       {
             "mistake": "Brak artefaktów",
-            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artifacts."
+            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artefakty."
       }
 ]
   }

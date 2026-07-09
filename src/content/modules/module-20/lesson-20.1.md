@@ -1,7 +1,7 @@
 # SQL dla Testerów — Kompleksowa Weryfikacja Integralności Danych
 
 > **Perspektywa Full Stack Testera**
-> Jako Full Stack Tester nie ograniczasz się do warstwy prezentacji. Prawdziwa pewność jakości aplikacji przychodzi dopiero wtedy, gdy potwierdzisz, że dane w bazie są dokładnie takie, jakich oczekujesz po wykonaniu operacji przez użytkownika. Testowanie tylko interfejsu użytkownika to jak sprawdzanie tylko wyglądu samochodu — wygląda dobrze, ale czy silnik działa? Baza danych to właśnie ten „silnik" Twojej aplikacji, a SQL to klucz, który pozwala go rozebrać, sprawdzić i złożyć z powrotem. W tej lekcji zdobędziesz praktyczne umiejętności, które pozwolą Ci weryfikować integralność danych na poziomie, który zadowoli nawet najbardziej wymagającego architekta systemu.
+> Jako Full Stack Tester nie ograniczasz się do warstwy prezentacji. Prawdziwa pewność jakości aplikacji przychodzi dopiero wtedy, gdy potwierdzisz, że dane w bazie są dokładnie takie, jakich oczekujesz po wykonaniu operacji przez użytkownika. Testowanie tylko interfejsu użytkownika to jak sprawdzanie tylko wyglądu samochodu — wygląda dobrze, ale czy silnik działa? baza danych to właśnie ten „silnik" Twojej aplikacji, a SQL to klucz, który pozwala go rozebrać, sprawdzić i złożyć z powrotem. W tej lekcji zdobędziesz praktyczne umiejętności, które pozwolą Ci weryfikować integralność danych na poziomie, który zadowoli nawet najbardziej wymagającego architekta systemu.
 
 ---
 
@@ -618,7 +618,7 @@ test.describe('Składanie zamówienia — weryfikacja bazy danych', () => {
     const testEmail = `test-order-${Date.now()}@example.com`;
     
     // Pobierz stan początkowy
-    const initialOrderCount = await db.getValue<number>(`
+    const początkowyOrderCount = await db.getValue<number>(`
       SELECT COUNT(*) FROM orders 
       WHERE user_id = (SELECT id FROM users WHERE email = $1)
     `, [testEmail]);
@@ -632,7 +632,7 @@ test.describe('Składanie zamówienia — weryfikacja bazy danych', () => {
       WHERE user_id = (SELECT id FROM users WHERE email = $1)
     `, [testEmail]);
 
-    expect(finalOrderCount).toBe(initialOrderCount + 1);
+    expect(finalOrderCount).toBe(początkowyOrderCount + 1);
   });
 });
 ```

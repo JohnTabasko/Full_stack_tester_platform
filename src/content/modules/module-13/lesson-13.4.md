@@ -349,7 +349,7 @@ test.beforeAll(async () => {
   await bsLocal.start({
     key: process.env.BROWSERSTACK_ACCESS_KEY,
     force: true,  // Force new connection
-    // For local development servers:
+    // For lokalny development servers:
     // localIdentifier: 'my-app-tests',
   });
   

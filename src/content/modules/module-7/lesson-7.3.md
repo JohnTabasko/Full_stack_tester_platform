@@ -47,7 +47,7 @@ export const test = base.extend<{}, { workerUser: User }>({
       email: `qa+worker-${workerInfo.parallelIndex}@example.test`,
     });
     await use(user);
-  }, { scope: 'worker' }],
+  }, { zakres: 'worker' }],
 });
 ```
 

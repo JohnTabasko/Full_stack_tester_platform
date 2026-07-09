@@ -40,7 +40,7 @@ export const lesson15_3: Lesson = {
       {
         "id": "ex-15-3-4",
         "title": "Pipeline",
-        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artifacts i quality gate."
+        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artefakty i quality gate."
       },
       {
         "id": "ex-15-3-5",

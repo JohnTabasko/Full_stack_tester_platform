@@ -145,7 +145,7 @@ export const lesson20_3: Lesson = {
         "question": "Dlaczego poziom izolacji jest kompromisem?",
         "options": [
           "Wpływa na spójność i wydajność",
-          "Dotyczy tylko interfejs użytkownika",
+          "Dotyczy tylko interfejsu użytkownika",
           "Zastępuje indeksy",
           "Nie wpływa na system"
         ],

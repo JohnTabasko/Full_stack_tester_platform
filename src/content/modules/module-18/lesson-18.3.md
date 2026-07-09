@@ -310,7 +310,7 @@ SCREENSHOT_ON_FAILURE=true
 VIDEO_ON_FAILURE=false
 TRACE_ON_FAILURE=true
 
-# === Baza danych ===
+# === baza danych ===
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=playwright_test
@@ -629,7 +629,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     
     // Lokalizacja artifactów
-    screenshotDir: './test-results/screenshots',
+    screenshotDir: './test-results/zrzuty ekranu',
     videoDir: './test-results/videos',
     traceDir: './test-results/traces',
     

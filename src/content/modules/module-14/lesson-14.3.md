@@ -62,7 +62,7 @@ export default defineConfig({
   testDir: './tests',
   
   // Screenshot configuration
-  screenshots: 'only-on-failure',  // Full-page screenshots on failure
+  zrzuty ekranu: 'only-on-failure',  // Full-page zrzuty ekranu on failure
   
   // Projects per viewport (mobile first)
   projects: [
@@ -175,7 +175,7 @@ test('dashboard with masked dynamic elements', async ({ page }) => {
     mask: maskElements,
     maskColor: '#CCCCCC',  // Gray mask color
     animations: 'disabled',  // Disable CSS animations
-    disabledAccessibilityViolations: true,  // Don't fail on a11y diffs in screenshots
+    disabledAccessibilityViolations: true,  // Don't fail on a11y diffs in zrzuty ekranu
   });
 });
 ```

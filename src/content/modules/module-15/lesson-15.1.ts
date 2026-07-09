@@ -18,8 +18,8 @@ export const lesson15_1: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz zaprojektować i ocenić projekt „Projekt testowania aplikacji e-commerce” jako spójny system testów full stack z danymi, CI, raportowaniem i dokumentacją.",
     "theory": theory15_1,
     "codeExamples": [
-      "# Minimalny zakres testów\n- @smoke E2E: guest checkout\n- API: produkty search, create order, forbidden admin access\n- Baza danych: orders + order_items + audit_events\n- Visual: product card / checkout summary\n- Bezpieczeństwo: IDOR order access\n- CI: HTML/JUnit/trace artifacts\n",
-      "test('guest can complete checkout @smoke @critical', async ({ page, ordersClient }, testInfo) => {\n  const runId = `checkout-${Date.now()}`;\n  testInfo.annotations.push({ type: 'runId', description: runId });\n  // setup product -> interfejs użytkownika checkout -> API/Baza danych verification\n});\n"
+      "# Minimalny zakres testów\n- @smoke E2E: guest checkout\n- API: produkty search, create order, forbidden admin access\n- baza danych: orders + order_items + audit_events\n- Visual: product card / checkout summary\n- Bezpieczeństwo: IDOR order access\n- CI: HTML/JUnit/trace artefakty\n",
+      "test('guest can complete checkout @smoke @critical', async ({ page, ordersClient }, testInfo) => {\n  const runId = `checkout-${Date.now()}`;\n  testInfo.annotations.push({ type: 'runId', description: runId });\n  // setup product -> interfejs użytkownika checkout -> API/baza danych verification\n});\n"
     ],
     "exercises": [
       {
@@ -40,7 +40,7 @@ export const lesson15_1: Lesson = {
       {
         "id": "ex-15-1-4",
         "title": "Pipeline",
-        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artifacts i quality gate."
+        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artefakty i quality gate."
       },
       {
         "id": "ex-15-1-5",

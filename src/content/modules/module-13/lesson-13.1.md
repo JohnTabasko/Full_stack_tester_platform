@@ -39,7 +39,7 @@ Różnica: 58 minut vs. 9 minut. To nie tylko kwestia wygody — to kwestia:
 - **Frequency of testing**: wolne testy = rzadziej uruchamiane = mniej value
 - **Team culture**: jeśli testy są frustrujące, zespół je ignoruje
 
-Zasada: test suite powinien być wystarczająco szybki, żeby programista uruchomił go przed każdym commitem. Dla PR to <10 min. Dla local development to <3 min.
+Zasada: test suite powinien być wystarczająco szybki, żeby programista uruchomił go przed każdym commitem. Dla PR to <10 min. Dla lokalny development to <3 min.
 
 ---
 
@@ -603,7 +603,7 @@ jobs:
 merge-results:
   needs: [test-1, test-2, test-3, test-4]
   steps:
-    - name: Download all artifacts
+    - name: Download all artefakty
       uses: actions/download-artifact@v4
       with:
         pattern: test-results-shard-*
@@ -875,7 +875,7 @@ Zasada Pareto: 20% testów zabiera 80% czasu. Znajdź te testy i zoptymalizuj je
 ## Podsumowanie
 
 - **Workers**: konfiguruj liczbę workers per środowisko. Lokalnie — wszystkie rdzenie. W CI — ogranicz do 4-8.
-- **fullyParallel**: używaj localnie dla szybkości, wyłączaj gdy testy zależą od siebie.
+- **fullyParallel**: używaj lokalnie dla szybkości, wyłączaj gdy testy zależą od siebie.
 - **Resource blocking**: block images, fonts, tracking przez `page.route()`. Oszczędza 30-50% transferu.
 - **storageState**: jeden login na wielokrotne testy. Zapisuj state, nie loguj się przez UI w każdym teście.
 - **Trace/video strategy**: `on-first-retry` (trace) + `retain-on-failure` (video) = minimum overhead, maximum debugging.

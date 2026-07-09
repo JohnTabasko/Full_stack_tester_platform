@@ -12,7 +12,7 @@ Po tej lekcji będziesz potrafić:
 - **Zbudować profesjonalną strukturę repozytorium** z clear separation of concerns
 - **Skonfigurować lint, types i formatowanie** dla consistency
 - **Zarządzać sekretami** bezpiecznie przez environment variables
-- **Skonfigurować CI/CD pipeline** z stages, artifacts i quality gates
+- **Skonfigurować CI/CD pipeline** z stages, artefakty i quality gates
 - **Dokumentować projekt** przez README, CONTRIBUTING i ADR
 - **Ustanowić konwencje** dla commit messages, PR reviews i release workflow
 
@@ -234,7 +234,7 @@ BROWSERSTACK_USERNAME=your-username
 BROWSERSTACK_ACCESS_KEY=your-access-key
 
 # Screenshot storage
-SCREENSHOT_AWS_BUCKET=test-screenshots
+SCREENSHOT_AWS_BUCKET=test-zrzuty ekranu
 AWS_ACCESS_KEY_ID=xxx
 AWS_SECRET_ACCESS_KEY=xxx
 
@@ -734,7 +734,7 @@ Introduce Page Object Models in `src/pages/`.
 ### Commit message format
 
 ```
-<type>(<scope>): <description>
+<type>(<zakres>): <description>
 
 [optional body]
 

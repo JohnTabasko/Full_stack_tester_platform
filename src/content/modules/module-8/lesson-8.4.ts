@@ -158,8 +158,8 @@ export const lesson8_4: Lesson = {
         "description": "Pomiar i walidacja odpowiedzi API."
       },
       {
-        "title": "Test timeouts",
-        "url": "https://playwright.dev/docs/test-timeouts",
+        "title": "Test limity czasu",
+        "url": "https://playwright.dev/docs/test-limity czasu",
         "description": "Timeouty testów i asercji."
       },
       {

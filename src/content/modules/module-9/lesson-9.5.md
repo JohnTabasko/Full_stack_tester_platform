@@ -184,7 +184,7 @@ Failed: 4 / 320
 Flaky after retry: 2
 Area: payments
 Report: <link>
-Trace artifacts: <link>
+Artefakty trace: <link>
 Correlation IDs: e2e-abc, e2e-def
 Owner: team-payments
 ```

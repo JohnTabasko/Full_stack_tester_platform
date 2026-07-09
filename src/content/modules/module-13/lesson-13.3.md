@@ -13,7 +13,7 @@ Po tej lekcji będziesz potrafić:
 - **Przenosić setup do API** — eliminate UI overhead w data preparation
 - **Zarządzać HTTP cache** — control caching behavior without hiding state changes
 - **Stosować batching** — batch data creation dla faster setup
-- **Implementować lazy initialization** — defer expensive operations
+- **Implementować lazy początkowyization** — defer expensive operations
 - **Analizować kompromisy** — trade-offs każdej optymalizacji
 
 ---
@@ -484,7 +484,7 @@ test.afterAll(async ({ request, adminToken }) => {
 
 ---
 
-## Sekcja 5: Lazy initialization
+## Sekcja 5: Lazy początkowyization
 
 ### Lazy load heavy fixtures
 
@@ -674,7 +674,7 @@ Pamiętaj: optymalizacja, która zmniejsza coverage lub wiarygodność, jest cou
 - **API setup** — największy possible gain (10-50x speedup). Przenieś data creation z UI na API gdzie możliwe.
 - **HTTP cache management** — block cache dla deterministycznych testów, enable cache dla repeat-visit tests, verify cache behavior jako część testów.
 - **Batching** — bulk operations dla data setup. Ale balanced z debuggability — zbyt batched data utrudnia diagnose failures.
-- **Lazy initialization** — defer expensive operations dopiero gdy są potrzebne. Oszczędza setup time dla testów, które nie potrzebują heavy fixtures.
+- **Lazy początkowyization** — defer expensive operations dopiero gdy są potrzebne. Oszczędza setup time dla testów, które nie potrzebują heavy fixtures.
 - **Trade-off analysis** — każda optymalizacja ma koszt. Dokumentuj decyzje: co zyskujesz, co tracisz, dlaczego decyzja jest uzasadniona.
 - **Monitor after changes** — measure before i after. Jeśli zmiana nie daje realnego zysku (min. 30s), revert.
 

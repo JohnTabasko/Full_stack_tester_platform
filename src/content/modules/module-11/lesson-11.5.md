@@ -15,7 +15,7 @@ Po tej lekcji będziesz potrafić:
 - **Budować quality gates** — automatyczne criteria release oparte o metryki
 - **Zarządzać kosztami CI** — resource classes, scheduling, selective execution
 - **Obsługiwać flaky tests** — detection, isolation, retry strategies
-- **Zabezpieczać sekrety** — no echo, maskowanie, scopes, rotation
+- **Zabezpieczać sekrety** — no echo, maskowanie, zakress, rotation
 
 ---
 
@@ -717,7 +717,7 @@ echo "Using token: ${SECRET_API_KEY:0:4}****"
 
 ```yaml
 # NIE dawaj wszystkim jobom wszystkich sekretów
-# Używaj scoped environment variables
+# Używaj zakresd environment variables
 
 # Job 1: tylko staging secrets
 deploy:staging:
@@ -872,7 +872,7 @@ Pipeline jest living system — wymaga regularnego review, refactoring i evoluti
 - **Quality gates** — automatyczne kryteria release oparte o pass rate, flaky rate, critical failures. Gates jako kod.
 - **Flaky management** — strategia wielopoziomowa: retry config, stability waits, isolation, exclusion, detection.
 - **Cost optimization** — fast-fail, selective matrix, retention policies, resource right-sizing.
-- **Security** — maskowanie sekretów, least privilege scopes, short-lived credentials, artifact expiration.
+- **Security** — maskowanie sekretów, least privilege zakress, short-lived credentials, artifact expiration.
 - **Observability** — metryki pipeline (duration, cost, flaky rate), dashboardy, alerting na anomalie.
 
 ---

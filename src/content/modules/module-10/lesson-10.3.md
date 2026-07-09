@@ -778,7 +778,7 @@ Reprezentatywność próby ma znaczenie. Jeden passed run po restarcie środowis
 
 ### Pułapka 4: Normalizacja środowisk
 
-Test trwający 5s na laptopie developera i 12s na shared CI runnerze to dwie różne rzeczy. Porównuj metryki tylko w ramach tego samego środowiska execution context.
+Test trwający 5s na laptopie developera i 12s na shared CI runnerze to dwie różne rzeczy. Porównuj metryki tylko w ramach tego samego środowiska kontekst uruchomienia.
 
 ---
 

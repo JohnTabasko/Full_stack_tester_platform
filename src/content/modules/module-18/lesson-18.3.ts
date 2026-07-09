@@ -37,7 +37,7 @@ export const lesson18_3: Lesson = {
       {
         "id": "ex-18-3-3",
         "title": "Struktura katalogów",
-        "description": "Zaproponuj strukturę projektu testowego dla aplikacji SaaS z interfejs użytkownika, API, Baza danych i kontraktami."
+        "description": "Zaproponuj strukturę projektu testowego dla aplikacji SaaS z interfejs użytkownika, API, baza danych i kontraktami."
       },
       {
         "id": "ex-18-3-4",

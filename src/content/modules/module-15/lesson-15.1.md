@@ -1027,7 +1027,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for standards and workflow.
 
 Projekt e-commerce to demonstration of full stack thinking. Jako Full Stack Tester:
 
-**Strategic scope**: NIE testujesz wszystkiego. Testujesz najważniejsze ryzyka biznesowe. Reszta to szczegóły.
+**Strategic zakres**: NIE testujesz wszystkiego. Testujesz najważniejsze ryzyka biznesowe. Reszta to szczegóły.
 
 **Architecture matters**: Page Objects, Fixtures, Builders — to nie boilerplate, to architektura pozwalająca na skalowanie.
 
@@ -1041,7 +1041,7 @@ Projekt e-commerce to demonstration of full stack thinking. Jako Full Stack Test
 
 ## Podsumowanie
 
-- **Risk-based scope** — testuj najważniejsze ryzyka biznesowe, nie wszystkie funkcje.
+- **Risk-based zakres** — testuj najważniejsze ryzyka biznesowe, nie wszystkie funkcje.
 - **Warstwowa architektura** — smoke, regression, API, security, compliance — każda warstwa ma inny cel.
 - **Data builders** — deterministyczne, izolowane dane testowe. Każdy test tworzy swoje dane.
 - **App fixtures** — high-level shop operations (login, addToCart, checkout) jako fixtures dla czytelnych testów.

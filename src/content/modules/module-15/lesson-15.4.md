@@ -11,9 +11,9 @@ Po tej lekcji będziesz potrafić:
 
 - **Zbudować projekt końcowy** demonstrujący strategiczne myślenie
 - **Zdefiniować kryteria oceny** dla własnego projektu
-- **Strukturyzować portfolio** dla maximum impact
+- **Strukturyzować portfolio** dla maksymalny efekt
 - **Przygotować się do rozmowy** o projekcie jako evidence kompetencji
-- **Planować dalszy rozwój** po zakończeniu projektu initial
+- **Planować dalszy rozwój** po zakończeniu projektu początkowy
 
 ---
 
@@ -202,13 +202,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Category | Excellent (5) | Good (3) | Needs Work (1) |
 |----------|--------------|----------|----------------|
-| **Scope definition** | Clear risks, justified scope | Some rationale | No clear strategy |
+| **Scope definition** | Clear risks, justified zakres | Some rationale | No clear strategy |
 | **Test quality** | Well-structured, maintainable | Functional but messy | Random, brittle |
 | **Data management** | Isolated, deterministic | Some isolation | Shared data, conflicts |
 | **CI/CD integration** | Complete pipeline | Partial | No CI |
 | **Documentation** | README, ADR, comments | Basic README | No docs |
 | **Architecture** | Clean separation | Functional | Monolithic |
-| **Debugging** | Trace, screenshots, logs | Some artifacts | No diagnostics |
+| **Debugging** | Trace, zrzuty ekranu, logi | Część artefaktów | No diagnostics |
 
 ### Score calculation
 
@@ -442,7 +442,7 @@ Structure: **Context → Decision → Consequences**
 
 ### CI/CD
 - [ ] Pipeline runs on PR
-- [ ] Pipeline publishes artifacts
+- [ ] Pipeline publikuje artefakty
 - [ ] Quality gate configured
 - [ ] Report is accessible
 
@@ -481,7 +481,7 @@ Najlepsi testerzy, których spotkałem, traktują każdy projekt jako okazję do
 
 ## Podsumowanie
 
-- **Wybór projektu**: Realny problem, measurable results, manageable scope, dopasowanie do target.
+- **Wybór projektu**: Realny problem, measurable results, kontrolowany zakres, dopasowanie do target.
 - **Architecture**: Clear structure, Page Objects, fixtures, builders, CI/CD.
 - **Kryteria oceny**: Self-assessment rubric dla strategicznych i technical skills.
 - **Portfolio-ready**: README z quick start, strategy, metrics, known limitations.
@@ -514,7 +514,7 @@ Projekt końcowy powinien pokazać nie tylko, że umiesz napisać kilka testów,
 | Network mocking | błędy 500/403/timeout, HAR albo route mocking |
 | POM | Page Objects, Component Objects, Service/API Objects |
 | Debugging | trace, screenshot, video, `test.step`, `testInfo.attach` |
-| CI/CD | GitHub Actions, sharding, artifacts, report HTML |
+| CI/CD | GitHub Actions, sharding, artefakty, report HTML |
 | Accessibility | Axe, role/name assertions, ARIA snapshot dla komponentu |
 | Visual regression | screenshot komponentu albo krytycznej strony |
 | Test data | buildery, factory, `runId`, cleanup |

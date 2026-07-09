@@ -74,7 +74,7 @@ test('formularz rejestracji waliduje email', async ({ page }) => {
 - Test nie "widzi" stanu pozostawionego przez poprzedni test.
 
 **Izolacja od strony JavaScript:**
-- Nowa strona = nowy global scope JavaScript.
+- Nowa strona = nowy global zakres JavaScript.
 - Zmienne globalne, cache, stan Redux/MobX/React — wszystko jest czyste.
 
 **Izolacja od strony sieci:**

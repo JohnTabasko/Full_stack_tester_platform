@@ -35,8 +35,8 @@ export const lesson24_1: Lesson = {
       },
       {
         "id": "ex-24-1-3",
-        "title": "Analiza wąskie gardłou",
-        "description": "Na podstawie hipotetycznych metryk CPU, Baza danych i latency wskaż najbardziej prawdopodobne wąskie gardło."
+        "title": "Analiza wąskiego gardła",
+        "description": "Na podstawie hipotetycznych metryk CPU, baza danych i latency wskaż najbardziej prawdopodobne wąskie gardło."
       },
       {
         "id": "ex-24-1-4",
@@ -74,7 +74,7 @@ export const lesson24_1: Lesson = {
           "Ukrywa ogon rozkładu i problemy części użytkowników",
           "Zawsze jest równa p95",
           "Nie da się jej policzyć",
-          "Dotyczy tylko interfejs użytkownika"
+          "Dotyczy tylko interfejsu użytkownika"
         ],
         "correctAnswer": 0,
         "explanation": "Percentyle pokazują doświadczenie wolniejszych żądań, których średnia może nie ujawniać."
@@ -97,7 +97,7 @@ export const lesson24_1: Lesson = {
         "options": [
           "Load sprawdza oczekiwane obciążenie, stress szuka granic systemu",
           "To dokładnie to samo",
-          "Stress jest tylko dla interfejs użytkownika",
+          "Stress jest tylko dla interfejsu użytkownika",
           "Load nie używa metryk"
         ],
         "correctAnswer": 0,
@@ -117,9 +117,9 @@ export const lesson24_1: Lesson = {
       },
       {
         "id": "q24-1-6",
-        "question": "Co jest typowym wąskie gardłoiem?",
+        "question": "Co jest typowym wąskim gardłem?",
         "options": [
-          "Baza danych, CPU, zewnętrzne API, blokady albo pula połączeń",
+          "baza danych, CPU, zewnętrzne API, blokady albo pula połączeń",
           "Kolor tekstu",
           "Nazwa commita",
           "Brak screenshotu"
@@ -134,7 +134,7 @@ export const lesson24_1: Lesson = {
           "Rozmiar i rozkład danych wpływają na czas odpowiedzi",
           "Nie mają znaczenia",
           "Zawsze powinny być puste",
-          "Służą tylko do interfejs użytkownika"
+          "Służą tylko do interfejsu użytkownika"
         ],
         "correctAnswer": 0,
         "explanation": "Zapytania na pustej bazie mogą wyglądać świetnie, a na realistycznych danych — fatalnie."

@@ -14,7 +14,7 @@ export const lesson18_2: Lesson = {
     "promise",
     "error-handling",
     "race-condition",
-    "timeouts"
+    "limity czasu"
   ],
   "content": {
     "objective": "Po ukończeniu lekcji rozumiesz model asynchroniczny JavaScriptu, potrafisz unikać typowych warunki wyścigu w testach Playwright oraz projektować czytelną obsługę błędów i ponowienia bez ukrywania defektów.",

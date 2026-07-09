@@ -11,7 +11,7 @@ Po tej lekcji będziesz potrafić:
 
 - **Skonfigurować Allure z Playwright** — instalacja, integracja w CI, generowanie raportów
 - **Stosować adnotacje Allure** konsekwentnie — epic, feature, story, severity, step
-- **Grupować awarie w kategorie** — produkcyjne błędy, problemy z danymi, timeouts, środowisko
+- **Grupować awarie w kategorie** — produkcyjne błędy, problemy z danymi, limity czasu, środowisko
 - **Korzystać z historii wyników** — porównywanie przebiegów, śledzenie trendów w dłuższym okresie
 - **Hostować raporty** w sposób dostępny dla zespołu — GitHub Pages, Artifactory, S3, Jenkins
 

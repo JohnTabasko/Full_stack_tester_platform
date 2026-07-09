@@ -153,7 +153,7 @@ export const lesson2_9: Lesson = {
     "references": [
       {
             "title": "Screenshots",
-            "url": "https://playwright.dev/docs/screenshots",
+            "url": "https://playwright.dev/docs/zrzuty ekranu",
             "description": "Screenshoty stron i locatorów."
       },
       {

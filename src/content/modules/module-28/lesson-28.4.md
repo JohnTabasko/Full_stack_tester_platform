@@ -109,7 +109,7 @@ test('użytkownik loguje się prawidłowymi danymi', async ({ page }) => {
 **Co poprawić w produkcji:**
 
 ```typescript
-// Wersja produkcyjna — z fikstrą, soft assertions, cleanup
+// Wersja produkcyjna — z fiksturą, soft assertions, cleanup
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { test as authenticatedTest } from '../fixtures/auth.fixture';
@@ -558,7 +558,7 @@ Przejrzyj swój projekt przed rozmową i upewnij się, że:
 
 Przećwicz przed lustrem lub z kolegą:
 
-- [ ] Napisz test logowania z POM i fikstrą
+- [ ] Napisz test logowania z POM i fiksturą
 - [ ] Napisz test API (GET, POST, 404)
 - [ ] Napisz test bazy danych (SELECT, INSERT, cleanup)
 - [ ] Debuguj flaky test: znajdź problem, zaproponuj naprawę

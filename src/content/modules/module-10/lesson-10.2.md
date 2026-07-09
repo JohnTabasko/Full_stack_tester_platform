@@ -1001,4 +1001,4 @@ Wtedy testy przestają być tylko kosztem operacyjnym — stają się źródłem
 - [Slack Block Kit Builder](https://app.slack.com/block-kit-builder/) — narzędzie do wizualizacji i prototypowania payloadów Slack
 - [Adaptive Cards — Microsoft](https://adaptivecards.io/) — specyfikacja i narzędzia do budowy kart dla Teams
 - [JUnit XML Format Specification](https://llg.cubic.org/docs/junit/) — standardowy format maszynowy dla systemów CI
-- [GitHub Actions — Publishing workflow artifacts](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) — jak bezpiecznie zarządzać webhook URLs jako secrets w CI
+- [GitHub Actions — Publishing workflow artefakty](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) — jak bezpiecznie zarządzać webhook URLs jako secrets w CI

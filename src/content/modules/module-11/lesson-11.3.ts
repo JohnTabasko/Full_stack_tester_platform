@@ -18,7 +18,7 @@ export const lesson11_3: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz zaprojektować pipeline dla tematu „Integracja z Jenkinsem”, który daje szybki feedback, publikuje artefakty diagnostyczne i bezpiecznie obsługuje konfigurację oraz sekrety.",
     "theory": theory11_3,
     "codeExamples": [
-      "pipeline {\n  agent { docker { image 'mcr.microsoft.com/playwright:v1.50.0-jammy' } }\n  stages {\n    stage('Install') { steps { sh 'npm ci' } }\n    stage('Test') { steps { sh 'npx playwright test' } }\n  }\n  post {\n    always {\n      junit 'test-results/junit.xml'\n      archiveArtifacts artefakty: 'playwright-report/**', allowEmptyArchive: true\n    }\n  }\n}\n",
+      "pipeline {\n  agent { docker { image 'mcr.microsoft.com/playwright:v1.50.0-jammy' } }\n  stages {\n    stage('Install') { steps { sh 'npm ci' } }\n    stage('Test') { steps { sh 'npx playwright test' } }\n  }\n  post {\n    always {\n      junit 'test-results/junit.xml'\n      archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true\n    }\n  }\n}\n",
       "parallel(\n  chromium: { sh 'npx playwright test --project=chromium' },\n  webkit: { sh 'npx playwright test --project=webkit' }\n)\n"
     ],
     "exercises": [

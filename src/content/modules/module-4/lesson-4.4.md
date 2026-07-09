@@ -185,7 +185,7 @@ test('aplikacja wyświetla komunikat przy błędzie 500', async ({ page }) => {
       contentType: 'application/json',
       body: JSON.stringify({
         error: 'Internal Server Error',
-        message: 'Baza danych jest недоступна',
+        message: 'Baza danych jest niedostępna',
         code: 'DB_CONNECTION_FAILED',
       }),
     });

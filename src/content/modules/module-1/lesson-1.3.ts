@@ -13,7 +13,7 @@ export const lesson1_3: Lesson = {
     "fixtures",
     "page-objects",
     "naming",
-    "artifacts"
+    "artefakty"
   ],
   "content": {
     "objective": "Po ukończeniu lekcji potrafisz zaprojektować czytelną strukturę projektu Playwright, oddzielić testy od helperów i danych oraz przygotować repozytorium do pracy zespołowej i CI.",

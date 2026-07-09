@@ -16,7 +16,7 @@ export const lesson27_4: Lesson = {
     "responsible-ai"
   ],
   "content": {
-    "objective": "Po ukończeniu lekcji rozumiesz najważniejsze ryzyka użycia AI w testowaniu, potrafisz zaproponować zasady zarządzanie i wiesz, jak chronić dane, sekrety oraz jakość decyzji technicznych.",
+    "objective": "Po ukończeniu lekcji rozumiesz najważniejsze ryzyka użycia AI w testowaniu, potrafisz zaproponować zasady zarządzania i wiesz, jak chronić dane, sekrety oraz jakość decyzji technicznych.",
     "theory": theory27_4,
     "codeExamples": [
       "const aiPolicy = {\n  noSecretsInPrompts: true,\n  humanReviewRequired: true,\n  destructiveActionsRequireApproval: true,\n  modelOutputIsNotOracle: true,\n};"
@@ -127,7 +127,7 @@ export const lesson27_4: Lesson = {
       },
       {
             "mistake": "Brak artefaktów",
-            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artifacts."
+            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artefakty."
       }
 ]
   }

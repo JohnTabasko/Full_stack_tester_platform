@@ -152,11 +152,11 @@ export const test = base.extend<{ temporaryUser: { email: string } }>({
 
 Kod przed `use()` to setup. Kod po `use()` to teardown. Dzięki temu sprzątanie jest powiązane z zasobem, a nie porozrzucane po testach.
 
-## 5. Test scope vs worker scope
+## 5. Test zakres vs worker zakres
 
 Fikstury mogą działać w dwóch głównych zakresach.
 
-### Test scope
+### Test zakres
 
 Domyślny zakres. Fikstura jest tworzona osobno dla każdego testu. To najbezpieczniejszy wybór dla danych, stron, użytkowników i zasobów, które nie mogą przeciekać między testami.
 
@@ -171,7 +171,7 @@ export const test = base.extend<{ cartId: string }>({
 });
 ```
 
-### Worker scope
+### Worker zakres
 
 Fikstura jest tworzona raz dla procesu workera i współdzielona przez testy uruchamiane w tym workerze. Przydaje się dla kosztownych zasobów: kontenerów, klientów bazodanowych, dużych seedów albo kont testowych przypisanych do workera.
 
@@ -186,11 +186,11 @@ export const test = base.extend<{}, WorkerFixtures>({
   workerAccount: [async ({}, use, workerInfo) => {
     const email = `worker-${workerInfo.workerIndex}@example.com`;
     await use({ email, password: 'Secret123!' });
-  }, { scope: 'worker' }],
+  }, { zakres: 'worker' }],
 });
 ```
 
-Uwaga: worker scope wymaga dyscypliny. Jeżeli testy modyfikują współdzielony zasób, mogą wpływać na siebie nawzajem.
+Uwaga: worker zakres wymaga dyscypliny. Jeżeli testy modyfikują współdzielony zasób, mogą wpływać na siebie nawzajem.
 
 ## 6. Auto fixtures
 
@@ -328,8 +328,8 @@ Nie mieszaj w jednym pliku `test` z `@playwright/test` i własnego rozszerzonego
 - Czy fixture ma jedną odpowiedzialność?
 - Czy nazwa mówi, jaki zasób dostarcza?
 - Czy teardown jest blisko setupu?
-- Czy fixture jest test-scoped, jeśli modyfikuje dane?
-- Czy worker-scoped fixture nie powoduje zależności między testami?
+- Czy fixture jest test-zakresd, jeśli modyfikuje dane?
+- Czy worker-zakresd fixture nie powoduje zależności między testami?
 - Czy testy importują właściwy `test`?
 - Czy typy TypeScript jasno opisują dostępne fixtures?
 - Czy fixture nie ukrywa głównego sensu scenariusza?

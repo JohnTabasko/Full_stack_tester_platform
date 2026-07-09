@@ -168,7 +168,7 @@ export const lesson2_4: Lesson = {
       },
       {
         "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/screenshots",
+        "url": "https://playwright.dev/docs/zrzuty ekranu",
         "description": "Dokumentacja screenshotów i testów wizualnych."
       }
     ],

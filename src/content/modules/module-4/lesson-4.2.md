@@ -66,8 +66,8 @@ Kluczowe pojęcie: **Document-tree to hierarchia, w której iframe nie jest zwyk
 ### Kontekst okna i izolacja
 
 Każdy iframe ma własny obiekt `window`, co oznacza:
-- Własny JavaScript execution context.
-- Własny global scope (`window` ≠ nadrzędny `window`).
+- Własny JavaScript kontekst uruchomienia.
+- Własny global zakres (`window` ≠ nadrzędny `window`).
 - Własne ciasteczka (podlegające regułom `SameSite`).
 - Własny `localStorage` i `sessionStorage` (jeśli origin się zgadza).
 - Własne timer (`setTimeout`, `setInterval`).

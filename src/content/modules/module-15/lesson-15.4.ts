@@ -19,7 +19,7 @@ export const lesson15_4: Lesson = {
     "theory": theory15_4,
     "codeExamples": [
       "type FinalAssessment = {\n  ui: boolean;\n  api: boolean;\n  db: boolean;\n  ci: boolean;\n  reports: boolean;\n  dokumentacja: boolean;\n  practicalExamPassed: boolean;\n};\n\nfunction passed(a: FinalAssessment) {\n  return Object.values(a).every(Boolean);\n}\n",
-      "# Struktura prezentacji projektu\n1. Problem i zakres\n2. Strategia testów\n3. Architektura frameworka\n4. Demo testu interfejsu użytkownika/API/Baza danych\n5. CI i raport\n6. Kompromisy i dalszy rozwój\n"
+      "# Struktura prezentacji projektu\n1. Problem i zakres\n2. Strategia testów\n3. Architektura frameworka\n4. Demo testu interfejsu użytkownika/API/baza danych\n5. CI i raport\n6. Kompromisy i dalszy rozwój\n"
     ],
     "exercises": [
       {
@@ -40,7 +40,7 @@ export const lesson15_4: Lesson = {
       {
         "id": "ex-15-4-4",
         "title": "Pipeline",
-        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artifacts i quality gate."
+        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artefakty i quality gate."
       },
       {
         "id": "ex-15-4-5",

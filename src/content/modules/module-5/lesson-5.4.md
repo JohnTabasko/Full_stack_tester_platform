@@ -6,7 +6,7 @@ Ta lekcja pokazuje, jak działa równoległość w Playwright, czym są workers,
 
 ## 1. Model wykonania Playwright
 
-Playwright uruchamia testy w procesach zwanych workerami. Worker to osobny proces Node.js, który wykonuje część testów. Każdy test dostaje izolowane fixtures test-scoped, np. `page` i `context`.
+Playwright uruchamia testy w procesach zwanych workerami. Worker to osobny proces Node.js, który wykonuje część testów. Każdy test dostaje izolowane fixtures test-zakresd, np. `page` i `context`.
 
 Domyślnie Playwright wykonuje pliki testowe równolegle. Testy wewnątrz jednego pliku zwykle wykonują się po kolei, chyba że włączysz pełną równoległość.
 
@@ -132,7 +132,7 @@ test('konto przypisane do workera', async ({ page }, testInfo) => {
 });
 ```
 
-W fixture worker-scoped można przypisać osobne konto dla każdego workera:
+W fixture worker-zakresd można przypisać osobne konto dla każdego workera:
 
 ```typescript
 export const test = base.extend<{}, { account: { email: string; password: string } }>({
@@ -141,7 +141,7 @@ export const test = base.extend<{}, { account: { email: string; password: string
       email: `worker-${workerInfo.parallelIndex}@example.com`,
       password: 'Secret123!',
     });
-  }, { scope: 'worker' }],
+  }, { zakres: 'worker' }],
 });
 ```
 

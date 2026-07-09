@@ -97,12 +97,12 @@ pipeline {
     // Post — zawsze wykonuje się po stages (niezależnie od wyniku)
     post {
         always {
-            echo 'Publishing reports and artifacts...'
+            echo 'Publishing reports and artefakty...'
             
             // JUnit — GitLab-style test report UI
             junit 'test-results/junit.xml'
             
-            // Archiwum wszystkich artifactów (trace, screenshots)
+            // Archiwum wszystkich artifactów (trace, zrzuty ekranu)
             archiveArtifacts artifacts: 'playwright-report/**,test-results/**,trace/**', 
                              allowEmptyArchive: true,
                              fingerprint: true
@@ -497,7 +497,7 @@ stage('Matrix: Browsers × OS') {
 post {
     // Zawsze — nawet przy aborted, success, failure
     always {
-        echo 'Publishing artifacts regardless of result...'
+        echo 'Publishing artefakty regardless of result...'
         junit 'test-results/junit.xml'
         archiveArtifacts artifacts: 'playwright-report/**,test-results/**', 
                          allowEmptyArchive: true,
@@ -559,7 +559,7 @@ publishHTML([
 
 ### Zbieranie wszystkich artifactów z parallel stages
 
-Gdy parallel stages generują artifacty w różnych katalogach, użyj pattern:
+Gdy parallel stages generują artefakty w różnych katalogach, użyj pattern:
 
 ```groovy
 post {
@@ -782,7 +782,7 @@ junit 'test-results/junit.xml'  // nie './test-results/...'
 ### Best practices
 
 1. **Always use Docker agent** — unikanie snowflake agents z ręcznie zainstalowanym Node.js
-2. **Post always with artifacts** — nawet przy failure raport musi być dostępny
+2. **Post always with artefakty** — nawet przy failure raport musi być dostępny
 3. **Timeout na pipeline** — unikaj "wiszących" buildów
 4. **Build discarder** — retencja artifactów (30-60 builds)
 5. **Agent labels** — jasne nazywanie agentów (docker, linux, windows, kubernetes)
@@ -813,7 +813,7 @@ Jeśli masz Jenkinsa — używaj go świadomie. Jeśli wybierasz nowe narzędzie
 - **Jenkinsfile as code** — zawsze wersjonuj pipeline w Jenkinsfile, nie w UI. Declarative Pipeline jest czytelny i maintainable.
 - **Docker agent** — `--shm-size=2g` jest kluczowy dla Chromium. Official Microsoft image zawiera wszystkie dependencies.
 - **Parallel stages** — sharding testów lub multi-browser testing. Merge JUnit results po parallel execution.
-- **Post `always`** — publikacja JUnit, HTML, artifacts zawsze, także przy failure. To najważniejsza sekcja w Jenkinsfile.
+- **Post `always`** — publikacja JUnit, HTML, artefakty zawsze, także przy failure. To najważniejsza sekcja w Jenkinsfile.
 - **HTML Publisher** — interaktywny raport w Jenkins UI. `keepAll: true` zachowuje raporty historyczne.
 - **Credentials** — `credentials()` binding bezpiecznie zarządza sekretami. Jenkins maskje je automatycznie.
 - **Shared libraries** — DRY dla wielu projektów. Wspólna logika Playwright pipeline.

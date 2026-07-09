@@ -5,7 +5,7 @@ export const lesson5_1: Lesson = {
   "id": "5.1",
   "moduleId": 5,
   "title": "Runner testów Playwright",
-  "description": "test(), describe(), hooks, steps, annotations, testInfo, retries, timeouts i tryby wykonania w Playwright Test.",
+  "description": "test(), describe(), hooks, steps, annotations, testInfo, retries, limity czasu i tryby wykonania w Playwright Test.",
   "order": 1,
   "difficulty": "intermediate",
   "tags": [

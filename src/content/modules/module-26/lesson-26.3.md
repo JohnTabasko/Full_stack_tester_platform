@@ -663,7 +663,7 @@ type DeviceStats = {
 
 async function buildDeviceMatrixFromAnalytics(propertyId: string): Promise<DeviceStats[]> {
   const analytics = google.analyticsdata('v1beta');
-  const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/analytics.readonly'] });
+  const auth = await google.auth.getClient({ zakress: ['https://www.googleapis.com/auth/analytics.readonly'] });
 
   const response = await analytics.properties.runReport({
     property: `properties/${propertyId}`,

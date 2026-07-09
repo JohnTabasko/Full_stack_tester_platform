@@ -18,8 +18,8 @@ export const lesson11_2: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz zaprojektować pipeline dla tematu „Integracja z GitLab CI/CD”, który daje szybki feedback, publikuje artefakty diagnostyczne i bezpiecznie obsługuje konfigurację oraz sekrety.",
     "theory": theory11_2,
     "codeExamples": [
-      "stages: [install, test, report]\n\ne2e:\n  image: mcr.microsoft.com/playwright:v1.50.0-jammy\n  stage: test\n  parallel: 4\n  script:\n    - npm ci\n    - npx playwright test --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL\n  artefakty:\n    when: always\n    paths:\n      - playwright-report\n      - test-results\n    reports:\n      junit: test-results/junit.xml\n",
-      "pages:\n  stage: report\n  script:\n    - mkdir public\n    - cp -r playwright-report/* public/\n  artefakty:\n    paths: [public]\n  rules:\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n"
+      "stages: [install, test, report]\n\ne2e:\n  image: mcr.microsoft.com/playwright:v1.50.0-jammy\n  stage: test\n  parallel: 4\n  script:\n    - npm ci\n    - npx playwright test --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL\n  artifacts:\n    when: always\n    paths:\n      - playwright-report\n      - test-results\n    reports:\n      junit: test-results/junit.xml\n",
+      "pages:\n  stage: report\n  script:\n    - mkdir public\n    - cp -r playwright-report/* public/\n  artifacts:\n    paths: [public]\n  rules:\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n"
     ],
     "exercises": [
       {

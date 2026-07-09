@@ -865,7 +865,7 @@ test.describe('Compliance Report Generation', () => {
   test('generate compliance report for audit', async ({ page, request }) => {
     const report: any = {
       generatedAt: new Date().toISOString(),
-      scope: 'Full Compliance Audit',
+      zakres: 'Full Compliance Audit',
       version: '1.0',
       results: {},
     };

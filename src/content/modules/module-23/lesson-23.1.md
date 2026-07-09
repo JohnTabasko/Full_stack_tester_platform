@@ -46,7 +46,7 @@ Nocna regresja E2E kończy się niepowodzeniem na kroku „finalizacja płatnoś
 - Frontend (niepoprawna obsługa odpowiedzi błędu)
 - API checkout (błąd walidacji, timeout, błąd 500)
 - Kolejka płatności (wiadomość nie doszła, przetwarzanie trwa)
-- Baza danych (constraint violation, deadlock)
+- baza danych (constraint violation, deadlock)
 - Dostawca płatności (odmowa, timeout, błąd 3DS)
 
 Twój zespół testów musi powiązać wynik testu z trace, żeby wiedzieć gdzie dokładnie szukać.
