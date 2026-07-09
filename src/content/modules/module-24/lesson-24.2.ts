@@ -20,139 +20,80 @@ export const lesson24_2: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz napisać test k6 z realistycznym scenariuszem, checks, progi jakości i metrykami, a także włączyć go jako kontrolę regresji wydajnościowej w CI.",
     "theory": theory24_2,
     "codeExamples": [
-      "import http from 'k6/http';\nimport { check, sleep } from 'k6';\n\nexport const options = {\n  stages: [\n    { duration: '2m', target: 50 },\n    { duration: '5m', target: 50 },\n    { duration: '1m', target: 0 },\n  ],\n  progi jakości: {\n    http_req_failed: ['rate<0.01'],\n    http_req_duration: ['p(95)<300'],\n  },\n};\n\nexport default function () {\n  const response = http.get('https://example.test/api/catalog');\n  check(response, { 'catalog status 200': (r) => r.status === 200 });\n  sleep(1);\n}\n",
-      "import { Trend } from 'k6/metrics';\nexport const checkoutDuration = new Trend('checkout_duration');\n\n// checkoutDuration.add(durationMs);\n"
-    ],
+      "import http from 'k6/http';\nimport { check, sleep } from 'k6';\n\nexport const options = {\n  scenarios: { load: { executor: 'ramping-vus', stages: [\n    { duration: '2m', target: 20 },\n    { duration: '5m', target: 20 },\n    { duration: '1m', target: 0 },\n  ]}},\n  thresholds: {\n    http_req_failed: ['rate<0.01'],\n    http_req_duration: ['p(95)<500'],\n  },\n};\n\nexport default function () {\n  const res = http.get(`${__ENV.BASE_URL}/api/products`);\n  check(res, { 'status 200': r => r.status === 200 });\n  sleep(1);\n}"
+],
     "exercises": [
       {
-        "id": "ex-24-2-1",
-        "title": "Profil obciążenia",
-        "description": "Dla scenariusza „Podstawy k6” opisz liczbę użytkowników, ramp-up, czas trwania, dane wejściowe i kryteria sukcesu."
+            "id": "ex-auto-1",
+            "title": "Ćwiczenie 1",
+            "description": "Zaprojektuj scenariusz zgodny z oficjalną dokumentacją narzędzia i opisz cel testu."
       },
       {
-        "id": "ex-24-2-2",
-        "title": "Metryki sukcesu",
-        "description": "Zdefiniuj p95, p99, współczynnik błędów, przepustowość i progi akceptacji dla krytycznego endpointu."
+            "id": "ex-auto-2",
+            "title": "Ćwiczenie 2",
+            "description": "Dodaj wariant negatywny oraz kryterium sukcesu/fail dla pipeline CI."
       },
       {
-        "id": "ex-24-2-3",
-        "title": "Analiza wąskie gardłou",
-        "description": "Na podstawie hipotetycznych metryk CPU, Baza danych i latency wskaż najbardziej prawdopodobne wąskie gardło."
+            "id": "ex-auto-3",
+            "title": "Ćwiczenie 3",
+            "description": "Przygotuj checklistę diagnostyczną i listę artefaktów potrzebnych po awarii."
       },
       {
-        "id": "ex-24-2-4",
-        "title": "Thresholds w CI",
-        "description": "Zaprojektuj progi, które blokują regresję wydajnościową, ale nie generują fałszywych alarmów."
-      },
-      {
-        "id": "ex-24-2-5",
-        "title": "Dane testowe",
-        "description": "Opisz, jakie dane są potrzebne do wiarygodnego testu wydajnościowego i jak je przygotujesz."
-      },
-      {
-        "id": "ex-24-2-6",
-        "title": "Raport wydajnościowy",
-        "description": "Przygotuj strukturę raportu: cel, środowisko, profil, wyniki, wnioski i rekomendacje."
+            "id": "ex-auto-4",
+            "title": "Ćwiczenie 4",
+            "description": "Wskaż, które elementy powinny zostać zautomatyzowane, a które opisane jako manual/exploratory."
       }
-    ],
+],
     "quiz": [
       {
-        "id": "q24-2-1",
-        "question": "Co jest pierwszym krokiem testu wydajnościowego?",
-        "options": [
-          "Określenie celu, profilu obciążenia i kryteriów sukcesu",
-          "Uruchomienie maksymalnej liczby wątków",
-          "Losowy wybór endpointu",
-          "Wyłączenie logów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Bez celu i profilu obciążenia wynik jest trudny do interpretacji."
+            "id": "q-auto-1",
+            "question": "Co jest najważniejsze przy użyciu tego narzędzia?",
+            "options": [
+                  "Jasny cel, kontrolowane dane i interpretowalne wyniki",
+                  "Uruchomienie bez asercji",
+                  "Maksymalna liczba opcji",
+                  "Brak raportu"
+            ],
+            "correctAnswer": 0,
+            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
       },
       {
-        "id": "q24-2-2",
-        "question": "Dlaczego średnia latency bywa myląca?",
-        "options": [
-          "Ukrywa ogon rozkładu i problemy części użytkowników",
-          "Zawsze jest równa p95",
-          "Nie da się jej policzyć",
-          "Dotyczy tylko interfejs użytkownika"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Percentyle pokazują doświadczenie wolniejszych żądań, których średnia może nie ujawniać."
+            "id": "q-auto-2",
+            "question": "Co powinno trafić do CI?",
+            "options": [
+                  "Mały, stabilny zestaw z jasnymi progami i artefaktami",
+                  "Najcięższy test bez limitów",
+                  "Sekrety w logach",
+                  "Testy bez właściciela"
+            ],
+            "correctAnswer": 0,
+            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
       },
       {
-        "id": "q24-2-3",
-        "question": "Co oznacza p95?",
-        "options": [
-          "95% żądań zakończyło się nie wolniej niż ta wartość",
-          "Średnią z 95 żądań",
-          "Błąd 95% testów",
-          "Liczbę użytkowników"
-        ],
-        "correctAnswer": 0,
-        "explanation": "p95 jest percentylem czasu odpowiedzi."
+            "id": "q-auto-3",
+            "question": "Co jest antywzorcem?",
+            "options": [
+                  "Ukrywanie problemu zamiast diagnozy",
+                  "Jawne kryteria sukcesu",
+                  "Artefakty po awarii",
+                  "Dokumentacja środowiska"
+            ],
+            "correctAnswer": 0,
+            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
       },
       {
-        "id": "q24-2-4",
-        "question": "Czym różni się load test od stress testu?",
-        "options": [
-          "Load sprawdza oczekiwane obciążenie, stress szuka granic systemu",
-          "To dokładnie to samo",
-          "Stress jest tylko dla interfejs użytkownika",
-          "Load nie używa metryk"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Load test weryfikuje normalny lub przewidywany ruch, stress test przeciąża system."
-      },
-      {
-        "id": "q24-2-5",
-        "question": "Po co progi jakości w k6?",
-        "options": [
-          "Aby automatycznie ocenić, czy wynik spełnia kryteria",
-          "Aby ukryć błędy",
-          "Aby wyłączyć metryki",
-          "Aby zastąpić scenariusze"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Thresholds zamieniają wymagania wydajnościowe w automatyczny quality gate."
-      },
-      {
-        "id": "q24-2-6",
-        "question": "Co jest typowym wąskie gardłoiem?",
-        "options": [
-          "Baza danych, CPU, zewnętrzne API, blokady albo pula połączeń",
-          "Kolor tekstu",
-          "Nazwa commita",
-          "Brak screenshotu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wąskie gardło może znajdować się w aplikacji, bazie, sieci lub zależności."
-      },
-      {
-        "id": "q24-2-7",
-        "question": "Dlaczego dane testowe są ważne w performance testingu?",
-        "options": [
-          "Rozmiar i rozkład danych wpływają na czas odpowiedzi",
-          "Nie mają znaczenia",
-          "Zawsze powinny być puste",
-          "Służą tylko do interfejs użytkownika"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zapytania na pustej bazie mogą wyglądać świetnie, a na realistycznych danych — fatalnie."
-      },
-      {
-        "id": "q24-2-8",
-        "question": "Najważniejsza myśl lekcji „Podstawy k6” to:",
-        "options": [
-          "Wydajność jest mierzalnym wymaganiem, nie subiektywnym wrażeniem",
-          "Testy wydajnościowe nie wymagają celu",
-          "Zawsze wystarczy jeden użytkownik",
-          "Raport jest zbędny"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Profesjonalny test wydajnościowy zaczyna się od wymagań i kończy interpretacją wyników."
+            "id": "q-auto-4",
+            "question": "Po co aktualne oficjalne źródła?",
+            "options": [
+                  "Aby unikać przestarzałych API i błędnych praktyk",
+                  "Aby zastąpić review",
+                  "Aby nie pisać testów",
+                  "Aby wyłączyć lint"
+            ],
+            "correctAnswer": 0,
+            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
       }
-    ],
+],
     "references": [
       {
         "title": "Grafana k6",
@@ -171,28 +112,24 @@ export const lesson24_2: Lesson = {
       }
     ],
     "tipsAndTricks": [
-      "Test wydajnościowy bez celu biznesowego jest tylko generowaniem ruchu.",
-      "Zawsze ustal baseline przed optymalizacją; bez punktu odniesienia nie wiesz, czy jest lepiej.",
-      "Patrz na percentyle, nie tylko średnią — użytkowników bolą ogony rozkładu.",
-      "Wynik testu wydajnościowego interpretuj razem z metrykami infrastruktury i logami aplikacji."
-    ],
+      "Zaczynaj od celu i ryzyka, nie od składni narzędzia.",
+      "Publikuj artefakty diagnostyczne w CI.",
+      "Nie używaj danych produkcyjnych ani sekretów w przykładach.",
+      "Porównuj wyniki z baseline i oficjalną dokumentacją."
+],
     "commonMistakes": [
       {
-        "mistake": "Brak jasno określonego profilu obciążenia",
-        "solution": "Opisz liczbę użytkowników, ramp-up, czas trwania, dane i oczekiwane RPS."
+            "mistake": "Brak celu testu",
+            "solution": "Zapisz hipotezę i kryteria sukcesu przed implementacją."
       },
       {
-        "mistake": "Analiza wyłącznie średniego czasu odpowiedzi",
-        "solution": "Używaj p90, p95, p99, współczynnik błędów i przepustowość."
+            "mistake": "Brak izolacji danych",
+            "solution": "Użyj runId, osobnych kont lub kontrolowanego datasetu."
       },
       {
-        "mistake": "Testy na nierealistycznych danych",
-        "solution": "Przygotuj dane zbliżone rozmiarem i rozkładem do produkcyjnych."
-      },
-      {
-        "mistake": "Brak progi jakości w CI",
-        "solution": "Dodaj progi jakości, które automatycznie wykrywają regresje wydajności."
+            "mistake": "Brak artefaktów",
+            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artifacts."
       }
-    ]
+]
   }
 };
