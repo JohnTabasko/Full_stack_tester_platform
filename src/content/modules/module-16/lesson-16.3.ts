@@ -5,7 +5,7 @@ export const lesson16_3: Lesson = {
   "id": "16.3",
   "moduleId": 16,
   "title": "Testowanie WebSocket i SSE",
-  "description": "WebSocket, Server-Sent Events, monitoring CDP, ponowne połączenie, scenariusze wielu użytkowników i komunikacja w czasie rzeczywistym.",
+  "description": "Testowanie WebSocket i SSE: obserwowanie ramek, UI po zdarzeniach realtime, wielu użytkowników, reconnect, izolacja kanałów i CI.",
   "order": 3,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson16_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Docker",
-        "url": "https://playwright.dev/docs/docker",
-        "description": "Oficjalne obrazy Docker i praktyki uruchamiania Playwright w kontenerach."
+        "title": "WebSocket API",
+        "url": "https://playwright.dev/docs/api/class-websocket",
+        "description": "Obserwacja WebSocket w Playwright."
       },
       {
-        "title": "Testcontainers",
-        "url": "https://testcontainers.com/",
-        "description": "Biblioteka do uruchamiania zależności testowych w kontenerach."
+        "title": "Events",
+        "url": "https://playwright.dev/docs/events",
+        "description": "Obsługa zdarzeń w Playwright."
       },
       {
-        "title": "Testowanie komponentów w Playwright",
-        "url": "https://playwright.dev/docs/test-components",
-        "description": "Dokumentacja testowania komponentów w Playwright."
-      },
-      {
-        "title": "MDN WebSocket API",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
-        "description": "Podstawy WebSocket i komunikacji dwukierunkowej."
+        "title": "Network",
+        "url": "https://playwright.dev/docs/network",
+        "description": "Diagnostyka sieci i realtime."
       }
     ],
     "tipsAndTricks": [

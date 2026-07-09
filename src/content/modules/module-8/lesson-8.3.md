@@ -1,80 +1,211 @@
 # Kontrakty API i walidacja schematów
 
-> Moduł ósmy pokazuje, jak testować system szybciej i precyzyjniej przez warstwę API. Testy API są doskonałe do kontraktów, reguł biznesowych, autoryzacji, przygotowania danych i diagnostyki. Nie zastępują testów UI, ale pozwalają nie przeciążać przeglądarki problemami, które lepiej sprawdzić niżej.
+Test API, który sprawdza tylko status HTTP, nie chroni konsumentów. Endpoint może nadal zwracać `200`, ale zmienić typ pola, usunąć wymagane pole, zmienić kod błędu albo strukturę paginacji. Kontrakt API to umowa między dostawcą a klientem: jakie dane można wysłać, jakie dane wrócą, jakie błędy są możliwe i jakie znaczenie mają pola.
 
-## Jak czytać ten moduł
+## 1. Co jest kontraktem API
 
-Czytaj ten moduł jak podręcznik kontraktu między systemami. Endpoint nie jest tylko adresem URL. Jest obietnicą: jakie dane przyjmuje, jakie zwraca, jakie błędy są możliwe, kto ma prawo go użyć i jak zachowuje się pod obciążeniem.
+Kontrakt obejmuje:
 
-Trzy zasady modułu:
+- metodę HTTP;
+- URL i parametry;
+- body requestu;
+- statusy odpowiedzi;
+- body odpowiedzi;
+- nagłówki;
+- format błędów;
+- autoryzację;
+- paginację;
+- wersjonowanie;
+- kompatybilność wsteczną.
 
-1. **Status HTTP nie wystarcza.** Sprawdzaj ciało odpowiedzi, nagłówki, semantykę danych i scenariusze błędów.
-2. **API jest świetne do setupu danych.** Przygotowanie przez API jest zwykle szybsze i stabilniejsze niż przez UI.
-3. **Kontrakt musi chronić konsumentów.** Test ma wykryć zmianę, która zepsuje klienta, zanim trafi na środowisko użytkownika.
+Przykład: jeśli frontend oczekuje `total` jako number, zmiana na string jest breaking change, nawet jeśli status to nadal `200`.
 
+## 2. Walidacja ręczna matcherami
 
-## Cel lekcji
+Dla prostych kontraktów wystarczą matchery:
 
-Ta lekcja koncentruje się na: **OpenAPI, JSON Schema, Ajv, Pact, wykrywanie zmian niekompatybilnych, wersjonowanie i podejście contract-first**. Główne ryzyko: **dostawca API zmienia pole, typ albo kod błędu, a konsumenci dowiadują się o tym dopiero po wdrożeniu**. Po lekturze powinieneś umieć zaprojektować test API, który sprawdza kontrakt, dane, uprawnienia i diagnostykę, a nie tylko status techniczny.
+```typescript
+const response = await request.get('/api/orders/ORD-123');
+expect(response.status()).toBe(200);
 
-## Sytuacja przewodnia
+const order = await response.json();
+expect(order).toEqual(expect.objectContaining({
+  id: expect.any(String),
+  status: expect.stringMatching(/^(NEW|PAID|CANCELLED)$/),
+  total: expect.any(Number),
+  currency: 'PLN',
+}));
+```
 
-frontend wymaga pola total jako number, ale backend po refaktoryzacji zaczyna zwracać string
-
-## 1. Kontrakt jako umowa
-
-Kontrakt API opisuje, czego konsument może oczekiwać. Nie jest dokumentacją marketingową, lecz umową techniczną między zespołami.
-
-## 2. OpenAPI
-
-OpenAPI pozwala opisać endpointy, parametry, odpowiedzi i błędy. Testy mogą weryfikować zgodność implementacji z opisem.
+To jest szybkie i czytelne, ale przy większych kontraktach warto użyć schematów.
 
 ## 3. JSON Schema i Ajv
-
-Schema waliduje kształt danych. Pomaga wykryć zmianę typu, brak pola albo niepoprawny enum szybciej niż test UI.
-
-## 4. Pact
-
-Testy kontraktowe sterowane przez konsumenta opisują realne potrzeby klienta API. Dostawca sprawdza, czy nadal je spełnia.
-
-## 5. Wersjonowanie
-
-Zmiana kompatybilna wstecz dodaje możliwości bez łamania istniejących konsumentów. Usunięcie pola albo zmiana typu to zwykle breaking change.
-
-## Przykład referencyjny
 
 ```typescript
 import Ajv from 'ajv';
 
-const schema = {
+const orderSchema = {
   type: 'object',
-  required: ['id', 'total', 'status'],
+  required: ['id', 'status', 'total', 'items'],
   properties: {
     id: { type: 'string' },
-    total: { type: 'number' },
     status: { enum: ['NEW', 'PAID', 'CANCELLED'] },
+    total: { type: 'number' },
+    items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['sku', 'quantity'],
+        properties: {
+          sku: { type: 'string' },
+          quantity: { type: 'integer', minimum: 1 },
+        },
+      },
+    },
   },
 };
 
-const ajv = new Ajv();
-const validate = ajv.compile(schema);
-expect(validate(await response.json())).toBe(true);
+const ajv = new Ajv({ allErrors: true });
+const validate = ajv.compile(orderSchema);
+const body = await response.json();
+
+expect(validate(body), JSON.stringify(validate.errors, null, 2)).toBe(true);
 ```
 
-Przykład pokazuje styl testowania API: jawne żądanie, asercja statusu, sprawdzenie kontraktu i odniesienie do semantyki danych.
+`allErrors: true` pomaga w diagnostyce, bo pokazuje więcej niż pierwszy błąd.
 
-## Lista kontrolna
+## 4. OpenAPI jako źródło prawdy
 
-- Czy test sprawdza więcej niż status HTTP?
-- Czy scenariusz ma wariant negatywny?
-- Czy autoryzacja jest sprawdzona dla właściwych ról?
-- Czy kontrakt odpowiedzi jest jawny?
-- Czy dane tworzone przez test są sprzątane?
-- Czy awaria zostawia request id, ciało odpowiedzi lub inne dane diagnostyczne?
+OpenAPI pozwala opisać endpointy, requesty i response’y w jednym kontrakcie. Testy mogą:
 
+- walidować odpowiedzi względem specyfikacji;
+- wykrywać brakujące endpointy;
+- sprawdzać przykłady;
+- generować typy TypeScript;
+- porównywać zmiany pod kątem breaking changes.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+W dojrzałym zespole OpenAPI powinno być częścią procesu review. Zmiana kontraktu bez aktualizacji specyfikacji jest długiem technicznym.
+
+## 5. Testy negatywnego kontraktu
+
+Kontrakt obejmuje też błędy:
+
+```typescript
+const response = await request.post('/api/orders', {
+  data: { items: [] },
+});
+
+expect(response.status()).toBe(400);
+const error = await response.json();
+expect(error).toMatchObject({
+  code: 'VALIDATION_ERROR',
+  message: expect.any(String),
+});
+```
+
+Format błędu jest tak samo ważny jak format sukcesu. Frontend potrzebuje stabilnego `code`, aby pokazać właściwy komunikat.
+
+## 6. Wersjonowanie i breaking changes
+
+Zmiany zwykle kompatybilne:
+
+- dodanie opcjonalnego pola;
+- dodanie nowej wartości, jeśli klient jest na to przygotowany;
+- rozszerzenie metadanych.
+
+Zmiany ryzykowne lub łamiące:
+
+- usunięcie pola;
+- zmiana typu pola;
+- zmiana znaczenia pola;
+- zmiana kodu błędu;
+- zmiana domyślnego sortowania;
+- zmiana wymaganych parametrów.
+
+## 7. Pact i kontrakty konsumenckie
+
+Pact pozwala konsumentowi opisać, jakiej odpowiedzi potrzebuje. Dostawca uruchamia weryfikację i wie, czy nadal spełnia potrzeby klientów.
+
+Playwright może uzupełniać Pact: używasz Playwright do testów API i UI, a Pact do formalnego kontraktu między usługami.
+
+## 8. Checklista kontraktu
+
+- Czy test sprawdza body, nie tylko status?
+- Czy typy pól są walidowane?
+- Czy wymagane pola są sprawdzone?
+- Czy format błędów jest częścią kontraktu?
+- Czy autoryzacja jest sprawdzona dla różnych ról?
+- Czy paginacja i sortowanie mają testy?
+- Czy zmiany OpenAPI są reviewowane?
+- Czy breaking changes są wykrywane przed deployem?
+
+## Linki
+
+- [Playwright API testing](https://playwright.dev/docs/api-testing)
+- [APIResponseAssertions](https://playwright.dev/docs/api/class-apiresponseassertions)
+- [OpenAPI](https://www.openapis.org/)
+- [Ajv JSON Schema Validator](https://ajv.js.org/)
+
+## 9. Kontrakt paginacji
+
+Paginacja jest częścią kontraktu API. Test powinien sprawdzić nie tylko listę danych, ale też metadane:
+
+```typescript
+const response = await request.get('/api/orders?page=1&pageSize=20');
+await expect(response).toBeOK();
+const body = await response.json();
+
+expect(body).toMatchObject({
+  items: expect.any(Array),
+  page: 1,
+  pageSize: 20,
+  totalItems: expect.any(Number),
+});
+```
+
+Jeśli frontend zależy od `totalPages`, brak tego pola jest breaking change.
+
+## 10. Diagnostyka walidacji schematu
+
+Przy walidacji schematu zawsze wypisuj błędy walidatora. Samo `expected false to be true` nie pomaga.
+
+```typescript
+const valid = validate(body);
+expect(valid, JSON.stringify(validate.errors, null, 2)).toBe(true);
+```
+
+## 11. Contract drift
+
+Contract drift oznacza, że implementacja i dokumentacja zaczynają się rozjeżdżać. Testy kontraktowe powinny działać w CI i blokować zmianę, która zmienia typ, usuwa pole albo modyfikuje format błędu bez uzgodnienia.
+
+## 12. Typy TypeScript z kontraktu
+
+Jeśli generujesz typy z OpenAPI, używaj ich w klientach API i builderach. Dzięki temu zmiana kontraktu jest widoczna już na poziomie kompilacji, a nie dopiero w testach UI.
+
+## 13. Kontrakt autoryzacji
+
+Kontrakt API obejmuje także to, kto może wykonać operację. Dla krytycznych endpointów sprawdzaj role:
+
+```typescript
+const response = await userRequest.delete('/api/admin/users/u1');
+expect(response.status()).toBe(403);
+const error = await response.json();
+expect(error.code).toBe('FORBIDDEN');
+```
+
+Brak testów autoryzacji jest częstą przyczyną luk bezpieczeństwa.
+
+## 14. Kontrakt nagłówków
+
+Niektóre nagłówki są częścią kontraktu: `content-type`, `cache-control`, `etag`, `retry-after`, `x-request-id`. Jeśli frontend albo integracja od nich zależy, test powinien je sprawdzić.
+
+```typescript
+expect(response.headers()['content-type']).toContain('application/json');
+expect(response.headers()['x-request-id']).toBeTruthy();
+```
+
+## 15. Zasada końcowa
+
+Kontrakt API nie jest dokumentem obok systemu. Jest wykonywalną umową. Jeśli test kontraktu nie działa w CI, dokumentacja może bardzo szybko przestać odpowiadać rzeczywistości.
+
+Każda zmiana kontraktu powinna być świadoma, widoczna i uzgodniona.

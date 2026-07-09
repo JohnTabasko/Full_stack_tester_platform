@@ -5,7 +5,7 @@ export const lesson7_4: Lesson = {
   "id": "7.4",
   "moduleId": 7,
   "title": "Dane testowe z bazy danych i API",
-  "description": "Seedowanie bazy danych, rollback transakcji, setup przez API, tracker sprzątania, baza in-memory i dane bliskie produkcyjnym.",
+  "description": "Setup danych przez API i bazę, cleanup tracker, runId, autoryzacja techniczna, walidacja setupu i polling procesów asynchronicznych.",
   "order": 4,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson7_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Test Fixtures",
+        "title": "API testing",
+        "url": "https://playwright.dev/docs/api-testing",
+        "description": "API jako szybki setup i teardown dla testów UI."
+      },
+      {
+        "title": "Fixtures",
         "url": "https://playwright.dev/docs/test-fixtures",
-        "description": "Fixtures jako miejsce przygotowania i sprzątania danych testowych."
+        "description": "Teardown i zarządzanie cyklem życia zasobów."
       },
       {
-        "title": "Faker.js Documentation",
-        "url": "https://fakerjs.dev/",
-        "description": "Generowanie realistycznych i deterministycznych danych testowych."
-      },
-      {
-        "title": "Martin Fowler - Test Data Builders",
-        "url": "https://martinfowler.com/bliki/TestDataBuilder.html",
-        "description": "Klasyczny opis wzorca Test Data Builder."
-      },
-      {
-        "title": "OWASP - Test Data and Privacy",
-        "url": "https://owasp.org/www-project-top-ten/",
-        "description": "Kontekst ochrony danych wrażliwych i prywatności w testach."
+        "title": "Assertions poll",
+        "url": "https://playwright.dev/docs/test-assertions",
+        "description": "expect.poll dla procesów asynchronicznych."
       }
     ],
     "tipsAndTricks": [

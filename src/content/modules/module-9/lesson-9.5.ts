@@ -5,7 +5,7 @@ export const lesson9_5: Lesson = {
   "id": "9.5",
   "moduleId": 9,
   "title": "Logowanie, monitoring i alerty",
-  "description": "Logi strukturalne, zbieranie metryk, alerty Slack, zbieranie logów konsoli i integracja z CI.",
+  "description": "Logowanie i monitoring testów: correlation ID, console/pageerror, network logs, metryki, alerty, artifact retention i obserwowalność.",
   "order": 5,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson9_5: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Debugging",
-        "url": "https://playwright.dev/docs/debug",
-        "description": "Oficjalny przewodnik po Inspectorze, tryb UI i debugowaniu testów Playwright."
+        "title": "Reporters",
+        "url": "https://playwright.dev/docs/test-reporters",
+        "description": "Raporty i integracje z CI."
       },
       {
-        "title": "Playwright Trace Viewer",
+        "title": "TestInfo.attach",
+        "url": "https://playwright.dev/docs/api/class-testinfo",
+        "description": "Załączniki diagnostyczne."
+      },
+      {
+        "title": "Trace Viewer",
         "url": "https://playwright.dev/docs/trace-viewer",
-        "description": "Dokumentacja nagrywania i analizy trace."
-      },
-      {
-        "title": "Playwright Test Retries",
-        "url": "https://playwright.dev/docs/test-retries",
-        "description": "Retry, niestabilne testy i raportowanie ponowień w Playwright Test."
-      },
-      {
-        "title": "Google SRE Book - Monitoring",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i obserwowalności systemów."
+        "description": "Trace jako artefakt diagnostyczny."
       }
     ],
     "tipsAndTricks": [

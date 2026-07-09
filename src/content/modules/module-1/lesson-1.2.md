@@ -39,7 +39,7 @@ Profesjonalny projekt Playwright powinien jawnie określać:
 - komendy do testów lokalnych i CI;
 - lokalizację raportów i artefaktów.
 
-W praktyce warto użyć pliku `.nvmrc`, pola `engines` w `package.json`, dokumentacji w README albo narzędzia typu Volta. Nie chodzi o formalizm. Chodzi o zmniejszenie liczby różnic między komputerami zespołu.
+Zgodnie z aktualnymi wymaganiami Playwright należy planować pracę na wspieranych wersjach Node.js, obecnie z linii 22.x, 24.x albo 26.x. W praktyce warto użyć pliku `.nvmrc`, pola `engines` w `package.json`, dokumentacji w README albo narzędzia typu Volta. Nie chodzi o formalizm. Chodzi o zmniejszenie liczby różnic między komputerami zespołu.
 
 ## 3. Minimalna instalacja
 
@@ -119,7 +119,19 @@ To wygląda prosto, ale w większym projekcie typy chronią przed przekazywaniem
 
 ## 6. Edytor i rozszerzenia
 
-Najczęściej używanym edytorem jest Visual Studio Code. Warto zainstalować rozszerzenie Playwright, które pomaga uruchamiać i debugować testy z poziomu edytora. Przydatne są również ESLint, Prettier i wsparcie TypeScript.
+Najczęściej używanym edytorem jest Visual Studio Code. Warto zainstalować oficjalne rozszerzenie Playwright od Microsoftu, które pomaga uruchamiać i debugować testy z poziomu edytora. Przydatne są również ESLint, Prettier i wsparcie TypeScript.
+
+Minimalny zestaw umiejętności z VS Code Extension:
+
+- uruchomienie pojedynczego testu z edytora;
+- uruchomienie testu w trybie debug;
+- użycie Record at cursor, aby dopisać kroki do istniejącego testu;
+- użycie Pick Locator do znalezienia stabilnego locatora;
+- wygenerowanie prostej asercji;
+- wybór projektu, np. Chromium albo WebKit;
+- otwarcie trace po awarii.
+
+Codegen i Pick Locator są pomocą, a nie architektem testów. Wygenerowany kod zawsze przejrzyj pod kątem stabilności locatorów, nazw kroków, danych testowych i asercji.
 
 Edytor powinien wspierać standard zespołu, a nie zastępować standard. Jeżeli formatowanie zależy od lokalnych ustawień każdego programisty, pull requesty będą pełne szumu. Dlatego konfigurację formatowania i lintingu warto trzymać w repozytorium.
 

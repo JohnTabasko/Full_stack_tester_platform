@@ -5,7 +5,7 @@ export const lesson12_5: Lesson = {
   "id": "12.5",
   "moduleId": 12,
   "title": "Antywzorce i typowe błędy",
-  "description": "Oczekiwania wpisane na stałe, kruche selektory, zależności między testami, obiekty-bogi, logika testowa we wzorcu obiektu strony i sposoby refaktoryzacji.",
+  "description": "Antywzorce Playwright: waitForTimeout, kruche locatory, kolejność testów, over-mocking, brak asercji, magiczne dane i koszt CI.",
   "order": 5,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson12_5: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Best Practices",
+        "title": "Best Practices",
         "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalne dobre praktyki Playwright."
+        "description": "Oficjalna lista dobrych praktyk i antywzorców."
       },
       {
-        "title": "Martin Fowler - Test Pyramid",
-        "url": "https://martinfowler.com/articles/practical-test-pyramid.html",
-        "description": "Praktyczne omówienie piramidy testów."
+        "title": "Actionability",
+        "url": "https://playwright.dev/docs/actionability",
+        "description": "Dlaczego nie używać sleepów."
       },
       {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania commitów."
-      },
-      {
-        "title": "Architecture Decision Records",
-        "url": "https://adr.github.io/",
-        "description": "Materiały o dokumentowaniu decyzji architektonicznych."
+        "title": "Trace Viewer",
+        "url": "https://playwright.dev/docs/trace-viewer",
+        "description": "Diagnostyka zamiast zgadywania."
       }
     ],
     "tipsAndTricks": [

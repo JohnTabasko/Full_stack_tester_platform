@@ -5,7 +5,7 @@ export const lesson7_2: Lesson = {
   "id": "7.2",
   "moduleId": 7,
   "title": "Budowniczowie danych i fabryki",
-  "description": "Wzorzec fabryki, wzorzec budowniczego, płynny interfejs, budowniczowie zagnieżdżeni, Object Mother i typowane dane domenowe.",
+  "description": "Budowniczowie danych, factory, warianty domenowe, unikalność, zgodność z kontraktem API i review danych testowych.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson7_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Test Fixtures",
+        "title": "Playwright Fixtures",
         "url": "https://playwright.dev/docs/test-fixtures",
-        "description": "Fixtures jako miejsce przygotowania i sprzątania danych testowych."
+        "description": "Fixtures jako miejsce setupu i teardownu danych testowych."
       },
       {
-        "title": "Faker.js Documentation",
-        "url": "https://fakerjs.dev/",
-        "description": "Generowanie realistycznych i deterministycznych danych testowych."
+        "title": "API testing",
+        "url": "https://playwright.dev/docs/api-testing",
+        "description": "Tworzenie stanu przez API i weryfikacja odpowiedzi."
       },
       {
-        "title": "Martin Fowler - Test Data Builders",
+        "title": "Test Data Builder",
         "url": "https://martinfowler.com/bliki/TestDataBuilder.html",
         "description": "Klasyczny opis wzorca Test Data Builder."
-      },
-      {
-        "title": "OWASP - Test Data and Privacy",
-        "url": "https://owasp.org/www-project-top-ten/",
-        "description": "Kontekst ochrony danych wrażliwych i prywatności w testach."
       }
     ],
     "tipsAndTricks": [

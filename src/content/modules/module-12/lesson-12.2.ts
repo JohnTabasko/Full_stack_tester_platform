@@ -5,7 +5,7 @@ export const lesson12_2: Lesson = {
   "id": "12.2",
   "moduleId": 12,
   "title": "Zaawansowane wzorce wzorzec obiektu strony",
-  "description": "Kompozycja, dekorator, strategia, repozytorium, journey i świadomy dobór wzorca do problemu.",
+  "description": "Zaawansowany POM: locator-first, komponenty, journey, service objects, fixtures, warstwa asercji, i18n i usuwanie zbędnych abstrakcji.",
   "order": 2,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson12_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Best Practices",
+        "title": "Page Object Models",
+        "url": "https://playwright.dev/docs/pom",
+        "description": "Oficjalny wzorzec Page Object Models."
+      },
+      {
+        "title": "Fixtures",
+        "url": "https://playwright.dev/docs/test-fixtures",
+        "description": "POM i zależności jako fixtures."
+      },
+      {
+        "title": "Best Practices",
         "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalne dobre praktyki Playwright."
-      },
-      {
-        "title": "Martin Fowler - Test Pyramid",
-        "url": "https://martinfowler.com/articles/practical-test-pyramid.html",
-        "description": "Praktyczne omówienie piramidy testów."
-      },
-      {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania commitów."
-      },
-      {
-        "title": "Architecture Decision Records",
-        "url": "https://adr.github.io/",
-        "description": "Materiały o dokumentowaniu decyzji architektonicznych."
+        "description": "Utrzymywalność i stabilność testów."
       }
     ],
     "tipsAndTricks": [

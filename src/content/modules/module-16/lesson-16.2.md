@@ -73,3 +73,64 @@ Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną
 - **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
 - **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
 - **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+
+## 6. Oczekiwanie na e-mail bez sleep
+
+E-mail jest asynchroniczny. Nie używaj `waitForTimeout(10000)`. Zaimplementuj polling API skrzynki testowej:
+
+```typescript
+await expect.poll(async () => {
+  const response = await request.get('http://localhost:8025/api/v1/messages');
+  const body = await response.json();
+  return body.messages.some((m: any) => m.To?.includes(user.email));
+}, { timeout: 30_000 }).toBe(true);
+```
+
+Polling kończy się natychmiast, gdy wiadomość dotrze, i daje jasny timeout, gdy nie dotrze.
+
+## 7. Testowanie linków w wiadomości
+
+Nie wystarczy sprawdzić, że email istnieje. Dla aktywacji konta albo resetu hasła wyciągnij link i otwórz go w Playwright:
+
+```typescript
+const activationUrl = extractActivationUrl(email.html);
+await page.goto(activationUrl);
+await expect(page.getByText('Konto aktywowane')).toBeVisible();
+```
+
+Wtedy testujesz pełny proces, nie tylko wysyłkę.
+
+## 8. Scenariusze negatywne email
+
+Ważne przypadki:
+
+- wygasły token resetu hasła;
+- ponowne użycie linku;
+- link dla nieistniejącego konta;
+- brak wycieku danych w treści;
+- poprawny język i odbiorca;
+- brak wysyłki do prawdziwego adresu poza sandboxem.
+
+## 9. Diagnostyka poczty
+
+Przy awarii dołącz subject, odbiorcę, timestamp i fragment HTML po usunięciu sekretów. Nie załączaj tokenów resetu w publicznych raportach, jeśli raport może być dostępny szerzej.
+
+## 10. Izolacja skrzynek
+
+Każdy test powinien używać unikalnego adresu email albo unikalnego subjectu z `runId`. Jeśli kilka testów czeka na „Aktywacja konta”, mogą odebrać nie swoją wiadomość.
+
+```typescript
+const email = `qa+${runId}-${crypto.randomUUID()}@example.test`;
+```
+
+## 11. Czyszczenie skrzynki testowej
+
+MailHog/Mailpit często pozwala usuwać wiadomości przez API. Wyczyść skrzynkę przed testem albo filtruj wiadomości po odbiorcy i runId. Czyszczenie globalne jest niebezpieczne przy równoległości, bo może usunąć wiadomość innego testu.
+
+## 12. Tekst i HTML
+
+Sprawdzaj zarówno linki, jak i podstawową treść. Email może mieć poprawny link, ale błędny język, brak informacji o użytkowniku albo wyciek danych. Nie porównuj całego HTML piksel po pikselu, jeśli szablon często się zmienia.
+
+## 13. Zasada końcowa
+
+Test poczty powinien potwierdzać skutek biznesowy: konto aktywowane, hasło zresetowane, faktura dostarczona. Sama obecność wiadomości w skrzynce testowej jest tylko częścią dowodu.

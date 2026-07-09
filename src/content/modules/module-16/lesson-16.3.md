@@ -1,76 +1,176 @@
 # Testowanie WebSocket i SSE
 
-> Moduł szesnasty dotyczy przypadków, które pojawiają się w dojrzałych projektach: kontenery, poczta, komunikacja w czasie rzeczywistym, testy komponentowe i integracje zewnętrzne. To tematy, w których granica systemu jest równie ważna jak sam kod testu.
+Aplikacje realtime używają WebSocketów i Server-Sent Events do czatów, powiadomień, statusów zamówień, dashboardów i współpracy wielu użytkowników. Testowanie realtime wymaga innego myślenia niż klasyczny request-response. Nie wystarczy kliknąć i natychmiast sprawdzić DOM. Trzeba poczekać na zdarzenie, wiadomość albo zmianę stanu.
 
-## Jak czytać ten moduł
+## 1. Obserwowanie WebSocketów
 
-Czytaj ten moduł jak podręcznik kontroli środowiska i zależności. Im więcej usług, kontenerów, wiadomości i dostawców, tym ważniejsze stają się: gotowość środowiska, idempotencja, retry, diagnostyka i świadome rozróżnienie mocka od prawdziwej integracji.
-
-Trzy zasady modułu:
-
-1. **Środowisko musi być kontrolowane.** Test nie powinien zgadywać, czy baza, poczta albo zależność jest gotowa.
-2. **Integracja musi mieć zakres.** Nie każdy test powinien używać prawdziwego dostawcy.
-3. **Awaria jest scenariuszem.** Retry, fallback, idempotencja i komunikaty błędów są częścią jakości.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **WebSocket, Server-Sent Events, monitorowanie przez CDP, reconnect, scenariusze wielu użytkowników i komunikacja w czasie rzeczywistym**. Główne ryzyko: **test sprawdza tylko końcowy stan UI, ale nie wykrywa zerwania połączenia, duplikacji zdarzeń ani braku ponownego połączenia**. Po lekturze powinieneś umieć dobrać strategię testu do granicy systemu i zapewnić diagnostykę awarii zależności.
-
-## Sytuacja przewodnia
-
-dwóch użytkowników pracuje na tej samej tablicy zadań, a zmiana statusu karty ma pojawić się u drugiego użytkownika bez odświeżenia strony
-
-## 1. Komunikacja real-time
-
-WebSocket i SSE zmieniają model testu. Rezultat może pojawić się bez nawigacji i bez klasycznego żądania HTTP widocznego jako fetch.
-
-## 2. WebSocket
-
-WebSocket jest dwukierunkowy. Testuj połączenie, wiadomości, reconnect i zachowanie po utracie sieci.
-
-## 3. SSE
-
-Server-Sent Events są jednokierunkowe z serwera do klienta. Są częste w powiadomieniach i strumieniach statusów.
-
-## 4. Wielu użytkowników
-
-Scenariusze real-time często wymagają dwóch kontekstów przeglądarki i izolowanych sesji. W profesjonalnej pracy z Playwrightem, to zagadnienie jest kluczowe dla stabilności i wydajności całego procesu. Należy pamiętać o izolacji, odpowiednim doborze API oraz unikaniu typowych antywzorców, takich jak sztywne timeouty czy nadmierne poleganie na strukturze DOM.
-
-## 5. Reconnect i idempotencja
-
-Po rozłączeniu aplikacja powinna odtworzyć stan bez duplikatów. Test powinien sprawdzać nie tylko pojawienie się zdarzenia, ale też brak powielenia.
-
-## Przykład referencyjny
+Playwright pozwala nasłuchiwać WebSocketów:
 
 ```typescript
-test('aktualizacja zadania pojawia się u drugiego użytkownika', async ({ browser }) => {
-  const a = await browser.newContext({ storageState: 'auth/user-a.json' });
-  const b = await browser.newContext({ storageState: 'auth/user-b.json' });
-  const pageA = await a.newPage();
-  const pageB = await b.newPage();
-
-  await pageA.goto('/board');
-  await pageB.goto('/board');
-  await pageA.getByText('Zadanie 1').dragTo(pageA.getByRole('list', { name: 'W toku' }));
-  await expect(pageB.getByRole('list', { name: 'W toku' })).toContainText('Zadanie 1');
+page.on('websocket', ws => {
+  console.log('WebSocket:', ws.url());
+  ws.on('framesent', frame => console.log('sent', frame.payload));
+  ws.on('framereceived', frame => console.log('received', frame.payload));
 });
 ```
 
-Przykład pokazuje, że specjalistyczne integracje wymagają jawnej kontroli środowiska i asercji skutku. Samo wywołanie usługi nie wystarcza.
+To jest szczególnie przydatne przy diagnostyce w CI. W raporcie możesz dołączyć wybrane ramki jako attachment.
 
-## Lista kontrolna
+## 2. Test zachowania UI
 
-- Czy środowisko ma healthcheck albo inny dowód gotowości?
-- Czy test wie, czy używa mocka, sandboxa czy prawdziwej usługi?
-- Czy scenariusz awarii jest testowany?
-- Czy operacja jest idempotentna lub zabezpieczona przed duplikatem?
-- Czy artefakty pozwolą zdiagnozować problem zależności?
-- Czy test nie generuje kosztów lub efektów ubocznych poza środowiskiem testowym?
+Nie testuj tylko, że ramka przyszła. Testuj, że użytkownik widzi rezultat:
 
+```typescript
+await page.goto('/orders/ORD-123');
+await expect(page.getByText('Status: oczekuje')).toBeVisible();
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+await triggerOrderStatusChangeByApi(request, 'ORD-123', 'PAID');
+
+await expect(page.getByText('Status: opłacone')).toBeVisible();
+```
+
+## 3. Dwie strony / dwóch użytkowników
+
+```typescript
+const admin = await context.newPage();
+const customer = await context.newPage();
+
+await customer.goto('/chat');
+await admin.goto('/admin/chat');
+
+await admin.getByLabel('Wiadomość').fill('Dzień dobry');
+await admin.getByRole('button', { name: 'Wyślij' }).click();
+
+await expect(customer.getByText('Dzień dobry')).toBeVisible();
+```
+
+## 4. SSE
+
+SSE to jednokierunkowy strumień z serwera do klienta. Z perspektywy testu najczęściej weryfikujesz skutek w UI albo request inicjujący strumień:
+
+```typescript
+const responsePromise = page.waitForResponse(response =>
+  response.url().includes('/events') && response.status() === 200
+);
+await page.goto('/dashboard');
+await responsePromise;
+```
+
+## 5. WebSocketRoute i mockowanie realtime
+
+Nowsze API Playwright pozwala w wybranych scenariuszach routować WebSockety. To przydatne do symulowania wiadomości, błędów i rozłączeń. Używaj tego do testów obsługi edge case, ale zostaw przynajmniej kilka testów na prawdziwej integracji realtime.
+
+## 6. Typowe problemy
+
+- test nie czeka na realny stan UI;
+- wiadomość przychodzi przed subskrypcją;
+- kilka testów używa tego samego kanału;
+- brak cleanupu subskrypcji;
+- środowisko CI blokuje połączenia websocket;
+- retry ukrywa problem synchronizacji.
+
+## 7. Checklista
+
+- Czy subskrypcja jest aktywna przed wywołaniem zdarzenia?
+- Czy test sprawdza UI, nie tylko ramkę?
+- Czy kanały i dane są izolowane per test?
+- Czy logi websocket są dostępne przy awarii?
+- Czy mock realtime nie zastępuje całej integracji?
+
+## Linki
+
+- [WebSocket API](https://playwright.dev/docs/api/class-websocket)
+- [Events](https://playwright.dev/docs/events)
+- [Network](https://playwright.dev/docs/network)
+
+## 8. Izolacja kanałów realtime
+
+Każdy test powinien używać własnego kanału, pokoju, zamówienia albo użytkownika. Jeśli kilka testów słucha tego samego kanału `notifications`, wiadomości mogą się mieszać.
+
+```typescript
+const roomId = `room-${testInfo.parallelIndex}-${crypto.randomUUID()}`;
+await page.goto(`/chat/${roomId}`);
+```
+
+## 9. Diagnostyka realtime
+
+Przy awarii zapisz:
+
+- URL WebSocket;
+- ostatnie wysłane ramki;
+- ostatnie odebrane ramki;
+- identyfikator kanału;
+- correlation ID;
+- screenshot UI.
+
+```typescript
+await testInfo.attach('websocket-frames.json', {
+  body: JSON.stringify(frames, null, 2),
+  contentType: 'application/json',
+});
+```
+
+## 10. Test rozłączenia
+
+Realtime musi obsługiwać utratę połączenia. Możesz mockować offline albo zasymulować błąd zależności. Asercja powinna dotyczyć UI: komunikat „utracono połączenie”, próba reconnect albo fallback polling.
+
+## 11. Polling jako fallback
+
+Niektóre systemy mają fallback z WebSocket na polling. Test może sprawdzić oba warianty: realtime dla normalnego połączenia i polling/offline fallback dla awarii. W takiej sytuacji nie sprawdzaj implementacji transportu jako celu samego w sobie. Sprawdź, że użytkownik nadal otrzyma aktualny status.
+
+## 12. Typowa strategia testów realtime
+
+- Jeden test smoke na prawdziwym WebSocket/SSE.
+- Kilka testów UI na mockowanych wiadomościach.
+- Test rozłączenia i reconnect.
+- Test izolacji kanałów.
+- Monitoring błędów realtime w logach.
+
+Dzięki temu zachowujesz balans między realizmem a stabilnością.
+
+## 13. Asercje dla kolejności wiadomości
+
+W systemach realtime czasem ważna jest kolejność wiadomości. Test powinien sprawdzić ją jawnie:
+
+```typescript
+await expect(page.getByTestId('message')).toHaveText([
+  'Pierwsza wiadomość',
+  'Druga wiadomość',
+]);
+```
+
+Jeśli kolejność nie jest częścią kontraktu, nie stabilizuj jej przypadkowo.
+
+## 14. Reconnect i stan po odświeżeniu
+
+Po utracie połączenia aplikacja powinna odzyskać stan. Dobry test może odświeżyć stronę albo zasymulować reconnect i sprawdzić, że użytkownik nadal widzi aktualne dane. W realtime ważne jest nie tylko odebranie eventu, ale spójność stanu po przerwie.
+
+## 15. WebSocket w CI
+
+Niektóre proxy i środowiska CI mają ograniczenia dla WebSocket. Jeżeli testy realtime padają tylko w CI, sprawdź konfigurację sieci, timeouty, nagłówki upgrade i logi serwera. Publikuj ramki i URL połączenia jako artefakty.
+
+## 16. Test wielu subskrybentów
+
+Realtime często oznacza, że wiele klientów widzi ten sam stan. Test może otworzyć dwie strony w dwóch kontekstach i sprawdzić synchronizację. Używaj osobnych kont, jeśli uprawnienia mają znaczenie.
+
+## 17. Timeouty realtime
+
+Nie ustawiaj ogromnych timeoutów globalnie. Dla zdarzeń realtime użyj lokalnego timeoutu z opisem:
+
+```typescript
+await expect(page.getByText('Nowe powiadomienie'), 'powiadomienie realtime powinno dotrzeć').toBeVisible({ timeout: 15_000 });
+```
+
+Jeśli zdarzenie nie dociera, trace i logi websocket powinny pokazać, czy problem jest w subskrypcji, backendzie czy UI.
+
+## 18. Testowanie uprawnień realtime
+
+Realtime często zależy od uprawnień. Użytkownik nie powinien otrzymywać wiadomości z cudzego kanału. Testuj przypadki negatywne: subskrypcja do zasobu innego użytkownika, brak roli admina, wygasła sesja podczas połączenia.
+
+## 19. Backpressure i duża liczba wiadomości
+
+Dla dashboardów realtime ważne jest zachowanie przy serii wiadomości. Nie musisz robić load testu w Playwright, ale możesz sprawdzić, że UI nie gubi ostatniego stanu po kilku szybkich eventach.
+
+## 20. Zasada końcowa
+
+W testach realtime najważniejsza jest obserwowalna spójność stanu. Transport może być WebSocket, SSE albo polling, ale użytkownik powinien widzieć aktualne i poprawne dane.

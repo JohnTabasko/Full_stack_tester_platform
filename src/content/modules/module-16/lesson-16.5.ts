@@ -5,7 +5,7 @@ export const lesson16_5: Lesson = {
   "id": "16.5",
   "moduleId": 16,
   "title": "Testowanie integracji zewnętrznych",
-  "description": "Webhooki, upload plików, integracje płatności, mapy, SMS, Circuit Breaker, zapasowy interfejs użytkownika i chaos testing.",
+  "description": "Integracje zewnętrzne: sandbox vs mock, HAR, webhooki, email/SMS/SSO/płatności, idempotencja, request id, kontrakty i degradacja.",
   "order": 5,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson16_5: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Docker",
-        "url": "https://playwright.dev/docs/docker",
-        "description": "Oficjalne obrazy Docker i praktyki uruchamiania Playwright w kontenerach."
+        "title": "Network mocking",
+        "url": "https://playwright.dev/docs/mock",
+        "description": "Mockowanie zewnętrznych integracji."
       },
       {
-        "title": "Testcontainers",
-        "url": "https://testcontainers.com/",
-        "description": "Biblioteka do uruchamiania zależności testowych w kontenerach."
+        "title": "HAR replay",
+        "url": "https://playwright.dev/docs/network",
+        "description": "Odtwarzanie odpowiedzi z HAR."
       },
       {
-        "title": "Testowanie komponentów w Playwright",
-        "url": "https://playwright.dev/docs/test-components",
-        "description": "Dokumentacja testowania komponentów w Playwright."
-      },
-      {
-        "title": "MDN WebSocket API",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
-        "description": "Podstawy WebSocket i komunikacji dwukierunkowej."
+        "title": "API testing",
+        "url": "https://playwright.dev/docs/api-testing",
+        "description": "Kontrakty i testy integracyjne przez API."
       }
     ],
     "tipsAndTricks": [

@@ -1,47 +1,12 @@
 # Własne asercje i funkcje pomocnicze
 
-> Moduł trzeci przenosi uwagę z wykonywania kroków na dowodzenie, że system osiągnął oczekiwany stan. Akcja bez asercji jest tylko ruchem. Asercja bez zrozumienia ryzyka może być formalnością. Dobra asercja jest dowodem.
+Własne asercje, helpery i matchery pomagają utrzymać duży projekt testowy. Mogą jednak również zaszkodzić, jeśli ukrywają sens testu, mieszają setup z akcjami i asercjami albo tworzą abstrakcje niezrozumiałe dla zespołu. Dobra funkcja pomocnicza nazywa wiedzę domenową. Zła funkcja pomocnicza tylko chowa kod.
 
-## Jak czytać ten moduł
+Celem tej lekcji jest pokazanie, kiedy tworzyć helper, kiedy custom matcher, jak organizować kod pomocniczy i jak nie stracić diagnostyki w raportach Playwright.
 
-Czytając lekcje o asercjach, stale zadawaj pytanie: co dokładnie chcę udowodnić? Nie pytaj najpierw, jakiego matchera użyć. Najpierw określ stan oczekiwany. Dopiero potem wybierz `toBeVisible`, `toHaveText`, `toEqual`, `toBeOK`, helper domenowy albo własny matcher.
+## 1. Po co tworzyć helpery asercji
 
-W module trzecim obowiązują trzy zasady:
-
-1. **Asercja musi być znacząca.** Powinna potwierdzać zachowanie, kontrakt albo stan ważny dla użytkownika lub systemu.
-2. **Asercja musi być stabilna.** Nie powinna wiązać testu z przypadkowymi szczegółami implementacji.
-3. **Asercja musi pomagać w diagnozie.** Gdy zawiedzie, komunikat błędu powinien przybliżać do przyczyny.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **asercje domenowe, helpery, własne matchery, organizacja kodu pomocniczego i granica między czytelnością a ukrywaniem sensu testu**. Najważniejsze ryzyko: **helper skraca test, ale ukrywa zbyt wiele akcji, danych i asercji, przez co awaria staje się trudna do diagnozy**. Po lekturze powinieneś umieć dobrać asercję do intencji testu, a nie odwrotnie.
-
-## Sytuacja przewodnia
-
-w wielu testach trzeba sprawdzać, czy zamówienie jest opłacone w UI, API i danych zwracanych przez backend
-
-## 1. Po co tworzyć helper
-
-Helper ma usuwać powtórzenie i nazywać wiedzę domenową. Nie powinien ukrywać losowych kliknięć ani zamieniać testu w czarną skrzynkę.
-
-## 2. Asercja domenowa
-
-Asercja domenowa mówi językiem produktu: zamówienie jest opłacone, użytkownik jest zablokowany, faktura jest wystawiona. To lepsze niż helper `checkText`.
-
-## 3. Granice abstrakcji
-
-Jeżeli helper wykonuje przygotowanie danych, akcje UI i kilka asercji, może być zbyt szeroki. Im więcej ukrywa, tym trudniej zrozumieć awarię.
-
-## 4. Własne matchery
-
-Własny matcher ma sens, gdy ta sama semantyczna asercja powtarza się często i potrzebuje dobrego komunikatu błędu. Nie twórz matcherów tylko po to, aby opakować każdą metodę `expect`.
-
-## 5. Organizacja kodu pomocniczego
-
-Kod pomocniczy powinien być podzielony według odpowiedzialności: asercje, budowniczowie danych, klienci API, page objects, utils. Folder `helpers` bez reguł szybko staje się śmietnikiem.
-
-## Przykład referencyjny
+Jeżeli w wielu testach powtarza się ten sam warunek domenowy, warto go nazwać:
 
 ```typescript
 export async function expectOrderSummaryToShowPaidStatus(page: Page, orderId: string) {
@@ -51,54 +16,238 @@ export async function expectOrderSummaryToShowPaidStatus(page: Page, orderId: st
 }
 ```
 
-Przykład pokazuje zasadę: asercja nie jest ozdobą na końcu testu. Jest miejscem, w którym test udowadnia, że system zachował się zgodnie z oczekiwaniem.
+Test staje się czytelniejszy:
 
-## Lista kontrolna
+```typescript
+await expectOrderSummaryToShowPaidStatus(page, order.id);
+```
 
-- Czy asercja potwierdza zachowanie, a nie szczegół implementacji?
-- Czy awaria asercji da czytelny komunikat?
-- Czy asercja nie jest ani zbyt ogólna, ani zbyt szczegółowa?
-- Czy dane dynamiczne są ustabilizowane lub sprawdzane częściowo?
-- Czy scenariusz negatywny sprawdza właściwy błąd?
-- Czy helper nie ukrywa sensu testu?
+Nazwa helpera mówi, jaki stan domenowy jest oczekiwany.
 
+## 2. Helper nie powinien ukrywać całego testu
 
-Asercję projektuj od oczekiwanego stanu. Dla tematu „Własne asercje i funkcje pomocnicze” kluczowe jest: asercje domenowe, helpery, własne matchery, organizacja kodu pomocniczego i granica między czytelnością a ukrywaniem sensu testu. Zacznij od zdania: „test przejdzie, jeśli...”. Jeżeli nie umiesz dokończyć tego zdania językiem produktu albo kontraktu, prawdopodobnie nie wiesz jeszcze, co sprawdzasz.
+Antywzorzec:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+await doCheckoutAndVerifyEverything(page);
+```
 
+Nie wiadomo, jakie dane są tworzone, jakie akcje wykonywane i co właściwie jest sprawdzane. Gdy test padnie, trzeba wejść do helpera i rozplątać kilkanaście kroków.
 
-Najgroźniejszy problem to test zielony mimo błędu produktu. Dzieje się tak, gdy sprawdzasz zbyt mało: sam status 200, samo istnienie elementu, samo kliknięcie albo dowolny tekst. Ryzyko tej lekcji to helper skraca test, ale ukrywa zbyt wiele akcji, danych i asercji, przez co awaria staje się trudna do diagnozy, dlatego asercja musi być dobrana do realnego skutku.
+Lepszy podział:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+await checkoutPage.addProduct(product.name);
+await checkoutPage.submitOrder();
+await expectOrderConfirmation(page, orderData);
+```
 
+Akcje biznesowe pozostają widoczne, a powtarzalna asercja jest nazwana.
 
-Test czerwony mimo poprawnego produktu zwykle oznacza zbyt kruchą asercję. Przykładem jest pełne porównanie obiektu zawierającego daty, identyfikatory techniczne albo pola nieistotne dla scenariusza. Rozwiązaniem bywa asercja częściowa, stabilizacja danych albo przeniesienie sprawdzenia na właściwy poziom.
+## 3. Asercje domenowe
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Asercja domenowa mówi językiem produktu:
 
+- zamówienie jest opłacone;
+- użytkownik jest zablokowany;
+- faktura jest wystawiona;
+- koszyk jest pusty;
+- produkt jest niedostępny;
+- płatność została odrzucona.
 
-W CI komunikat asercji jest często pierwszą i najważniejszą informacją o awarii. Dlatego warto preferować asercje, które pokazują oczekiwany i otrzymany stan. Dodatkowo używaj trace, logów, odpowiedzi API i identyfikatorów korelacji, gdy sama asercja nie wystarczy.
+Przykład dla API:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+export function expectOrderToBePaid(order: unknown) {
+  expect(order).toEqual(expect.objectContaining({
+    id: expect.any(String),
+    status: 'PAID',
+    paidAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+  }));
+}
+```
 
+## 4. Helper z diagnostyką
 
-Dla przypadku: w wielu testach trzeba sprawdzać, czy zamówienie jest opłacone w UI, API i danych zwracanych przez backend zaprojektuj także ścieżkę błędu. Dobre testy nie sprawdzają wyłącznie sukcesu. Sprawdzają brak uprawnień, błędne dane, brak zasobu, konflikt, pustą listę albo niedostępność zależności.
+Dobre helpery mogą dodawać komunikaty:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+export async function expectToast(page: Page, message: string) {
+  await expect(
+    page.getByRole('status'),
+    `Oczekiwano toast message: ${message}`
+  ).toContainText(message);
+}
+```
 
+W CI taki komunikat jest często szybszy niż analiza całego trace.
 
-Podczas review zapytaj: czy ta asercja padnie z właściwego powodu? Czy jest odporna na nieistotne zmiany? Czy wskazuje przyczynę? Czy nie powiela asercji z niższego poziomu? Czy nazwa testu i asercja mówią o tym samym zachowaniu?
+## 5. `test.step` wewnątrz helpera
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Jeśli helper wykonuje kilka asercji, możesz dodać `test.step`:
 
+```typescript
+import { test, expect, type Page } from '@playwright/test';
 
-Im większy projekt, tym ważniejsza jest spójność stylu asercji. Jeśli jeden autor sprawdza status przez `toBe(200)`, drugi przez `toBeOK`, trzeci ignoruje body, a czwarty porównuje całe obiekty, raporty będą niespójne. Standard zespołowy powinien określać preferowany sposób sprawdzania typowych sytuacji.
+export async function expectUserProfile(page: Page, user: { name: string; email: string }) {
+  await test.step('Weryfikacja profilu użytkownika', async () => {
+    await expect(page.getByTestId('user-name')).toHaveText(user.name);
+    await expect(page.getByTestId('user-email')).toHaveText(user.email);
+  });
+}
+```
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Nie przesadzaj z zagnieżdżeniem kroków. Celem jest czytelny raport, nie drzewo z setką poziomów.
 
+## 6. Custom matchers
 
-Weź istniejący test związany z tematem „Własne asercje i funkcje pomocnicze”. Zidentyfikuj jedną asercję zbyt słabą i jedną zbyt kruchą. Przepisz je tak, aby lepiej odpowiadały intencji scenariusza. Następnie celowo zepsuj aplikację lub dane i sprawdź, czy komunikat błędu jest zrozumiały.
+Custom matcher ma sens, gdy asercja:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+- powtarza się często;
+- ma semantykę domenową;
+- potrzebuje lepszego komunikatu błędu;
+- nie jest tylko cienką nakładką na jeden matcher.
 
+Przykład:
+
+```typescript
+import { expect } from '@playwright/test';
+
+expect.extend({
+  toBeValidMoneyAmount(received: number) {
+    const pass = Number.isInteger(received) && received >= 0;
+    return {
+      pass,
+      message: () => `expected ${received} to be a non-negative integer amount in cents`,
+    };
+  },
+});
+```
+
+Użycie:
+
+```typescript
+expect(order.totalGrossCents).toBeValidMoneyAmount();
+```
+
+W TypeScript trzeba dodatkowo zadeklarować typ matchera, aby edytor i kompilator znały nową metodę.
+
+## 7. Kiedy nie tworzyć custom matchera
+
+Nie twórz matchera dla czegoś, co występuje raz:
+
+```typescript
+expect(order.status).toBe('PAID');
+```
+
+To jest wystarczająco czytelne. Matcher `toBePaidStatus()` może być nadmiarowy, jeśli nie dodaje diagnostyki ani nie ukrywa złożoności.
+
+## 8. Organizacja kodu pomocniczego
+
+Przykładowa struktura:
+
+```text
+tests/
+  assertions/
+    order.assertions.ts
+    user.assertions.ts
+    api.assertions.ts
+  matchers/
+    money.matcher.ts
+    date.matcher.ts
+  fixtures/
+    base-test.ts
+  pages/
+    CheckoutPage.ts
+  clients/
+    OrdersClient.ts
+  builders/
+    orderBuilder.ts
+```
+
+Unikaj jednego katalogu `helpers` z plikami `utils.ts`, `helpers2.ts`, `common.ts`. Nazwy powinny mówić, jakiej odpowiedzialności dotyczy plik.
+
+## 9. Helpery UI vs API
+
+Czasem ten sam stan warto sprawdzić na dwóch poziomach:
+
+```typescript
+await expectOrderSummaryToShowPaidStatus(page, order.id);
+
+const response = await request.get(`/api/orders/${order.id}`);
+const body = await response.json();
+expectOrderToBePaid(body);
+```
+
+To nie zawsze jest duplikacja. UI potwierdza rezultat widoczny dla użytkownika, API potwierdza stan backendu. W testach krytycznych oba poziomy mogą być uzasadnione.
+
+## 10. Granica między POM a asercją
+
+Page Object może zawierać metody asercji, ale z umiarem:
+
+```typescript
+class CheckoutPage {
+  async expectSuccess() {
+    await expect(this.page.getByText('Dziękujemy za zamówienie')).toBeVisible();
+  }
+}
+```
+
+To jest akceptowalne, jeśli metoda jest domenowa i czytelna. Nie zamieniaj Page Objecta w ogromny zbiór ukrytych asercji. Alternatywą są osobne pliki `*.assertions.ts`.
+
+## 11. Typowanie helperów
+
+Helpery powinny mieć typy domenowe:
+
+```typescript
+type Order = {
+  id: string;
+  status: 'NEW' | 'PAID' | 'CANCELLED';
+  totalGrossCents: number;
+};
+
+export function expectPaidOrder(order: Order) {
+  expect(order.status).toBe('PAID');
+  expect(order.totalGrossCents).toBeGreaterThan(0);
+}
+```
+
+Typy dokumentują kontrakt i ograniczają błędy w testach.
+
+## 12. Antywzorce
+
+- Helper wykonuje setup, akcję i asercje naraz.
+- Nazwa helpera jest techniczna, np. `checkData`.
+- Helper ukrywa krytyczny warunek testu.
+- Custom matcher tylko opakowuje `toBe` bez wartości dodanej.
+- Katalog `helpers` staje się śmietnikiem.
+- Brak typów dla danych domenowych.
+- Helper utrudnia odczyt trace i raportu.
+
+## 13. Checklista helperów i custom assertions
+
+- Czy helper ma jedną odpowiedzialność?
+- Czy nazwa mówi językiem domeny?
+- Czy awaria helpera daje czytelny komunikat?
+- Czy helper nie ukrywa głównego sensu testu?
+- Czy custom matcher powtarza się na tyle często, aby miał sens?
+- Czy typy wejścia są jawne?
+- Czy kod pomocniczy jest podzielony według odpowiedzialności?
+- Czy test nadal jest zrozumiały bez wchodzenia do pięciu plików?
+
+## 14. Ćwiczenie
+
+Weź trzy testy, które sprawdzają status zamówienia. Zaprojektuj:
+
+1. helper UI `expectOrderSummaryToShowPaidStatus`;
+2. helper API `expectOrderToBePaid`;
+3. custom matcher dla kwoty w groszach;
+4. strukturę katalogów dla tych helperów;
+5. przykład błędu i komunikatu, który powinien zobaczyć tester w CI.
+
+## Linki
+
+- [Assertions](https://playwright.dev/docs/test-assertions)
+- [GenericAssertions API](https://playwright.dev/docs/api/class-genericassertions)
+- [Extensibility](https://playwright.dev/docs/extensibility)
+- [Best practices](https://playwright.dev/docs/best-practices)

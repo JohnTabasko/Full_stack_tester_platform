@@ -1,78 +1,195 @@
 # Dynamiczne generowanie danych testowych
 
-> Moduł siódmy dotyczy jednego z najczęstszych źródeł niestabilności automatyzacji: danych testowych. Test może mieć idealne lokatory i asercje, ale jeśli opiera się na przypadkowym stanie środowiska, nie będzie wiarygodny.
-
-## Jak czytać ten moduł
-
-Czytaj ten moduł jak podręcznik projektowania stanu. Dane nie są dodatkiem do testu; są częścią scenariusza. Każdy test ma stan początkowy, dane wejściowe i oczekiwany stan końcowy. Im bardziej jawnie je opiszesz, tym łatwiej utrzymać automatyzację.
-
-Trzy zasady modułu:
-
-1. **Dane muszą być deterministyczne.** Nawet jeśli są generowane, muszą dać się odtworzyć.
-2. **Dane muszą być izolowane.** Równoległe testy nie mogą walczyć o ten sam rekord, konto lub koszyk.
-3. **Dane muszą być bezpieczne.** Sekrety i prawdziwe dane osobowe nie należą do repozytorium testowego.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **Faker.js, seed, lokalizacja, własne generatory, dane masowe i kontrola losowości**. Główne ryzyko: **losowe dane czynią testy niepowtarzalnymi, a awarii nie da się odtworzyć, bo nikt nie wie, jakie wartości zostały użyte**. Po lekturze powinieneś umieć dobrać strategię danych do poziomu testu, ryzyka i kosztu utrzymania.
-
-## Sytuacja przewodnia
-
-test rejestracji generuje użytkowników, adresy i numery telefonów dla wielu lokalizacji oraz musi umożliwiać odtworzenie błędu
+Dynamiczne dane testowe pozwalają uruchamiać testy równolegle i wielokrotnie bez konfliktów. Nie oznacza to jednak losowości bez kontroli. Profesjonalne generowanie danych musi być unikalne, czytelne, możliwe do powiązania z konkretnym runem i bezpieczne dla prywatności.
 
 ## 1. Losowość kontrolowana
 
-Losowość w testach jest użyteczna tylko wtedy, gdy można ją odtworzyć. Seed powinien być znany, logowany i możliwy do powtórzenia.
-
-## 2. Lokalizacja danych
-
-Dane zależne od języka i kraju wpływają na formaty, walidacje i długości pól. Test dla Polski może nie ujawnić problemu z adresem z Wielkiej Brytanii.
-
-## 3. Własne generatory
-
-Faker tworzy realistyczne dane ogólne, ale domena często wymaga własnych generatorów: NIP, PESEL testowy, SKU, numer faktury, tenant.
-
-## 4. Dane masowe
-
-Bulk data przydaje się do paginacji i wydajności, ale wymaga kontroli kosztu oraz sprzątania. Nie generuj tysięcy rekordów w każdym teście UI.
-
-## 5. Logowanie wartości
-
-Przy awarii raport powinien pokazać wygenerowane identyfikatory. Bez tego nie odtworzysz problemu. W profesjonalnej pracy z Playwrightem, to zagadnienie jest kluczowe dla stabilności i wydajności całego procesu. Należy pamiętać o izolacji, odpowiednim doborze API oraz unikaniu typowych antywzorców, takich jak sztywne timeouty czy nadmierne poleganie na strukturze DOM.
-
-## Przykład referencyjny
+Najprostszy generator:
 
 ```typescript
-import { faker } from '@faker-js/faker';
-
-export function createDeterministicUser(seed: number) {
-  faker.seed(seed);
-  return {
-    email: faker.internet.email({ provider: 'example.test' }).toLowerCase(),
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    phone: faker.phone.number(),
-  };
-}
-
-const user = createDeterministicUser(20260621);
+const email = `qa+${crypto.randomUUID()}@example.test`;
 ```
 
-Przykład pokazuje, że dane testowe powinny być jawne, typowane i powtarzalne. Najważniejsze jest nie to, że dane istnieją, lecz to, że test wie, skąd się wzięły i jak je powiązać z wynikiem.
+To zapewnia unikalność, ale utrudnia czasem odtworzenie awarii. Dlatego warto dodawać `runId`:
 
-## Lista kontrolna
+```typescript
+const runId = process.env.TEST_RUN_ID ?? `local-${Date.now()}`;
+const email = `qa+${runId}-${crypto.randomUUID()}@example.test`;
+```
 
-- Czy dane są tworzone jawnie?
-- Czy test może działać równolegle z innymi testami?
-- Czy awarię da się odtworzyć na tych samych danych?
-- Czy dane testowe nie zawierają sekretów ani danych osobowych?
-- Czy istnieje strategia sprzątania?
-- Czy warianty danych są nazwane językiem domeny?
+Po awarii możesz znaleźć wszystkie dane utworzone przez dany run.
 
+## 2. Dane per test
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Każdy test modyfikujący stan powinien tworzyć własne dane:
+
+```typescript
+test('użytkownik zmienia adres dostawy', async ({ request, page }) => {
+  const user = await createUser(request, {
+    email: `qa+${crypto.randomUUID()}@example.test`,
+  });
+
+  await page.goto(`/users/${user.id}/address`);
+  // ...
+});
+```
+
+Nie zakładaj, że test może bezpiecznie używać tego samego użytkownika co inne testy.
+
+## 3. Dane per worker
+
+Czasem koszt tworzenia konta per test jest zbyt duży. Wtedy można przypisać konto per worker:
+
+```typescript
+export const test = base.extend<{}, { workerUser: User }>({
+  workerUser: [async ({ request }, use, workerInfo) => {
+    const user = await createUser(request, {
+      email: `qa+worker-${workerInfo.parallelIndex}@example.test`,
+    });
+    await use(user);
+  }, { scope: 'worker' }],
+});
+```
+
+To działa, jeśli testy w workerze nie niszczą sobie stanu. Dla danych modyfikowanych nadal preferuj per test.
+
+## 4. `testInfo` w danych
+
+`testInfo` pomaga powiązać dane z testem:
+
+```typescript
+test('tworzy zamówienie', async ({ request }, testInfo) => {
+  const marker = `${testInfo.project.name}-${testInfo.parallelIndex}-${Date.now()}`;
+  const order = await createOrder(request, {
+    externalId: `e2e-${marker}`,
+  });
+});
+```
+
+Dzięki temu w logach, bazie i raportach widzisz, który test utworzył dany rekord.
+
+## 5. Faker i dane realistyczne
+
+Biblioteki typu Faker pomagają tworzyć realistyczne imiona, adresy i telefony. Uważaj jednak na:
+
+- znaki specjalne, jeśli aplikacja ich nie obsługuje;
+- długości pól;
+- lokalizację;
+- deterministyczność;
+- przypadkowe tworzenie danych podobnych do prawdziwych osób.
+
+Dane powinny być syntetyczne i bezpieczne.
+
+## 6. Unikaj prawdziwych danych osobowych
+
+Nie używaj realnych emaili klientów, numerów telefonów, adresów ani danych kart płatniczych. Dla płatności używaj testowych numerów dostawcy, np. kart testowych Stripe/Adyen/PayU zgodnie z dokumentacją środowiska testowego.
+
+## 7. Cleanup po runId
+
+Jeśli każdy rekord ma `runId`, możesz sprzątać po całym uruchomieniu:
+
+```typescript
+await request.delete(`/api/test-data?runId=${runId}`);
+```
+
+To jest często bardziej niezawodne niż cleanup pojedynczych rekordów, szczególnie gdy test padnie w połowie setupu.
+
+## 8. Checklista
+
+- Czy dane są unikalne dla testu albo workera?
+- Czy można powiązać rekord z konkretnym runem?
+- Czy dane są syntetyczne?
+- Czy generator nie tworzy przypadkowych konfliktów?
+- Czy istnieje cleanup po `runId`?
+- Czy awarię można odtworzyć albo przynajmniej zdiagnozować na podstawie danych?
+
+## Linki
+
+- [Playwright parallelism](https://playwright.dev/docs/test-parallel)
+- [Fixtures](https://playwright.dev/docs/test-fixtures)
+- [API testing](https://playwright.dev/docs/api-testing)
+
+## 9. Seed losowości
+
+Jeśli używasz biblioteki Faker, rozważ ustawienie seeda dla lokalnej reprodukcji:
+
+```typescript
+faker.seed(Number(process.env.TEST_SEED ?? Date.now()));
+```
+
+W CI możesz zapisać seed w raporcie. Gdy test padnie na nietypowych danych, łatwiej odtworzyć scenariusz.
+
+## 10. Dynamiczne dane a asercje
+
+Jeśli generujesz dane dynamicznie, używaj ich później w asercjach:
+
+```typescript
+const user = buildUser({ name: `Jan ${runId}` });
+await usersClient.createUser(user);
+
+await page.goto('/users');
+await expect(page.getByRole('row').filter({ hasText: user.email })).toBeVisible();
+```
+
+Nie sprawdzaj ogólnego „użytkownik istnieje”. Sprawdzaj konkretny rekord utworzony przez test.
+
+## 11. Konflikty unikalności
+
+Najczęstsze pola konfliktowe:
+
+- email;
+- numer zamówienia;
+- SKU;
+- slug URL;
+- nazwa organizacji;
+- numer telefonu;
+- identyfikator zewnętrzny.
+
+Każde z nich powinno zawierać `runId` albo UUID, jeśli testy mogą działać równolegle.
+
+## 12. Dane dynamiczne w raportach
+
+Przy awarii dołącz bezpieczne metadane:
+
+```typescript
+await testInfo.attach('generated-data.json', {
+  body: JSON.stringify({ runId, email: user.email, orderId: order.id }, null, 2),
+  contentType: 'application/json',
+});
+```
+
+Nie dołączaj haseł, tokenów ani pełnych danych osobowych. Metadane mają pomóc znaleźć rekordy w środowisku.
+
+## 13. Reprodukcja awarii
+
+Jeśli test używa seeda, zapisz go w logu i raporcie. Jeśli używa UUID, zapisz utworzone identyfikatory. Reprodukcja testu z tym samym stanem jest często ważniejsza niż sama losowość.
+
+## 14. Dane dynamiczne a lokalizacja
+
+Generatory danych powinny uwzględniać lokalizację aplikacji. Jeśli testujesz polski formularz adresowy, używaj poprawnych kodów pocztowych, znaków diakrytycznych i formatów telefonu. Jeśli aplikacja ma walidację międzynarodową, przygotuj jawne warianty: PL, DE, US, UK.
+
+```typescript
+const polishAddress = buildAddress({
+  country: 'PL',
+  postalCode: '02-001',
+  city: 'Warszawa',
+});
+```
+
+Losowe dane bez kontroli mogą tworzyć przypadki, których test nie miał sprawdzać.
+
+## 15. Dane dynamiczne a prywatność
+
+Nie używaj danych wyglądających jak prawdziwe dane klientów. Domena `example.test`, syntetyczne numery telefonów i testowe identyfikatory ograniczają ryzyko. Jeśli używasz zanonimizowanej próbki produkcyjnej, powinna mieć właściciela, wersję i zgodę organizacji.
+
+## 16. Generator jako zależność projektu
+
+Generator danych powinien być stabilny. Jeśli aktualizacja biblioteki Faker zmieni format telefonów albo adresów, wiele testów może zacząć padać. Dlatego generator traktuj jak część frameworka testowego: wersjonuj, reviewuj i opisuj zmiany.
+
+## 17. Checklista generatora
+
+- Czy wartości są unikalne?
+- Czy są zgodne z walidacją domeny?
+- Czy można znaleźć dane po `runId`?
+- Czy seed jest zapisany, jeśli potrzebna jest reprodukcja?
+- Czy dane są syntetyczne i bezpieczne?

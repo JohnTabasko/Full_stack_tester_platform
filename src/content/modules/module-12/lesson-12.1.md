@@ -1,88 +1,169 @@
 # Zasady projektowania testów
 
-> Moduł dwunasty zbiera zasady, które decydują o długowieczności automatyzacji. Dobre testy to nie tylko poprawne użycie Playwrighta, ale także czytelny projekt, spójne standardy, review, refaktoryzacja i unikanie antywzorców.
-
-## Jak czytać ten moduł
-
-Czytaj ten moduł jak poradnik utrzymania jakości kodu testowego. Każda decyzja, która dziś skraca pracę o pięć minut, może za pół roku kosztować wiele godzin, jeśli utrudni diagnostykę albo zmianę. Profesjonalny tester automatyzujący myśli nie tylko o tym, czy test przejdzie dzisiaj, ale czy będzie zrozumiały po zmianie produktu i zespołu.
-
-Trzy zasady modułu:
-
-1. **Test ma chronić ryzyko.** Nie automatyzuj dla samej liczby testów.
-2. **Kod testowy wymaga standardów.** Bez standardów każdy autor buduje własny mini-framework.
-3. **Antywzorce trzeba usuwać wcześnie.** Im dłużej istnieją, tym częściej są kopiowane.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **piramida testów, AAA, Given-When-Then, niezależność, deterministyczność, testowanie oparte na ryzyku oraz podział smoke/regression**. Główne ryzyko: **zespół automatyzuje przypadkowe scenariusze na zbyt wysokim poziomie, przez co pakiet jest wolny, kruchy i słabo powiązany z ryzykiem produktu**. Po lekturze powinieneś umieć ocenić praktykę testową pod kątem wartości, utrzymywalności i kosztu długoterminowego.
-
-## Sytuacja przewodnia
-
-nowa funkcja płatności ma walidację kwot, integrację z API, komunikaty UI i zapis statusu zamówienia; zespół musi zdecydować, co testować na którym poziomie
+Dobre testy Playwright zaczynają się od ryzyka, nie od narzędzia. Nie chodzi o to, aby automatyzować jak najwięcej kliknięć. Chodzi o to, aby zespół szybko wiedział, czy najważniejsze zachowania produktu nadal działają. Test ma być wartościowy, stabilny, czytelny i możliwy do diagnozy w CI.
 
 ## 1. Projektowanie od ryzyka
 
-Dobry test zaczyna się od ryzyka, a nie od narzędzia. Najpierw ustal, co może pójść źle i jaki byłby wpływ błędu na użytkownika lub biznes.
+Zanim napiszesz test, odpowiedz:
+
+- jaki błąd chcę wykryć?
+- jaki byłby wpływ na użytkownika lub biznes?
+- czy UI/E2E to właściwy poziom testu?
+- jakie dane są potrzebne?
+- jaka asercja udowodni poprawność?
+
+Przykład: walidacja formatu kwoty może być testem jednostkowym. Integracja płatności z aktualizacją statusu zamówienia może wymagać testu API lub E2E. Krytyczna ścieżka płatności powinna mieć smoke test w UI.
 
 ## 2. Piramida testów
 
-Piramida testów przypomina, że większość reguł powinna być sprawdzana niżej: jednostkowo i integracyjnie. Test E2E powinien potwierdzać krytyczne przepływy, nie każdą kombinację walidacji.
+Nie wszystko powinno być testem E2E. Testy UI są najdroższe: wymagają przeglądarki, danych, środowiska i diagnostyki. Dlatego:
 
-## 3. AAA
+- reguły walidacji testuj nisko;
+- kontrakty i autoryzację testuj przez API;
+- krytyczne ścieżki użytkownika testuj przez UI;
+- regresję wizualną stosuj tam, gdzie layout jest ryzykiem.
 
-Arrange, Act, Assert porządkuje test: przygotuj stan, wykonaj działanie, sprawdź rezultat. Jeśli te fazy mieszają się chaotycznie, test będzie trudny do diagnozy.
-
-## 4. Given-When-Then
-
-Given-When-Then pomaga opisywać zachowanie językiem biznesowym. Jest szczególnie przydatne w rozmowie z analitykami i product ownerami.
-
-## 5. Smoke i regresja
-
-Smoke powinien być szybkim sygnałem, że najważniejsze ścieżki żyją. Regresja może być szersza, ale powinna być nadal oparta o ryzyko.
-
-## Przykład referencyjny
+## 3. AAA — Arrange, Act, Assert
 
 ```typescript
-import { test, expect } from '@playwright/test';
+test('klient może opłacić zamówienie', async ({ page, request }) => {
+  // Arrange
+  const order = await createOrder(request, buildOrder());
 
-test.describe('płatność kartą', () => {
-  test('klient widzi potwierdzenie po poprawnej płatności @critical', async ({ page }) => {
-    // Arrange
-    await page.goto('/checkout?cart=single-paid-product');
+  // Act
+  await page.goto(`/orders/${order.id}`);
+  await page.getByRole('button', { name: 'Opłać' }).click();
 
-    // Act
-    await page.getByRole('button', { name: 'Zapłać kartą' }).click();
+  // Assert
+  await expect(page.getByRole('status')).toContainText('Opłacone');
+});
+```
 
-    // Assert
-    await expect(page.getByRole('heading', { name: 'Płatność przyjęta' })).toBeVisible();
-    await expect(page.getByText('Status zamówienia: opłacone')).toBeVisible();
+Jeśli Arrange, Act i Assert mieszają się chaotycznie, test będzie trudny w debugowaniu.
+
+## 4. Oficjalne best practices Playwright
+
+Najważniejsze zasady:
+
+- testuj zachowanie widoczne dla użytkownika;
+- używaj locatorów użytkownika: role, label, text;
+- izoluj testy i dane;
+- unikaj zależności od kolejności testów;
+- nie używaj `waitForTimeout` jako synchronizacji;
+- używaj web-first assertions;
+- mockuj tylko tam, gdzie ma to uzasadnienie;
+- włącz trace/screenshot/video jako diagnostykę, nie ozdobę;
+- trzymaj testy małe i czytelne.
+
+## 5. Given-When-Then
+
+Given-When-Then jest dobrym językiem dla testów biznesowych:
+
+```typescript
+test('klient widzi błąd dla odrzuconej płatności', async ({ page }) => {
+  await test.step('Given klient jest na stronie płatności', async () => {
+    await page.goto('/checkout/payment');
+  });
+
+  await test.step('When płaci kartą odrzuconą', async () => {
+    await page.getByLabel('Numer karty').fill('4000000000000002');
+    await page.getByRole('button', { name: 'Zapłać' }).click();
+  });
+
+  await test.step('Then widzi komunikat o odrzuceniu', async () => {
+    await expect(page.getByRole('alert')).toContainText('Płatność odrzucona');
   });
 });
 ```
 
-Przykład pokazuje, że dobra praktyka nie jest ozdobą. Ma zmniejszać koszt zmiany, skracać diagnozę i zwiększać zaufanie do wyniku testów.
+## 6. Smoke vs regression
 
-## Lista kontrolna
+Smoke:
 
-- Czy test chroni jasno nazwane ryzyko?
-- Czy kod jest czytelny dla osoby spoza autora?
-- Czy dane i zależności są jawne?
-- Czy asercje potwierdzają skutek?
-- Czy standard jest zapisany i egzekwowany w review?
-- Czy widoczny antywzorzec został usunięty, a nie tylko obejściowo przykryty?
+- szybki;
+- krytyczne ścieżki;
+- każdy PR;
+- mało danych;
+- mało przeglądarek.
 
+Regression:
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+- szerszy zakres;
+- nightly lub przed release;
+- więcej projektów/przeglądarek;
+- większe koszty diagnostyki.
 
-## Głębsza analiza: Zasady projektowania testów
+Tagi pomagają powiązać testy z pipeline:
 
-Dobre testy opierają się na zasadzie **AAA (Arrange, Act, Assert)**:
-1. **Arrange**: Przygotuj środowisko, dane i zaloguj użytkownika.
-2. **Act**: Wykonaj minimalną liczbę akcji potrzebną do wywołania zachowania.
-3. **Assert**: Sprawdź skutek.
-Stosuj się do **Piramidy Testów**: najwięcej testów jednostkowych, mniej integracyjnych/API, najmniej testów E2E (UI).
+```typescript
+test('checkout działa @smoke @critical', async ({ page }) => {});
+```
+
+## 7. Checklista projektowania testu
+
+- Czy test chroni konkretne ryzyko?
+- Czy to właściwy poziom testu?
+- Czy dane są izolowane?
+- Czy locator jest stabilny i widoczny dla użytkownika?
+- Czy asercja sprawdza skutek, a nie implementację?
+- Czy test może działać równolegle?
+- Czy awaria zostawi trace i czytelny raport?
+
+## Linki
+
+- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+- [Locators](https://playwright.dev/docs/locators)
+- [Assertions](https://playwright.dev/docs/test-assertions)
+- [Parallelism](https://playwright.dev/docs/test-parallel)
+
+## 8. Decyzja: UI, API czy test niższego poziomu?
+
+Przy każdym scenariuszu wybierz najtańszy poziom, który daje wiarygodną informację. Jeśli reguła waliduje format numeru telefonu, test jednostkowy da szybszy feedback niż E2E. Jeśli endpoint ma odrzucać brak uprawnień, test API będzie szybszy i precyzyjniejszy niż UI. Jeśli chcesz sprawdzić, że klient faktycznie przechodzi checkout i widzi potwierdzenie, E2E jest właściwe.
+
+Przykład decyzji dla płatności:
+
+| Ryzyko | Najlepszy poziom |
+|---|---|
+| algorytm naliczania rabatu | unit/integration |
+| kontrakt `POST /payments` | API |
+| brak uprawnień do cudzej płatności | API/security |
+| użytkownik widzi potwierdzenie po płatności | E2E UI |
+| układ formularza płatności | visual/component |
+
+## 9. Minimalna liczba akcji
+
+Dobry test wykonuje tylko akcje potrzebne do wywołania zachowania. Jeśli test sprawdza edycję adresu, utwórz użytkownika przez API i przejdź bezpośrednio do ekranu adresu. Nie przechodź przez rejestrację, logowanie, onboarding i menu, jeśli nie są celem testu.
+
+## 10. Review projektu testu
+
+Przed merge zadaj pytania:
+
+- Czy test padnie, jeśli realne ryzyko się zmaterializuje?
+- Czy test nie dubluje dokładnie sprawdzenia z niższego poziomu?
+- Czy test ma tylko jedną główną przyczynę awarii?
+- Czy jest szybki na tyle, aby działać w odpowiednim pipeline?
+- Czy raport po awarii wskaże właściciela problemu?
+
+Projekt testu jest tak samo ważny jak jego implementacja.
+
+## 11. Jedna główna intencja testu
+
+Test może mieć kilka asercji, ale powinien mieć jedną główną intencję. Jeśli test sprawdza logowanie, koszyk, płatność, email i fakturę, awaria może mieć zbyt wiele przyczyn. Taki test może istnieć jako krytyczny E2E smoke, ale nie powinien być wzorcem dla całej regresji.
+
+## 12. Test jako dokumentacja zachowania
+
+Dobrze napisany test jest żywą dokumentacją. Nazwy testów, kroki `test.step`, dane i asercje powinny mówić, jak system ma działać. Jeśli product owner nie rozumie nazwy testu w raporcie, nazwa jest prawdopodobnie zbyt techniczna.
+
+## 13. Asercja skutku ubocznego
+
+W testach full stack często warto sprawdzić skutek na innej warstwie:
+
+```typescript
+await page.getByRole('button', { name: 'Opłać' }).click();
+await expect(page.getByText('Opłacone')).toBeVisible();
+
+const order = await ordersClient.getOrder(orderId);
+expect(order.status).toBe('PAID');
+```
+
+Nie rób tego w każdym teście, ale dla krytycznych przepływów UI + API daje dużo większą pewność.

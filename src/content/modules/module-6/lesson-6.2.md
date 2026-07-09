@@ -1,50 +1,25 @@
-# Wzorzec strony bazowej
+# Wzorzec strony bazowej — BasePage bez klasy-śmietnika
 
-> Moduł szósty porządkuje architekturę kodu testowego. Wcześniejsze moduły uczyły, jak sterować przeglądarką i jak potwierdzać rezultat. Teraz pytanie brzmi: jak zorganizować ten kod, aby był czytelny, rozszerzalny i możliwy do utrzymania przez zespół.
+BasePage to wspólna klasa bazowa dla Page Objectów. Może ujednolicić nawigację, diagnostykę i oczekiwanie na załadowanie strony. Może też stać się najgorszym antywzorcem w projekcie: ogromną klasą, do której zespół wrzuca każdą przypadkową metodę.
 
-## Jak czytać ten moduł
+Dobra BasePage ma małą odpowiedzialność. Nie zna logiki koszyka, tabel, modali, API, płatności i logowania naraz. Daje wspólny szkielet, ale nie zastępuje dobrze zaprojektowanych stron i komponentów.
 
-Nie traktuj wzorca obiektu strony jako obowiązkowego rytuału. POM jest narzędziem do zmniejszania kosztu zmiany, a nie celem samym w sobie. Dobry POM sprawia, że testy są bliżej języka domeny. Zły POM tylko przenosi chaos z testów do klas pomocniczych.
+## 1. Kiedy BasePage ma sens
 
-Trzy zasady modułu:
+BasePage jest przydatna, gdy wiele stron ma wspólny cykl życia:
 
-1. **Abstrakcja ma nazywać intencję.** Metoda `loginAs` jest lepsza niż `clickLoginButton`.
-2. **Odpowiedzialność ma być mała.** Strona, komponent, journey i helper powinny mieć jasne granice.
-3. **Czytelność testu jest nadrzędna.** Jeżeli abstrakcja utrudnia zrozumienie scenariusza, jest zła.
+- każda strona ma `path`;
+- każda strona potrafi sprawdzić, że jest załadowana;
+- chcesz mieć spójne `goto()`;
+- chcesz dodać diagnostykę, np. screenshot;
+- chcesz ujednolicić podstawowe oczekiwanie na widok.
 
+Nie twórz BasePage tylko dlatego, że „tak się robi w POM”. W małym projekcie kilka prostych klas bez dziedziczenia może być czytelniejsze.
 
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **wspólna klasa bazowa, nawigacja, diagnostyka, mały zakres odpowiedzialności i ryzyka dziedziczenia**. Główne ryzyko: **BasePage staje się klasą-śmietnikiem, do której trafia każda przypadkowa metoda i która wiąże ze sobą cały projekt**. Po lekturze powinieneś umieć ocenić, czy abstrakcja rzeczywiście pomaga, czy tylko ukrywa złożoność.
-
-## Sytuacja przewodnia
-
-zespół ma kilkanaście page objectów i chce ujednolicić nawigację, zrzuty ekranu oraz oczekiwanie na załadowanie widoku
-
-## 1. Po co BasePage
-
-Strona bazowa może ujednolicić nawigację, diagnostykę i oczekiwanie na załadowanie. Jest przydatna, gdy wiele stron ma wspólny model cyklu życia.
-
-## 2. Mała odpowiedzialność
-
-BasePage powinna mieć bardzo mały zakres. Im więcej metod bazowych, tym większe sprzężenie i ryzyko konfliktów.
-
-## 3. Dziedziczenie kontra kompozycja
-
-Dziedziczenie jest wygodne, ale sztywne. Jeżeli funkcjonalność dotyczy tylko części stron, często lepszy jest komponent albo helper.
-
-## 4. expectLoaded
-
-Każda strona powinna umieć powiedzieć, że jest gotowa do pracy. `expectLoaded` jest lepsze niż przypadkowe czekanie po `goto`.
-
-## 5. Antywzorzec klasy-śmietnika
-
-Jeśli w BasePage są metody do tabeli, modala, logowania, API i koszyka, klasa straciła sens. Rozbij odpowiedzialności.
-
-## Przykład referencyjny
+## 2. Minimalna BasePage
 
 ```typescript
-import { expect, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
 
 export abstract class BasePage {
   protected constructor(protected readonly page: Page) {}
@@ -56,14 +31,21 @@ export abstract class BasePage {
     await this.page.goto(this.path);
     await this.expectLoaded();
   }
-
-  async attachScreenshot(name: string) {
-    return this.page.screenshot({ path: `test-results/${name}.png`, fullPage: true });
-  }
 }
+```
+
+Każda strona definiuje własny warunek gotowości:
+
+```typescript
+import { expect, type Page } from '@playwright/test';
+import { BasePage } from './BasePage';
 
 export class ProfilePage extends BasePage {
   readonly path = '/profile';
+
+  constructor(page: Page) {
+    super(page);
+  }
 
   async expectLoaded() {
     await expect(this.page.getByRole('heading', { name: 'Profil' })).toBeVisible();
@@ -71,20 +53,81 @@ export class ProfilePage extends BasePage {
 }
 ```
 
-Przykład pokazuje kierunek projektowania: klasa lub komponent ma jedną odpowiedzialność, używa stabilnych lokatorów i nie ukrywa celu testu.
+`expectLoaded()` jest lepsze niż losowe `waitForTimeout`, bo opisuje realny stan widoku.
 
-## Lista kontrolna
+## 3. Locator-first BasePage
 
-- Czy nazwa klasy odpowiada odpowiedzialności?
-- Czy metoda opisuje zachowanie, a nie techniczny klik?
-- Czy lokatory są semantyczne lub świadomie oparte o test id?
-- Czy klasa nie zna zbyt wielu obszarów produktu?
-- Czy test po użyciu abstrakcji nadal jest zrozumiały?
-- Czy awaria prowadzi do czytelnej przyczyny?
+BasePage nie powinna wymuszać CSS/XPath. Każda klasa dziedzicząca nadal powinna używać locatorów użytkownika:
 
+```typescript
+protected heading(name: string) {
+  return this.page.getByRole('heading', { name });
+}
+```
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Taki helper może być przydatny, ale nie przesadzaj. Jeśli BasePage zaczyna mieć dziesiątki skrótów do każdego typu elementu, staje się własnym mini-frameworkiem.
+
+## 4. Diagnostyka
+
+Możesz dodać małe narzędzia diagnostyczne:
+
+```typescript
+async screenshot(name: string) {
+  await this.page.screenshot({
+    path: `test-results/${name}.png`,
+    fullPage: true,
+  });
+}
+```
+
+W praktyce screenshoty przy awarii lepiej często obsłużyć przez konfigurację lub fixture. BasePage może mieć diagnostykę manualną dla trudnych przypadków, ale nie powinna dublować mechanizmów Playwright.
+
+## 5. Dziedziczenie kontra kompozycja
+
+Dziedziczenie działa dobrze dla wspólnych elementów cyklu życia. Kompozycja działa lepiej dla fragmentów UI.
+
+Zły kierunek:
+
+```typescript
+class BasePage {
+  async openUserMenu() {}
+  async sortTable() {}
+  async closeModal() {}
+  async addProductToCart() {}
+}
+```
+
+Lepszy kierunek:
+
+```typescript
+class DashboardPage extends BasePage {
+  readonly navigation = new NavigationComponent(this.page.getByRole('navigation'));
+  readonly ordersTable = new OrdersTable(this.page.getByTestId('orders-table'));
+}
+```
+
+Jeśli funkcja dotyczy tylko niektórych stron, zrób komponent albo helper, nie metodę w BasePage.
+
+## 6. Antywzorce BasePage
+
+- `BasePage` ma 1000 linii.
+- Każdy Page Object dziedziczy metody, których nigdy nie używa.
+- BasePage zna szczegóły domeny: koszyk, faktury, płatności, admina.
+- BasePage ukrywa `waitForTimeout`.
+- BasePage zawiera uniwersalne `click(selector: string)` i `fill(selector: string)` zamiast locatorów domenowych.
+- Zmiana BasePage psuje cały projekt.
+
+## 7. Checklista
+
+- Czy BasePage ma mniej niż kilka naprawdę wspólnych metod?
+- Czy `expectLoaded()` sprawdza widoczny stan strony?
+- Czy dziedziczenie nie zastępuje komponentów?
+- Czy BasePage nie zna logiki biznesowej?
+- Czy test po użyciu Page Objecta nadal jest czytelny?
+- Czy metody bazowe nie ukrywają sztywnych timeoutów?
+
+## Linki
+
+- [Page Object Models](https://playwright.dev/docs/pom)
+- [Locators](https://playwright.dev/docs/locators)
+- [Assertions](https://playwright.dev/docs/test-assertions)

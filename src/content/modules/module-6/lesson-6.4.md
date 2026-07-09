@@ -1,78 +1,155 @@
-# Zaawansowane wzorce POM
+# Zaawansowane wzorce POM — journey, fasada, strategia i service objects
 
-> Moduł szósty porządkuje architekturę kodu testowego. Wcześniejsze moduły uczyły, jak sterować przeglądarką i jak potwierdzać rezultat. Teraz pytanie brzmi: jak zorganizować ten kod, aby był czytelny, rozszerzalny i możliwy do utrzymania przez zespół.
+Podstawowy POM porządkuje pojedyncze strony. W większym projekcie pojawiają się jednak przepływy obejmujące wiele ekranów, wiele wariantów płatności, setup przez API i komponenty współdzielone między domenami. Wtedy przydają się wzorce zaawansowane — ale tylko wtedy, gdy rozwiązują realny problem.
 
-## Jak czytać ten moduł
+Największy błąd to budowanie frameworka testowego dla samej architektury. Dobry wzorzec skraca test i zwiększa czytelność. Zły wzorzec sprawia, że prosta ścieżka wymaga otwierania dziesięciu plików.
 
-Nie traktuj wzorca obiektu strony jako obowiązkowego rytuału. POM jest narzędziem do zmniejszania kosztu zmiany, a nie celem samym w sobie. Dobry POM sprawia, że testy są bliżej języka domeny. Zły POM tylko przenosi chaos z testów do klas pomocniczych.
+## 1. Journey pattern
 
-Trzy zasady modułu:
-
-1. **Abstrakcja ma nazywać intencję.** Metoda `loginAs` jest lepsza niż `clickLoginButton`.
-2. **Odpowiedzialność ma być mała.** Strona, komponent, journey i helper powinny mieć jasne granice.
-3. **Czytelność testu jest nadrzędna.** Jeżeli abstrakcja utrudnia zrozumienie scenariusza, jest zła.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **fabryka stron, płynne API, journey pattern, fasada, strategia, builder i wstrzykiwanie zależności**. Główne ryzyko: **zespół dodaje wzorce dla samej architektury, przez co testy stają się trudniejsze do czytania niż proste scenariusze**. Po lekturze powinieneś umieć ocenić, czy abstrakcja rzeczywiście pomaga, czy tylko ukrywa złożoność.
-
-## Sytuacja przewodnia
-
-proces checkout składa się z wielu ekranów i wariantów płatności, ale testy powinny pozostać krótkie i zrozumiałe
-
-## 1. Po co wzorce zaawansowane
-
-Zaawansowane wzorce są przydatne, gdy projekt ma realną złożoność. Nie powinny być stosowane tylko dlatego, że brzmią profesjonalnie.
-
-## 2. Journey pattern
-
-Journey opisuje proces przechodzący przez kilka stron. Dobrze nazywa przepływ, ale może ukryć zbyt wiele szczegółów, jeśli jest nadużywany.
-
-## 3. Fasada
-
-Fasada upraszcza dostęp do złożonego podsystemu. W testach może ukryć zestaw stron i klientów API, ale powinna pozostać przejrzysta.
-
-## 4. Strategia
-
-Strategia jest dobra, gdy ten sam proces ma różne warianty, np. płatność kartą, przelewem i BLIK. W profesjonalnej pracy z Playwrightem, to zagadnienie jest kluczowe dla stabilności i wydajności całego procesu. Należy pamiętać o izolacji, odpowiednim doborze API oraz unikaniu typowych antywzorców, takich jak sztywne timeouty czy nadmierne poleganie na strukturze DOM.
-
-## 5. Builder i DI
-
-Builder pomaga tworzyć dane, a wstrzykiwanie zależności pomaga kontrolować obiekty. Oba wzorce mają sens, gdy zmniejszają sprzężenie.
-
-## Przykład referencyjny
+Journey reprezentuje proces biznesowy przechodzący przez kilka stron.
 
 ```typescript
 export class CheckoutJourney {
   constructor(
+    private readonly productPage: ProductPage,
     private readonly cartPage: CartPage,
     private readonly checkoutPage: CheckoutPage,
-    private readonly paymentPage: PaymentPage,
+    private readonly confirmationPage: OrderConfirmationPage,
   ) {}
 
-  async payForSingleProduct(user: TestUser, product: Product) {
-    await this.cartPage.addProduct(product);
-    await this.checkoutPage.fillCustomerData(user);
-    await this.paymentPage.payByCard(user.card);
+  async buyProduct(productName: string) {
+    await this.productPage.open(productName);
+    await this.productPage.addToCart();
+    await this.cartPage.open();
+    await this.cartPage.proceedToCheckout();
+    await this.checkoutPage.submitOrder();
+    await this.confirmationPage.expectLoaded();
   }
 }
 ```
 
-Przykład pokazuje kierunek projektowania: klasa lub komponent ma jedną odpowiedzialność, używa stabilnych lokatorów i nie ukrywa celu testu.
+Journey jest dobre dla powtarzalnych procesów, ale nie powinno ukrywać głównej intencji testu. Jeśli test ma sprawdzić walidację płatności, nie chowaj całego procesu płatności w jednej metodzie bez kroków i asercji.
 
-## Lista kontrolna
+## 2. Fasada
 
-- Czy nazwa klasy odpowiada odpowiedzialności?
-- Czy metoda opisuje zachowanie, a nie techniczny klik?
-- Czy lokatory są semantyczne lub świadomie oparte o test id?
-- Czy klasa nie zna zbyt wielu obszarów produktu?
-- Czy test po użyciu abstrakcji nadal jest zrozumiały?
-- Czy awaria prowadzi do czytelnej przyczyny?
+Fasada upraszcza dostęp do zestawu stron, komponentów i klientów API.
 
+```typescript
+export class App {
+  readonly login: LoginPage;
+  readonly checkout: CheckoutPage;
+  readonly ordersApi: OrdersClient;
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+  constructor(page: Page, request: APIRequestContext) {
+    this.login = new LoginPage(page);
+    this.checkout = new CheckoutPage(page);
+    this.ordersApi = new OrdersClient(request);
+  }
+}
+```
+
+Użycie:
+
+```typescript
+test('użytkownik widzi zamówienie', async ({ app }) => {
+  const order = await app.ordersApi.createPaidOrder();
+  await app.checkout.openOrder(order.id);
+  await app.checkout.expectOrderVisible(order.id);
+});
+```
+
+Fasada nie może stać się God Objectem. Jeśli `App` ma 80 właściwości i zna cały system, problem wrócił pod inną nazwą.
+
+## 3. Strategia
+
+Strategia jest przydatna, gdy proces ma kilka wariantów, np. płatność kartą, BLIK i przelew.
+
+```typescript
+type PaymentStrategy = {
+  pay(): Promise<void>;
+};
+
+class CardPayment implements PaymentStrategy {
+  constructor(private readonly page: Page) {}
+
+  async pay() {
+    await this.page.getByLabel('Numer karty').fill('4242 4242 4242 4242');
+    await this.page.getByRole('button', { name: 'Zapłać kartą' }).click();
+  }
+}
+
+class BlikPayment implements PaymentStrategy {
+  constructor(private readonly page: Page) {}
+
+  async pay() {
+    await this.page.getByLabel('Kod BLIK').fill('123456');
+    await this.page.getByRole('button', { name: 'Zapłać BLIK' }).click();
+  }
+}
+```
+
+CheckoutPage może przyjąć strategię:
+
+```typescript
+async payWith(strategy: PaymentStrategy) {
+  await strategy.pay();
+}
+```
+
+## 4. Service/API Objects
+
+Nie wszystko jest stroną. Setup danych, cleanup i asercje backendowe warto trzymać w klientach API.
+
+```typescript
+export class OrdersClient {
+  constructor(private readonly request: APIRequestContext) {}
+
+  async createOrder(data: CreateOrderPayload) {
+    const response = await this.request.post('/api/orders', { data });
+    expect(response.status()).toBe(201);
+    return response.json();
+  }
+
+  async deleteOrder(orderId: string) {
+    await this.request.delete(`/api/orders/${orderId}`);
+  }
+}
+```
+
+To ogranicza pokusę tworzenia danych przez UI tylko dlatego, że test już ma `page`.
+
+## 5. Builder danych
+
+Builder pomaga tworzyć czytelne dane testowe:
+
+```typescript
+export function buildOrder(overrides: Partial<CreateOrderPayload> = {}): CreateOrderPayload {
+  return {
+    customerEmail: `user-${Date.now()}@example.com`,
+    items: [{ sku: 'BOOK-1', quantity: 1 }],
+    currency: 'PLN',
+    ...overrides,
+  };
+}
+```
+
+Builder nie powinien wykonywać requestów. Tworzy dane. Klient API wysyła dane. Page Object obsługuje UI.
+
+## 6. Kiedy wzorzec jest przesadą
+
+Nie używaj journey, fasady i strategii dla jednego prostego testu. Najpierw napisz czytelny test. Abstrakcję wprowadź, gdy pojawia się powtórzenie albo realna złożoność.
+
+## 7. Checklista
+
+- Czy wzorzec usuwa powtarzalność lub nazywa proces biznesowy?
+- Czy test nadal jest zrozumiały bez zaglądania do wielu klas?
+- Czy Page Object nie wykonuje setupu API?
+- Czy builder tylko buduje dane?
+- Czy strategia odpowiada realnym wariantom procesu?
+- Czy fasada nie staje się God Objectem?
+
+## Linki
+
+- [Page Object Models](https://playwright.dev/docs/pom)
+- [Fixtures](https://playwright.dev/docs/test-fixtures)
+- [API testing](https://playwright.dev/docs/api-testing)

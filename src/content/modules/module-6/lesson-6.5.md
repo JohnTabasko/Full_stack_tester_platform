@@ -1,74 +1,171 @@
 # Dobre praktyki i antywzorce POM
 
-> Moduł szósty porządkuje architekturę kodu testowego. Wcześniejsze moduły uczyły, jak sterować przeglądarką i jak potwierdzać rezultat. Teraz pytanie brzmi: jak zorganizować ten kod, aby był czytelny, rozszerzalny i możliwy do utrzymania przez zespół.
+Page Object Model ma zmniejszać koszt utrzymania testów. Nie gwarantuje jakości sam z siebie. Zły POM potrafi być gorszy niż brak POM: ukrywa kruche selektory, tworzy ogromne klasy, miesza UI z API i sprawia, że test przestaje być czytelny.
 
-## Jak czytać ten moduł
+Ta lekcja zbiera praktyki, które chronią projekt Playwright przed typowymi problemami architektury POM.
 
-Nie traktuj wzorca obiektu strony jako obowiązkowego rytuału. POM jest narzędziem do zmniejszania kosztu zmiany, a nie celem samym w sobie. Dobry POM sprawia, że testy są bliżej języka domeny. Zły POM tylko przenosi chaos z testów do klas pomocniczych.
+## 1. Testuj zachowanie, nie implementację
 
-Trzy zasady modułu:
-
-1. **Abstrakcja ma nazywać intencję.** Metoda `loginAs` jest lepsza niż `clickLoginButton`.
-2. **Odpowiedzialność ma być mała.** Strona, komponent, journey i helper powinny mieć jasne granice.
-3. **Czytelność testu jest nadrzędna.** Jeżeli abstrakcja utrudnia zrozumienie scenariusza, jest zła.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **SOLID w POM, God Object, silne sprzężenie, kruche selektory, refaktoryzacja i organizacja plików**. Główne ryzyko: **POM staje się warstwą, która ukrywa chaos zamiast go porządkować: ogromne klasy, przypadkowe helpery i selektory trudne do zmiany**. Po lekturze powinieneś umieć ocenić, czy abstrakcja rzeczywiście pomaga, czy tylko ukrywa złożoność.
-
-## Sytuacja przewodnia
-
-klasa DashboardPage ma tysiąc linii, obsługuje menu, tabele, modal, użytkowników, faktury i ustawienia konta
-
-## 1. SOLID w praktyce
-
-Zasady SOLID w testach nie są akademicką teorią. Chodzi o małe odpowiedzialności, łatwą zmianę i brak zależności od przypadkowych szczegółów.
-
-## 2. God Object
-
-Najczęstszy antywzorzec POM to jedna ogromna klasa strony. Z czasem trafia do niej wszystko, a każda zmiana grozi efektem ubocznym.
-
-## 3. Silne sprzężenie
-
-Page object nie powinien znać danych bazy, konfiguracji CI i całego procesu biznesowego. Im więcej zależności, tym trudniejszy test.
-
-## 4. Kruche selektory
-
-POM nie naprawi złych lokatorów. Jeśli w klasie ukryjesz `nth-child`, problem nadal istnieje — tylko trudniej go zobaczyć.
-
-## 5. Refaktoryzacja
-
-Refaktoryzuj po zauważeniu powtórzeń. Nie buduj z góry skomplikowanego frameworka na podstawie przewidywań.
-
-## Przykład referencyjny
+Metody Page Objecta powinny mówić językiem użytkownika lub domeny:
 
 ```typescript
-// Antywzorzec: jedna klasa wie wszystko.
-// class DashboardPage { openUserModal(); payInvoice(); changePassword(); exportCsv(); ... }
+await loginPage.loginAs(user);
+await checkoutPage.submitOrder();
+await ordersPage.expectOrderStatus(order.id, 'Opłacone');
+```
 
-// Lepszy kierunek: komponenty i odpowiedzialności.
-class DashboardPage {
-  readonly navigation = new Navigation(this.page.getByRole('navigation'));
-  readonly invoices = new InvoicesTable(this.page.getByTestId('invoices-table'));
-  readonly userMenu = new UserMenu(this.page.getByTestId('user-menu'));
+Słabszy styl:
+
+```typescript
+await loginPage.fillEmail(user.email);
+await loginPage.fillPassword(user.password);
+await loginPage.clickBlueButton();
+```
+
+Nie każda techniczna akcja zasługuje na publiczną metodę. Publiczne API Page Objecta powinno opisywać intencję.
+
+## 2. Prywatne locatory, publiczne zachowania
+
+```typescript
+class LoginPage {
+  private readonly emailInput = this.page.getByLabel('Email');
+  private readonly passwordInput = this.page.getByLabel('Hasło');
+  private readonly submitButton = this.page.getByRole('button', { name: 'Zaloguj' });
+
+  constructor(private readonly page: Page) {}
+
+  async login(email: string, password: string) {
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+    await this.submitButton.click();
+  }
 }
 ```
 
-Przykład pokazuje kierunek projektowania: klasa lub komponent ma jedną odpowiedzialność, używa stabilnych lokatorów i nie ukrywa celu testu.
+Jeśli wystawisz locatory publicznie, testy zaczną klikać w szczegóły implementacji i POM przestanie chronić przed zmianami.
 
-## Lista kontrolna
+## 3. Locator-first POM
 
-- Czy nazwa klasy odpowiada odpowiedzialności?
-- Czy metoda opisuje zachowanie, a nie techniczny klik?
-- Czy lokatory są semantyczne lub świadomie oparte o test id?
-- Czy klasa nie zna zbyt wielu obszarów produktu?
-- Czy test po użyciu abstrakcji nadal jest zrozumiały?
-- Czy awaria prowadzi do czytelnej przyczyny?
+POM nie może być miejscem, w którym chowasz złe selektory. Preferuj:
 
+- `getByRole`;
+- `getByLabel`;
+- `getByText`;
+- `getByTestId` dla elementów technicznych;
+- `filter` i locatory zagnieżdżone.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Unikaj:
+
+```typescript
+this.saveButton = page.locator('.container > div:nth-child(3) button');
+```
+
+To nadal jest kruche, nawet jeśli ukryte w klasie.
+
+## 4. God Object
+
+Antywzorzec:
+
+```typescript
+class AppPage {
+  async login() {}
+  async searchProduct() {}
+  async payInvoice() {}
+  async changePassword() {}
+  async manageUsers() {}
+  async exportReports() {}
+}
+```
+
+Lepszy podział:
+
+```typescript
+class LoginPage {}
+class ProductSearchPage {}
+class InvoicesPage {}
+class UserSettingsPage {}
+class AdminUsersPage {}
+class ReportsPage {}
+```
+
+Jedna klasa powinna mieć jedną odpowiedzialność.
+
+## 5. Ukrywanie asercji
+
+Asercje w Page Objectach są dopuszczalne, jeśli są domenowe i czytelne:
+
+```typescript
+await ordersPage.expectOrderStatus(order.id, 'Opłacone');
+```
+
+Problem zaczyna się, gdy metoda akcji ukrywa wiele asercji bez nazwy:
+
+```typescript
+await checkoutPage.submitOrder(); // w środku 10 asercji, API check i cleanup
+```
+
+Jeśli metoda ma ważną asercję, nazwij ją jawnie: `submitOrderAndExpectSuccess` albo rozdziel akcję od oczekiwania.
+
+## 6. Mieszanie UI, API i danych
+
+Page Object powinien obsługiwać UI. Klient API powinien obsługiwać API. Builder powinien budować dane.
+
+Zły kierunek:
+
+```typescript
+class OrdersPage {
+  async createOrderInDatabase() {}
+  async callAdminApi() {}
+  async clickOrderRow() {}
+}
+```
+
+Lepszy:
+
+```typescript
+const order = await ordersClient.createOrder(buildOrder());
+await ordersPage.open(order.id);
+await ordersPage.expectOrderVisible(order.id);
+```
+
+## 7. Refaktoryzacja POM
+
+Nie projektuj ogromnej architektury na zapas. Refaktoryzuj, gdy widzisz:
+
+- powtarzalne locatory;
+- powtarzalne flow;
+- klasę powyżej kilkuset linii;
+- metody o wielu odpowiedzialnościach;
+- trudne code review;
+- testy, których nie da się zrozumieć bez debugowania.
+
+## 8. Antywzorce — szybka lista
+
+- Publiczne locatory.
+- God Object.
+- `BasePage` jako śmietnik.
+- CSS/XPath ukryte w POM bez powodu.
+- Metody typu `clickButton1`.
+- Brak `expectLoaded`.
+- Akcje bez asercji rezultatu.
+- Page Object wykonujący requesty API.
+- Helpery ukrywające cały scenariusz.
+- Dziedziczenie tam, gdzie lepsza jest kompozycja.
+
+## 9. Checklista review POM
+
+- Czy nazwa klasy odpowiada ekranowi lub komponentowi?
+- Czy publiczne metody mówią językiem domeny?
+- Czy locatory są stabilne i semantyczne?
+- Czy klasa ma jedną odpowiedzialność?
+- Czy asercje są jawne i diagnostyczne?
+- Czy API/setup danych nie trafiły do Page Objecta?
+- Czy test po refaktorze jest bardziej czytelny niż przed?
+- Czy awaria wskazuje konkretną stronę, komponent albo stan?
+
+## Linki
+
+- [Page Object Models](https://playwright.dev/docs/pom)
+- [Best practices](https://playwright.dev/docs/best-practices)
+- [Locators](https://playwright.dev/docs/locators)
+- [Fixtures](https://playwright.dev/docs/test-fixtures)

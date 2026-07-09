@@ -5,7 +5,7 @@ export const lesson7_3: Lesson = {
   "id": "7.3",
   "moduleId": 7,
   "title": "Dynamiczne generowanie danych testowych",
-  "description": "Faker.js, seed, lokalizacja, własne generatory, dane masowe i kontrola losowości.",
+  "description": "Dynamiczne dane testowe: runId, dane per test i per worker, seed, Faker, lokalizacja, prywatność i reprodukcja awarii.",
   "order": 3,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson7_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Test Fixtures",
+        "title": "Playwright Parallelism",
+        "url": "https://playwright.dev/docs/test-parallel",
+        "description": "Worker index, parallel index i izolacja danych przy równoległości."
+      },
+      {
+        "title": "Playwright Fixtures",
         "url": "https://playwright.dev/docs/test-fixtures",
-        "description": "Fixtures jako miejsce przygotowania i sprzątania danych testowych."
+        "description": "Dane per test/per worker jako fixtures."
       },
       {
-        "title": "Faker.js Documentation",
+        "title": "Faker",
         "url": "https://fakerjs.dev/",
-        "description": "Generowanie realistycznych i deterministycznych danych testowych."
-      },
-      {
-        "title": "Martin Fowler - Test Data Builders",
-        "url": "https://martinfowler.com/bliki/TestDataBuilder.html",
-        "description": "Klasyczny opis wzorca Test Data Builder."
-      },
-      {
-        "title": "OWASP - Test Data and Privacy",
-        "url": "https://owasp.org/www-project-top-ten/",
-        "description": "Kontekst ochrony danych wrażliwych i prywatności w testach."
+        "description": "Generowanie realistycznych, syntetycznych danych testowych."
       }
     ],
     "tipsAndTricks": [

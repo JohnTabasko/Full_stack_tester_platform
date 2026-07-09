@@ -1,115 +1,287 @@
-# Strategie uwierzytelniania
+# Strategie uwierzytelniania — storageState, role i stabilne logowanie
 
-> Moduł czwarty dotyczy sytuacji, w których prosta interakcja z jedną stroną przestaje wystarczać. Nowoczesna aplikacja może otwierać popupy, osadzać iframe, używać Shadow DOM, komunikować się z wieloma API, wymagać logowania SSO, pytać o uprawnienia albo zmieniać zachowanie zależnie od urządzenia.
+Uwierzytelnianie jest jednym z najczęstszych źródeł wolnych i niestabilnych testów E2E. Logowanie przez UI jest ważnym scenariuszem, ale nie powinno być powtarzane w każdym teście. Jeśli 300 testów zaczyna się od wpisania emaila i hasła, awaria formularza logowania albo chwilowy problem SSO zepsuje cały pakiet, nawet jeśli testowana funkcja nie ma nic wspólnego z logowaniem.
 
-## Jak czytać ten moduł
+Celem tej lekcji jest pokazanie, jak w Playwright projektować logowanie przez `storageState`, setup project, role użytkowników, API authentication i per-worker accounts.
 
-W tym module najważniejsze jest rozumienie granic. Granicą może być nowa karta, ramka iframe, Shadow DOM, zewnętrzne API, sesja użytkownika, uprawnienie przeglądarki albo emulowane urządzenie. Stabilny test wie, po której stronie granicy działa i gdzie powinien szukać dowodu.
+## 1. Kiedy logować się przez UI
 
-Trzy zasady przewodnie:
+Logowanie przez UI testuj wtedy, gdy celem testu jest sam mechanizm logowania:
 
-1. **Najpierw określ granicę systemu.** Czy testujesz aplikację, integrację z dostawcą, czy samą obsługę błędu?
-2. **Nie myl realizmu z przypadkową zależnością.** Prawdziwa integracja jest wartościowa, ale nie każdy test powinien zależeć od usługi zewnętrznej.
-3. **Diagnostyka musi obejmować właściwą warstwę.** Przy iframe patrz na ramkę, przy sieci na żądania, przy uwierzytelnianiu na sesję, przy urządzeniach na kontekst.
+- poprawne dane logowania;
+- błędne hasło;
+- zablokowane konto;
+- walidacja pól;
+- MFA;
+- wylogowanie;
+- przekierowanie po logowaniu;
+- wygasła sesja.
 
+Nie loguj się przez UI w każdym teście koszyka, profilu, faktur czy panelu admina. Dla nich logowanie jest warunkiem wstępnym, nie celem.
 
-## Cel lekcji
+## 2. `storageState` — zapis sesji
 
-Ta lekcja koncentruje się na: **storageState, JWT, OAuth, MFA, SSO, global setup, izolacja kont, role użytkowników i scenariusze negatywne logowania**. Główne ryzyko: **każdy test loguje się przez UI, jest wolny, zależny od jednego konta i podatny na awarie niezwiązane z celem scenariusza**. Po lekturze powinieneś umieć zaprojektować test, który świadomie przekracza granicę jednej strony i nadal pozostaje stabilny oraz diagnozowalny.
-
-## Sytuacja przewodnia
-
-pakiet regresji ma testować administratora, klienta i użytkownika bez uprawnień bez powtarzania logowania przez UI w każdym teście
-
-## 1. Logowanie jako zależność
-
-Logowanie jest często warunkiem testu, ale rzadko celem każdego testu. Jeżeli każdy scenariusz loguje się przez UI, awaria formularza logowania psuje cały pakiet.
-
-## 2. storageState
-
-`storageState` zapisuje ciasteczka i storage kontekstu. Pozwala szybko startować testy w stanie zalogowanym, ale wymaga odświeżania i bezpiecznego przechowywania.
-
-## 3. Role i konta
-
-Administrator, klient i użytkownik bez uprawnień powinni mieć oddzielne dane. Wspólne konto jest źródłem konfliktów i trudnych awarii.
-
-## 4. OAuth, MFA i SSO
-
-Zewnętrzne mechanizmy logowania bywają trudne do automatyzacji. Często lepsze jest przygotowanie sesji przez API, test kontraktu albo dedykowane środowisko testowe dostawcy.
-
-## 5. Scenariusze negatywne
-
-Nie testuj wyłącznie poprawnego logowania. Sprawdź błędne hasło, brak uprawnień, wygasłą sesję i próbę dostępu do zasobu innej roli.
-
-## Przykład referencyjny
+Playwright może zapisać cookies, localStorage i IndexedDB kontekstu:
 
 ```typescript
-// setup/auth.setup.ts
-import { test as setup, expect } from '@playwright/test';
+await page.context().storageState({ path: 'playwright/.auth/user.json' });
+```
 
-setup('zapisz stan sesji administratora', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel('Adres e-mail').fill(process.env.ADMIN_EMAIL!);
-  await page.getByLabel('Hasło').fill(process.env.ADMIN_PASSWORD!);
-  await page.getByRole('button', { name: 'Zaloguj' }).click();
-  await expect(page).toHaveURL(/admin/);
-  await page.context().storageState({ path: 'auth/admin.json' });
+Potem używasz tego stanu w konfiguracji:
+
+```typescript
+use: {
+  storageState: 'playwright/.auth/user.json',
+}
+```
+
+Pliki `.auth/*.json` mogą zawierać tokeny i cookies. Nie commituj ich do repozytorium.
+
+`.gitignore`:
+
+```gitignore
+playwright/.auth/*.json
+```
+
+## 3. Setup project — rekomendowany wzorzec
+
+W Playwright najczytelniejszy wzorzec to osobny projekt przygotowujący sesję.
+
+```typescript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
+      name: 'chromium-user',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+  ],
 });
 ```
 
-Przykład pokazuje, że zaawansowana funkcja Playwrighta ma sens dopiero wtedy, gdy prowadzi do asercji skutku. Samo przełączenie strony, ramki, mocka lub kontekstu nie jest testem. Testem jest dowód, że aplikacja zareagowała poprawnie.
+Test setup:
 
-## Lista kontrolna
+```typescript
+// tests/auth.setup.ts
+import { test as setup, expect } from '@playwright/test';
 
-- Czy test działa we właściwej stronie, ramce albo kontekście?
-- Czy granica systemu jest świadomie określona?
-- Czy mock nie ukrywa integracji, którą trzeba sprawdzić?
-- Czy dane sesji i uprawnienia są izolowane?
-- Czy po awarii trace i logi pokażą właściwą warstwę problemu?
-- Czy scenariusz ma wariant negatywny lub fallback?
+setup('authenticate user', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(process.env.E2E_USER!);
+  await page.getByLabel('Hasło').fill(process.env.E2E_PASSWORD!);
+  await page.getByRole('button', { name: 'Zaloguj' }).click();
 
+  await expect(page.getByRole('heading', { name: 'Panel' })).toBeVisible();
+  await page.context().storageState({ path: 'playwright/.auth/user.json' });
+});
+```
 
-Dla tematu „Strategie uwierzytelniania” najpierw określ, gdzie kończy się aplikacja pod Twoją kontrolą, a gdzie zaczyna przeglądarka, dostawca, ramka, kontekst albo urządzenie. Obszar techniczny lekcji to storageState, JWT, OAuth, MFA, SSO, global setup, izolacja kont, role użytkowników i scenariusze negatywne logowania. Bez tej granicy łatwo diagnozować problem w złym miejscu.
+To uruchamia logowanie raz, a właściwe testy startują już w stanie zalogowanym.
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+## 4. Wiele ról użytkowników
 
+Systemy komercyjne zwykle mają role: admin, manager, klient, użytkownik read-only, użytkownik bez uprawnień.
 
-Najważniejsze ryzyko brzmi: każdy test loguje się przez UI, jest wolny, zależny od jednego konta i podatny na awarie niezwiązane z celem scenariusza. Jeżeli test nie adresuje tego ryzyka, może być technicznie poprawny, ale mało wartościowy. Zaawansowane API Playwrighta powinno być odpowiedzią na konkretny problem, nie ozdobą kodu.
+```typescript
+projects: [
+  { name: 'setup', testMatch: /.*\.setup\.ts/ },
+  {
+    name: 'admin',
+    use: { storageState: 'playwright/.auth/admin.json' },
+    dependencies: ['setup'],
+  },
+  {
+    name: 'customer',
+    use: { storageState: 'playwright/.auth/customer.json' },
+    dependencies: ['setup'],
+  },
+]
+```
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+W setup możesz zapisać kilka sesji:
 
+```typescript
+async function loginAndSave(page: Page, email: string, password: string, path: string) {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Hasło').fill(password);
+  await page.getByRole('button', { name: 'Zaloguj' }).click();
+  await expect(page.getByRole('heading')).toBeVisible();
+  await page.context().storageState({ path });
+}
+```
 
-Zaawansowane interakcje prawie zawsze wymagają lepszego przygotowania danych: osobnej sesji, osobnej roli, tokena, zasobu zewnętrznego, pliku, lokalizacji albo kontrolowanej odpowiedzi API. Dane powinny być jawne, powtarzalne i możliwe do powiązania z raportem.
+Każda rola powinna mieć osobne konto i osobny storage state.
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+## 5. Per-worker authentication
 
+Jeśli testy działają równolegle i modyfikują dane użytkownika, jedno konto na całą suite jest ryzykowne. Lepszy wzorzec: konto per worker.
 
-W tym module szczególnie łatwo o wyścigi. Popup trzeba oczekiwać przed kliknięciem. Odpowiedź sieci trzeba podsłuchiwać przed akcją. Ramkę trzeba zlokalizować, zanim szukasz elementu. Sesję trzeba przygotować, zanim test wystartuje. Kolejność ma znaczenie.
+```typescript
+import { test as base } from '@playwright/test';
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+export const test = base.extend<{}, { workerStorageState: string }>({
+  workerStorageState: [async ({ browser }, use, workerInfo) => {
+    const id = workerInfo.parallelIndex;
+    const page = await browser.newPage();
 
+    await page.goto('/login');
+    await page.getByLabel('Email').fill(`user-${id}@example.com`);
+    await page.getByLabel('Hasło').fill(process.env.E2E_PASSWORD!);
+    await page.getByRole('button', { name: 'Zaloguj' }).click();
 
-Trace viewer, logi sieci, aktualny URL, nazwa ramki, stan kontekstu i załączniki z odpowiedzi API są ważniejsze niż zwykle. Gdy test przekracza granicę jednej strony, zwykły screenshot może nie wystarczyć.
+    const path = `playwright/.auth/user-${id}.json`;
+    await page.context().storageState({ path });
+    await page.close();
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+    await use(path);
+  }, { scope: 'worker' }],
+});
+```
 
+Ten wzorzec ogranicza konflikty między testami działającymi równolegle.
 
-Dla scenariusza: pakiet regresji ma testować administratora, klienta i użytkownika bez uprawnień bez powtarzania logowania przez UI w każdym teście zaprojektuj także awarię. Co się stanie, gdy popup się nie otworzy, ramka nie odpowie, API zwróci 500, sesja wygaśnie albo użytkownik odmówi uprawnienia? Zaawansowany test powinien sprawdzać fallback, nie tylko ścieżkę sukcesu.
+## 6. Logowanie przez API
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+Czasem UI logowania jest wolne, zależne od SSO albo nieistotne dla testu. Możesz przygotować sesję przez API, jeśli aplikacja na to pozwala.
 
+```typescript
+const response = await request.post('/api/auth/login', {
+  data: {
+    email: process.env.E2E_USER,
+    password: process.env.E2E_PASSWORD,
+  },
+});
+expect(response.status()).toBe(200);
+```
 
-Podczas review sprawdź, czy użycie zaawansowanej techniki jest konieczne. Jeżeli prosty lokator i asercja wystarczą, nie komplikuj testu. Jeżeli technika jest potrzebna, upewnij się, że kod jasno nazywa stronę, ramkę, kontekst albo mock.
+Następnie możesz zapisać cookies albo tokeny zgodnie z architekturą aplikacji. Rób to świadomie: ręczne wkładanie tokena do localStorage może ominąć realny mechanizm bezpieczeństwa.
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+## 7. APIRequestContext z autoryzacją
 
+Do setupu danych często używa się osobnego klienta API:
 
-Im więcej granic w teście, tym większy koszt utrzymania. Warto izolować odpowiedzialności: osobny helper do przygotowania sesji, osobny klient API do danych, osobny komponent do ramki płatności. Nie twórz jednak abstrakcji, która ukrywa sens scenariusza.
+```typescript
+const api = await playwright.request.newContext({
+  baseURL: process.env.BASE_URL,
+  extraHTTPHeaders: {
+    Authorization: `Bearer ${process.env.ADMIN_API_TOKEN}`,
+  },
+});
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+const user = await (await api.post('/api/users', {
+  data: { email: `test-${Date.now()}@example.com` },
+})).json();
 
+await api.dispose();
+```
 
-Weź prosty test związany z tematem „Strategie uwierzytelniania” i dodaj do niego diagnostykę: `test.step`, opis danych, asercję stanu końcowego i informację, gdzie szukać przyczyny po awarii. Następnie dopisz wariant negatywny.
+Nie mieszaj bez potrzeby tokenów administracyjnych z testami UI użytkownika. Setup danych może wymagać uprawnień admina, ale scenariusz UI powinien działać na właściwej roli.
 
-W module czwartym dojrzałość polega na świadomym użyciu mocy Playwrighta. Narzędzie pozwala zrobić bardzo wiele, ale profesjonalny test robi tylko to, co służy wiarygodnej informacji o jakości.
+## 8. SessionStorage
 
+Playwright `storageState` nie zapisuje sessionStorage w standardowy sposób, ponieważ sessionStorage jest specyficzny dla konkretnej domeny i karty. Jeśli aplikacja przechowuje sesję w sessionStorage, możesz zapisać i odtworzyć ją przez `page.evaluate`, ale lepiej zapytać zespół, czy to świadoma decyzja architektoniczna.
+
+Przykład odczytu:
+
+```typescript
+const session = await page.evaluate(() => JSON.stringify(sessionStorage));
+```
+
+Taki workaround powinien być opisany w projekcie, bo jest bardziej kruchy niż cookies/localStorage.
+
+## 9. SSO, OAuth i MFA
+
+Zewnętrzne logowanie często ma ograniczenia:
+
+- CAPTCHA;
+- MFA;
+- rate limiting;
+- polityki bezpieczeństwa;
+- niestabilne środowisko dostawcy;
+- blokady automatyzacji.
+
+Strategie:
+
+1. testuj SSO w małej liczbie dedykowanych scenariuszy;
+2. dla reszty suite używaj przygotowanego `storageState`;
+3. używaj testowego dostawcy lub bypassu w środowisku testowym;
+4. nie używaj prywatnych kont pracowników;
+5. nie zapisuj sekretów w repozytorium.
+
+## 10. Scenariusze negatywne auth
+
+Pokryj nie tylko sukces:
+
+```typescript
+await page.goto('/admin');
+await expect(page).toHaveURL(/\/login/);
+
+await page.goto('/login');
+await page.getByLabel('Email').fill('user@example.com');
+await page.getByLabel('Hasło').fill('wrong-password');
+await page.getByRole('button', { name: 'Zaloguj' }).click();
+await expect(page.getByRole('alert')).toContainText(/niepoprawne/i);
+```
+
+Ważne przypadki:
+
+- brak sesji;
+- wygasła sesja;
+- brak uprawnień;
+- próba dostępu do cudzego zasobu;
+- zablokowane konto;
+- błędne hasło;
+- wylogowanie i back button.
+
+## 11. Diagnostyka auth
+
+Przy awarii auth zbieraj:
+
+- aktualny URL;
+- screenshot;
+- trace;
+- cookies/storage, jeśli bezpieczne;
+- status odpowiedzi login API;
+- komunikaty konsoli;
+- identyfikator korelacji requestu.
+
+Nie dołączaj tokenów i cookies do publicznych raportów bez maskowania.
+
+## 12. Antywzorce
+
+- Logowanie przez UI w każdym teście.
+- Jedno konto do wszystkich testów równoległych.
+- Commitowanie plików `storageState`.
+- Testy zależne od prywatnego konta pracownika.
+- Brak testów negatywnych auth.
+- Ręczne wkładanie tokena bez zrozumienia mechanizmu sesji.
+- Brak rozdzielenia ról admin/customer/read-only.
+
+## 13. Checklista strategii auth
+
+- Czy logowanie przez UI jest celem testu, czy tylko setupem?
+- Czy sesje są przygotowywane przez setup project?
+- Czy role mają osobne storage state?
+- Czy testy równoległe mają izolowane konta lub dane?
+- Czy sekrety są w zmiennych środowiskowych / sekretach CI?
+- Czy scenariusze negatywne auth są pokryte?
+- Czy trace i raport nie ujawniają tokenów?
+- Czy SSO/MFA jest testowane świadomie, a nie przypadkowo w każdej ścieżce?
+
+## Linki
+
+- [Authentication](https://playwright.dev/docs/auth)
+- [Test projects](https://playwright.dev/docs/test-projects)
+- [Fixtures](https://playwright.dev/docs/test-fixtures)
+- [API testing](https://playwright.dev/docs/api-testing)
+- [Browser contexts](https://playwright.dev/docs/browser-contexts)

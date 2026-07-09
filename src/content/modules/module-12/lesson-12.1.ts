@@ -5,7 +5,7 @@ export const lesson12_1: Lesson = {
   "id": "12.1",
   "moduleId": 12,
   "title": "Zasady projektowania testów",
-  "description": "Piramida testów, AAA, Given-When-Then, niezależność, deterministyczność, testowanie oparte na ryzyku oraz smoke/regresja.",
+  "description": "Projektowanie testów od ryzyka: piramida, AAA, Given-When-Then, user-visible locators, smoke/regression i dobór poziomu UI/API.",
   "order": 1,
   "difficulty": "advanced",
   "tags": [
@@ -158,19 +158,14 @@ export const lesson12_1: Lesson = {
         "description": "Oficjalne dobre praktyki Playwright."
       },
       {
-        "title": "Martin Fowler - Test Pyramid",
-        "url": "https://martinfowler.com/articles/practical-test-pyramid.html",
-        "description": "Praktyczne omówienie piramidy testów."
+        "title": "Locators",
+        "url": "https://playwright.dev/docs/locators",
+        "description": "User-visible locators."
       },
       {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania commitów."
-      },
-      {
-        "title": "Architecture Decision Records",
-        "url": "https://adr.github.io/",
-        "description": "Materiały o dokumentowaniu decyzji architektonicznych."
+        "title": "Assertions",
+        "url": "https://playwright.dev/docs/test-assertions",
+        "description": "Web-first assertions i asercje skutku."
       }
     ],
     "tipsAndTricks": [

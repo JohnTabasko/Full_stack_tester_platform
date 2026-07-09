@@ -155,8 +155,8 @@ export const lesson5_2: Lesson = {
     "references": [
       {
         "title": "Runner testów Playwright",
-        "url": "https://playwright.dev/docs/test-intro",
-        "description": "Oficjalny przewodnik po runnerze Playwright Test."
+        "url": "https://playwright.dev/docs/writing-tests",
+        "description": "Oficjalny przewodnik po pisaniu testów w Playwright Test."
       },
       {
         "title": "Playwright Fixtures",

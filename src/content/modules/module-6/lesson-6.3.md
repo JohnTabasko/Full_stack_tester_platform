@@ -1,47 +1,41 @@
-# Wzorzec komponentu
+# Wzorzec komponentu — Component Objects w Playwright
 
-> Moduł szósty porządkuje architekturę kodu testowego. Wcześniejsze moduły uczyły, jak sterować przeglądarką i jak potwierdzać rezultat. Teraz pytanie brzmi: jak zorganizować ten kod, aby był czytelny, rozszerzalny i możliwy do utrzymania przez zespół.
+Page Object nie zawsze powinien reprezentować całą stronę. W nowoczesnym UI wiele elementów powtarza się na wielu ekranach: nagłówek, menu użytkownika, tabela, modal, toast, karta produktu, paginacja, filtr, date picker. Jeśli każda strona implementuje je osobno, projekt szybko zacznie się duplikować.
 
-## Jak czytać ten moduł
+Component Object to Page Object dla fragmentu interfejsu. Najważniejsza zasada: komponent powinien mieć **root locator**, a wszystkie jego elementy powinny być wyszukiwane wewnątrz tego korzenia.
 
-Nie traktuj wzorca obiektu strony jako obowiązkowego rytuału. POM jest narzędziem do zmniejszania kosztu zmiany, a nie celem samym w sobie. Dobry POM sprawia, że testy są bliżej języka domeny. Zły POM tylko przenosi chaos z testów do klas pomocniczych.
+## 1. Problem dużych Page Objectów
 
-Trzy zasady modułu:
+Antywzorzec:
 
-1. **Abstrakcja ma nazywać intencję.** Metoda `loginAs` jest lepsza niż `clickLoginButton`.
-2. **Odpowiedzialność ma być mała.** Strona, komponent, journey i helper powinny mieć jasne granice.
-3. **Czytelność testu jest nadrzędna.** Jeżeli abstrakcja utrudnia zrozumienie scenariusza, jest zła.
+```typescript
+class DashboardPage {
+  async openUserMenu() {}
+  async logout() {}
+  async sortOrdersTable() {}
+  async openOrderDetails() {}
+  async closeModal() {}
+  async goToNotifications() {}
+}
+```
 
+Taka klasa szybko zaczyna znać każdy fragment UI. Zmiana modala albo tabeli wymaga modyfikacji wielu stron.
 
-## Cel lekcji
+Lepszy kierunek:
 
-Ta lekcja koncentruje się na: **komponenty interfejsu: modal, tabela, nagłówek, paginacja, root locator i kompozycja zamiast dziedziczenia**. Główne ryzyko: **jedna ogromna klasa strony zna każdy przycisk, modal i tabelę, przez co staje się trudna do utrzymania**. Po lekturze powinieneś umieć ocenić, czy abstrakcja rzeczywiście pomaga, czy tylko ukrywa złożoność.
+```typescript
+class DashboardPage {
+  readonly header: HeaderComponent;
+  readonly ordersTable: OrdersTable;
 
-## Sytuacja przewodnia
-
-ta sama tabela zamówień występuje w panelu administratora i panelu klienta, z różnymi akcjami w wierszach
-
-## 1. Komponent jako część strony
-
-Komponent reprezentuje powtarzalny fragment interfejsu: tabelę, modal, nagłówek, kartę produktu, paginację. Dzięki temu nie tworzysz monolitycznych klas stron.
+  constructor(private readonly page: Page) {
+    this.header = new HeaderComponent(page.getByRole('banner'));
+    this.ordersTable = new OrdersTable(page.getByTestId('orders-table'));
+  }
+}
+```
 
 ## 2. Root locator
-
-Komponent powinien mieć korzeń lokatora. Wszystkie jego lokatory są szukane wewnątrz tego korzenia, dzięki czemu komponent działa w różnych miejscach.
-
-## 3. Kompozycja
-
-Strona może składać się z komponentów. To zwykle elastyczniejsze niż głęboka hierarchia dziedziczenia.
-
-## 4. Granice komponentu
-
-Komponent powinien znać własne elementy i zachowania, ale nie cały proces biznesowy. Modal nie powinien wiedzieć, jak działa płatność.
-
-## 5. Reużywalność z umiarem
-
-Nie każdy fragment UI musi być komponentem. Twórz komponent, gdy widzisz realne powtórzenie lub złożoność.
-
-## Przykład referencyjny
 
 ```typescript
 import { expect, type Locator } from '@playwright/test';
@@ -50,11 +44,13 @@ export class OrdersTable {
   constructor(private readonly root: Locator) {}
 
   rowByOrderId(orderId: string) {
-    return this.root.getByRole('row', { name: new RegExp(orderId) });
+    return this.root.getByRole('row').filter({ hasText: orderId });
   }
 
   async openDetails(orderId: string) {
-    await this.rowByOrderId(orderId).getByRole('button', { name: 'Szczegóły' }).click();
+    await this.rowByOrderId(orderId)
+      .getByRole('button', { name: 'Szczegóły' })
+      .click();
   }
 
   async expectStatus(orderId: string, status: string) {
@@ -63,20 +59,104 @@ export class OrdersTable {
 }
 ```
 
-Przykład pokazuje kierunek projektowania: klasa lub komponent ma jedną odpowiedzialność, używa stabilnych lokatorów i nie ukrywa celu testu.
+Dzięki `root` ten sam komponent może działać w panelu admina i panelu klienta, jeśli struktura tabeli jest podobna.
 
-## Lista kontrolna
+## 3. Komponenty zagnieżdżone
 
-- Czy nazwa klasy odpowiada odpowiedzialności?
-- Czy metoda opisuje zachowanie, a nie techniczny klik?
-- Czy lokatory są semantyczne lub świadomie oparte o test id?
-- Czy klasa nie zna zbyt wielu obszarów produktu?
-- Czy test po użyciu abstrakcji nadal jest zrozumiały?
-- Czy awaria prowadzi do czytelnej przyczyny?
+Komponent może zwracać inny komponent:
 
+```typescript
+class HeaderComponent {
+  constructor(private readonly root: Locator) {}
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+  async openUserMenu() {
+    await this.root.getByRole('button', { name: 'Menu użytkownika' }).click();
+    return new UserMenuComponent(this.root.getByRole('menu'));
+  }
+}
+```
+
+To jest kompozycja. Jest zwykle elastyczniejsza niż głębokie dziedziczenie.
+
+## 4. Modal jako komponent
+
+```typescript
+class ConfirmModal {
+  constructor(private readonly root: Locator) {}
+
+  async confirm() {
+    await this.root.getByRole('button', { name: 'Potwierdź' }).click();
+  }
+
+  async cancel() {
+    await this.root.getByRole('button', { name: 'Anuluj' }).click();
+  }
+
+  async expectMessage(message: string | RegExp) {
+    await expect(this.root).toContainText(message);
+  }
+}
+```
+
+W Page Object:
+
+```typescript
+async deleteOrder(orderId: string) {
+  await this.ordersTable.rowByOrderId(orderId).getByRole('button', { name: 'Usuń' }).click();
+  return new ConfirmModal(this.page.getByRole('dialog'));
+}
+```
+
+## 5. Co powinien wiedzieć komponent
+
+Komponent powinien znać:
+
+- własny root;
+- własne elementy;
+- własne akcje;
+- własne asercje stanu.
+
+Komponent nie powinien znać:
+
+- całego procesu biznesowego;
+- danych bazy;
+- setupu API;
+- konfiguracji CI;
+- innych odległych stron.
+
+Tabela zamówień może otworzyć szczegóły zamówienia, ale nie powinna wiedzieć, jak przejść cały proces zwrotu płatności.
+
+## 6. Kiedy nie tworzyć komponentu
+
+Nie każdy fragment UI wymaga klasy. Jeśli element występuje raz i ma jedną prostą akcję, zwykły locator w Page Object może wystarczyć.
+
+Twórz komponent, gdy:
+
+- fragment UI powtarza się w wielu miejscach;
+- ma kilka akcji i asercji;
+- ma wewnętrzną złożoność;
+- zmienia się niezależnie od strony;
+- zespół często duplikuje jego lokatory.
+
+## 7. Antywzorce
+
+- Komponent bez root locatora, używający globalnie `page`.
+- Komponent zna cały proces biznesowy.
+- Komponenty tworzone dla każdego pojedynczego przycisku.
+- Publiczne lokatory używane dowolnie w testach.
+- Komponent ukrywa nieczytelne CSS/XPath.
+
+## 8. Checklista
+
+- Czy komponent ma root locator?
+- Czy wszystkie locatory są lokalne względem root?
+- Czy komponent ma jedną odpowiedzialność?
+- Czy nadaje się do użycia w więcej niż jednym miejscu?
+- Czy test po użyciu komponentu nadal mówi językiem biznesowym?
+- Czy komponent nie stał się mini-aplikacją?
+
+## Linki
+
+- [Page Object Models](https://playwright.dev/docs/pom)
+- [Locators](https://playwright.dev/docs/locators)
+- [Locator API](https://playwright.dev/docs/api/class-locator)

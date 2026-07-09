@@ -46,7 +46,7 @@ Docker uruchamia testy w identycznym środowisku niezależnie od hosta:
 │  ┌─────────────────────────────────────┐    │
 │  │  Docker Container (Ubuntu + Playwright) │   │
 │  │  - Ubuntu 22.04 LTS                  │    │
-│  │  - Node.js 20                        │    │
+│  │  - Node.js 22                        │    │
 │  │  - Playwright 1.45                   │    │
 │  │  - Chromium (ze standardowymi fontami)│   │
 │  │  - Wszystkie testy uruchamiane tutaj  │    │
@@ -58,7 +58,7 @@ Docker uruchamia testy w identycznym środowisku niezależnie od hosta:
 │  ┌─────────────────────────────────────┐    │
 │  │  Docker Container (Ubuntu + Playwright) │   │
 │  │  - Ubuntu 22.04 LTS                  │    │
-│  │  - Node.js 20                        │    │
+│  │  - Node.js 22                        │    │
 │  │  - Playwright 1.45                   │    │
 │  │  - Chromium (ze standardowymi fontami)│   │
 │  │  - IDENTYCZNE środowisko jak lokalnie │   │

@@ -1,73 +1,176 @@
 # Testowanie komponentów w Playwright
 
-> Moduł szesnasty dotyczy przypadków, które pojawiają się w dojrzałych projektach: kontenery, poczta, komunikacja w czasie rzeczywistym, testy komponentowe i integracje zewnętrzne. To tematy, w których granica systemu jest równie ważna jak sam kod testu.
+Playwright Component Testing pozwala testować komponenty UI w prawdziwej przeglądarce, ale bez uruchamiania całej aplikacji E2E. To poziom pośredni między testami jednostkowymi komponentów a pełnym testem end-to-end. Jest przydatny dla design systemów, formularzy, modali, tabel, komponentów dostępności i regresji wizualnej komponentów.
 
-## Jak czytać ten moduł
+## 1. Kiedy testować komponent
 
-Czytaj ten moduł jak podręcznik kontroli środowiska i zależności. Im więcej usług, kontenerów, wiadomości i dostawców, tym ważniejsze stają się: gotowość środowiska, idempotencja, retry, diagnostyka i świadome rozróżnienie mocka od prawdziwej integracji.
+Test komponentowy ma sens, gdy:
 
-Trzy zasady modułu:
+- komponent ma złożoną interakcję;
+- chcesz sprawdzić różne propsy i stany;
+- pełne E2E byłoby zbyt wolne;
+- chcesz testować dostępność komponentu;
+- komponent jest częścią design systemu;
+- chcesz screenshot komponentu zamiast całej strony.
 
-1. **Środowisko musi być kontrolowane.** Test nie powinien zgadywać, czy baza, poczta albo zależność jest gotowa.
-2. **Integracja musi mieć zakres.** Nie każdy test powinien używać prawdziwego dostawcy.
-3. **Awaria jest scenariuszem.** Retry, fallback, idempotencja i komunikaty błędów są częścią jakości.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **testowanie komponentów React/Vue/Svelte, mount, props, stan, regresja wizualna komponentu i porównanie CT, E2E oraz testów jednostkowych**. Główne ryzyko: **zespół sprawdza każdy wariant komponentu przez wolne testy E2E, mimo że szybciej i dokładniej można zrobić to na poziomie komponentu**. Po lekturze powinieneś umieć dobrać strategię testu do granicy systemu i zapewnić diagnostykę awarii zależności.
-
-## Sytuacja przewodnia
-
-komponent DatePicker ma wiele stanów: pusty, wybrana data, błąd walidacji, disabled, mobile i tryb ciemny
-
-## 1. Po co testy komponentowe
-
-Test komponentowy sprawdza zachowanie komponentu bez kosztu pełnej aplikacji. Jest szybszy niż E2E i bliższy użytkownikowi niż czysty test jednostkowy.
-
-## 2. Mount
-
-`mount` renderuje komponent w środowisku testowym. Test może używać lokatorów Playwright, asercji i screenshotów.
-
-## 3. Props i stan
-
-Komponenty mają warianty przez propsy i stan. Test komponentowy dobrze nadaje się do sprawdzenia macierzy wariantów.
-
-## 4. Regresja wizualna
-
-Screenshot komponentu jest tańszy i bardziej stabilny niż screenshot całej strony, jeśli dane i viewport są kontrolowane.
-
-## 5. CT vs E2E vs unit
-
-Test jednostkowy sprawdza logikę, komponentowy zachowanie elementu, a E2E integrację przepływu. Poziomy powinny się uzupełniać.
-
-## Przykład referencyjny
+## 2. Przykład idei `mount`
 
 ```typescript
 import { test, expect } from '@playwright/experimental-ct-react';
-import { DatePicker } from './DatePicker';
+import { Button } from './Button';
 
-test('DatePicker pokazuje błąd dla daty z przeszłości', async ({ mount }) => {
-  const component = await mount(<DatePicker minDate="2026-01-01" />);
-  await component.getByLabel('Data').fill('2025-12-01');
-  await expect(component.getByRole('alert')).toContainText('Data jest zbyt wczesna');
+test('button emits click', async ({ mount }) => {
+  let clicked = false;
+  const component = await mount(<Button onClick={() => clicked = true}>Zapisz</Button>);
+
+  await component.getByRole('button', { name: 'Zapisz' }).click();
+  expect(clicked).toBe(true);
 });
 ```
 
-Przykład pokazuje, że specjalistyczne integracje wymagają jawnej kontroli środowiska i asercji skutku. Samo wywołanie usługi nie wystarcza.
+API i konfiguracja zależą od frameworka, np. React, Vue lub Svelte. Zawsze sprawdzaj aktualną dokumentację Playwright CT.
 
-## Lista kontrolna
+## 3. Component tests vs E2E
 
-- Czy środowisko ma healthcheck albo inny dowód gotowości?
-- Czy test wie, czy używa mocka, sandboxa czy prawdziwej usługi?
-- Czy scenariusz awarii jest testowany?
-- Czy operacja jest idempotentna lub zabezpieczona przed duplikatem?
-- Czy artefakty pozwolą zdiagnozować problem zależności?
-- Czy test nie generuje kosztów lub efektów ubocznych poza środowiskiem testowym?
+Component test sprawdza komponent w izolacji. E2E sprawdza cały system. Nie zastępują się, tylko uzupełniają.
 
+Przykład strategii:
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+- komponent Button: testy CT dla stanów disabled/loading/focus;
+- formularz checkout: CT dla walidacji pól;
+- pełna płatność: E2E smoke przez UI + API.
+
+## 4. Mockowanie zależności
+
+Komponent może wymagać routera, providera stanu, tłumaczeń albo klienta API. Przygotuj wrapper:
+
+```typescript
+const component = await mount(
+  <TestProviders locale="pl">
+    <CheckoutForm />
+  </TestProviders>
+);
+```
+
+Nie buduj w teście komponentowym całej aplikacji. Jeśli potrzebujesz wszystkich providerów i backendu, być może to już E2E.
+
+## 5. Accessibility i visual komponentu
+
+```typescript
+await expect(component.getByRole('button', { name: 'Zapisz' })).toBeVisible();
+await expect(component).toHaveScreenshot('button-loading.png');
+```
+
+Component testing dobrze nadaje się do ARIA, focus management i snapshotów wizualnych małych elementów.
+
+## 6. Checklista
+
+- Czy komponent ma wartość testowania w izolacji?
+- Czy test nie odtwarza całej aplikacji?
+- Czy propsy/stany są jawne?
+- Czy używasz locatorów dostępnościowych?
+- Czy E2E nadal pokrywa krytyczną integrację?
+
+## Linki
+
+- [Playwright Component Testing](https://playwright.dev/docs/test-components)
+- [Locators](https://playwright.dev/docs/locators)
+- [Screenshots](https://playwright.dev/docs/test-snapshots)
+
+## 7. Component testing a testy accessibility
+
+Komponenty są dobrym miejscem na sprawdzanie dostępności wcześniej niż w E2E:
+
+```typescript
+const component = await mount(<Modal title="Potwierdź usunięcie" />);
+await expect(component.getByRole('dialog', { name: 'Potwierdź usunięcie' })).toBeVisible();
+```
+
+Jeśli komponent nie ma roli lub accessible name, E2E także będzie trudniejsze.
+
+## 8. Dane wejściowe komponentu
+
+Test komponentowy powinien jawnie pokazywać propsy:
+
+```typescript
+await mount(<ProductCard name="Laptop" price="1200 zł" unavailable />);
+```
+
+Dzięki temu test opisuje wariant stanu, a nie zależy od backendu.
+
+## 9. Granice CT
+
+Jeśli test komponentowy zaczyna wymagać prawdziwego routera, backendu, autoryzacji i kilku providerów globalnych, prawdopodobnie przesuwasz go w stronę E2E. Ustal granicę: komponent ma testować zachowanie komponentu, nie cały produkt.
+
+## 10. Component testing w pipeline
+
+Testy komponentowe są zwykle szybsze niż E2E, więc mogą działać w PR dla zmian frontendowych. Testy E2E zostaw dla krytycznych przepływów. Przykładowy podział:
+
+```bash
+npx playwright test-ct
+npx playwright test --grep @smoke
+```
+
+## 11. Snapshot komponentu
+
+Visual snapshot komponentu jest stabilniejszy niż snapshot całej strony, bo ma mniej dynamicznych elementów. Nadal kontroluj fonty, animacje i dane wejściowe.
+
+```typescript
+await expect(component).toHaveScreenshot('product-card-unavailable.png');
+```
+
+## 12. Checklista review CT
+
+- Czy test dotyczy zachowania komponentu?
+- Czy propsy są jawne?
+- Czy wrapper nie ukrywa całej aplikacji?
+- Czy użyto ról i nazw dostępności?
+- Czy E2E nadal pokrywa integrację?
+
+## 13. Mockowanie requestów w component testing
+
+Jeśli komponent sam pobiera dane, możesz mockować warstwę network albo przekazać dane przez propsy. Preferuj propsy, gdy testujesz komponent wizualny. Mock network ma sens, gdy komponent zawiera logikę pobierania.
+
+## 14. Component testing i design system
+
+Dla design systemu testy komponentowe mogą być główną warstwą jakości:
+
+- warianty buttonów;
+- focus state;
+- disabled/loading;
+- aria attributes;
+- keyboard navigation;
+- visual snapshots.
+
+To pozwala wykrywać regresje UI zanim trafią do wielu stron aplikacji.
+
+## 15. Antywzorce CT
+
+- Test komponentowy uruchamia całą aplikację.
+- Test wymaga prawdziwego backendu.
+- Snapshot jest aktualizowany bez review.
+- Komponent nie ma dostępnych ról ani etykiet.
+- Ten sam scenariusz jest powielony w CT i E2E bez powodu.
+
+## 16. Testy interakcji klawiaturą w CT
+
+Komponenty menu, dialogów i comboboxów powinny obsługiwać klawiaturę. Component testing nadaje się do tego bardzo dobrze:
+
+```typescript
+await component.getByRole('button', { name: 'Otwórz menu' }).press('Enter');
+await expect(component.getByRole('menu')).toBeVisible();
+await page.keyboard.press('Escape');
+await expect(component.getByRole('menu')).toBeHidden();
+```
+
+## 17. CT jako szybki feedback dla frontend developerów
+
+Jeśli E2E pada przez komponent, który można było przetestować izolowanie, przenieś część wariantów do CT. Developer dostaje szybszy feedback, a E2E zostaje dla integracji.
+
+## 18. Dane a snapshoty komponentów
+
+Snapshot komponentu powinien używać stabilnych danych. Dynamiczne daty, losowe avatary i animacje powodują fałszywe różnice. Przekazuj jawne propsy i wyłącz animacje, jeśli test dotyczy layoutu.
+
+## 19. Współdzielenie helperów CT i E2E
+
+Niektóre buildery danych i asercje dostępności mogą być współdzielone między CT i E2E. Uważaj jednak, aby helper CT nie zakładał istnienia pełnej aplikacji, routera albo backendu.

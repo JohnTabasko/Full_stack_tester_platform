@@ -1,76 +1,180 @@
 # Testowanie integracji zewnętrznych
 
-> Moduł szesnasty dotyczy przypadków, które pojawiają się w dojrzałych projektach: kontenery, poczta, komunikacja w czasie rzeczywistym, testy komponentowe i integracje zewnętrzne. To tematy, w których granica systemu jest równie ważna jak sam kod testu.
+Integracje zewnętrzne — płatności, email, SMS, SSO, CRM, mapy, analityka — są częstym źródłem niestabilności testów. Full Stack Tester musi zdecydować, kiedy testować prawdziwą integrację, kiedy użyć sandboxa, kiedy mockować odpowiedź, a kiedy wystarczy test kontraktu.
 
-## Jak czytać ten moduł
+## 1. Klasyfikacja integracji
 
-Czytaj ten moduł jak podręcznik kontroli środowiska i zależności. Im więcej usług, kontenerów, wiadomości i dostawców, tym ważniejsze stają się: gotowość środowiska, idempotencja, retry, diagnostyka i świadome rozróżnienie mocka od prawdziwej integracji.
+Dla każdej integracji określ:
 
-Trzy zasady modułu:
+- czy jest krytyczna biznesowo;
+- czy ma stabilny sandbox;
+- czy ma limity rate limiting;
+- czy generuje koszty;
+- czy wspiera dane testowe;
+- czy jest deterministyczna;
+- jak diagnozować błędy.
 
-1. **Środowisko musi być kontrolowane.** Test nie powinien zgadywać, czy baza, poczta albo zależność jest gotowa.
-2. **Integracja musi mieć zakres.** Nie każdy test powinien używać prawdziwego dostawcy.
-3. **Awaria jest scenariuszem.** Retry, fallback, idempotencja i komunikaty błędów są częścią jakości.
+## 2. Prawdziwa integracja vs mock
 
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **webhooki, upload plików, integracje płatności, mapy, SMS, Circuit Breaker, zapasowy interfejs użytkownika i chaos testing**. Główne ryzyko: **testy zależą od prawdziwych usług zewnętrznych w każdym przebiegu albo całkowicie je mockują i nie wykrywają problemów integracji**. Po lekturze powinieneś umieć dobrać strategię testu do granicy systemu i zapewnić diagnostykę awarii zależności.
-
-## Sytuacja przewodnia
-
-aplikacja przyjmuje płatność, wysyła SMS, zapisuje webhook i pokazuje użytkownikowi zapasowy komunikat przy awarii dostawcy
-
-## 1. Granica integracji
-
-Najpierw określ, czy testujesz swoją aplikację, kontrakt z dostawcą, czy prawdziwą usługę. Każda odpowiedź prowadzi do innej strategii.
-
-## 2. Webhooki
-
-Webhook powinien mieć weryfikację podpisu, idempotencję i obsługę ponowień. Testuj duplikat oraz niepoprawną sygnaturę.
-
-## 3. Płatności i SMS
-
-Integracje płatności i SMS są kosztowne i często limitowane. Używaj sandboxów, mocków i ograniczonych testów end-to-end.
-
-## 4. Circuit Breaker
-
-Aplikacja powinna mieć zachowanie zapasowe, gdy dostawca jest niedostępny. Testuj komunikat, retry i brak podwójnego skutku.
-
-## 5. Chaos testing
-
-Chaos w testach integracji musi być kontrolowany. Symuluj awarię świadomie i tylko w środowisku, które jest na to przygotowane.
-
-## Przykład referencyjny
+Prawdziwa integracja jest potrzebna dla smoke testów krytycznych ścieżek. Mock jest dobry dla błędów trudnych do wywołania: timeout, 500, 403, odrzucona płatność, brak odpowiedzi.
 
 ```typescript
-await page.route('**/api/payment-provider/**', async route => {
-  await route.fulfill({
-    status: 503,
-    contentType: 'application/json',
-    body: JSON.stringify({ message: 'provider unavailable' }),
-  });
-});
-
-await page.goto('/checkout');
-await page.getByRole('button', { name: 'Zapłać' }).click();
-await expect(page.getByRole('alert')).toContainText('Płatność chwilowo niedostępna');
+await page.route('**/payment/charge', route => route.fulfill({
+  status: 402,
+  contentType: 'application/json',
+  body: JSON.stringify({ code: 'CARD_DECLINED' }),
+}));
 ```
 
-Przykład pokazuje, że specjalistyczne integracje wymagają jawnej kontroli środowiska i asercji skutku. Samo wywołanie usługi nie wystarcza.
+## 3. HAR dla zewnętrznych usług
 
-## Lista kontrolna
+Jeśli zewnętrzne API jest wolne albo niestabilne, możesz użyć HAR do kontrolowanego replayu:
 
-- Czy środowisko ma healthcheck albo inny dowód gotowości?
-- Czy test wie, czy używa mocka, sandboxa czy prawdziwej usługi?
-- Czy scenariusz awarii jest testowany?
-- Czy operacja jest idempotentna lub zabezpieczona przed duplikatem?
-- Czy artefakty pozwolą zdiagnozować problem zależności?
-- Czy test nie generuje kosztów lub efektów ubocznych poza środowiskiem testowym?
+```typescript
+await page.routeFromHAR('tests/fixtures/payment-provider.har', {
+  url: '**/provider/**',
+  update: false,
+});
+```
 
+HAR nie zastępuje testu integracyjnego. To narzędzie stabilizacji wybranych scenariuszy.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+## 4. Testowanie emaili
+
+Dla emaili używaj testowego inboxa albo API narzędzia typu MailHog/Mailpit:
+
+```typescript
+const email = await mailClient.waitForEmail({ to: user.email, subject: /Aktywacja/ });
+expect(email.body).toContain('Aktywuj konto');
+```
+
+Nie testuj poczty przez prawdziwe prywatne skrzynki.
+
+## 5. Circuit breaker i health check
+
+Przed pełną suite możesz sprawdzić zależności:
+
+```typescript
+const health = await request.get('/api/health/dependencies');
+expect(health.status()).toBe(200);
+```
+
+Jeśli sandbox płatności leży, raport powinien powiedzieć „awaria zależności”, a nie generować dziesiątki fałszywych błędów UI.
+
+## 6. Checklista integracji
+
+- Czy wiadomo, które testy używają prawdziwej integracji?
+- Czy sandbox jest stabilny i ma dane testowe?
+- Czy mocki nie ukrywają krytycznej ścieżki?
+- Czy błędy integracji są symulowane?
+- Czy istnieje correlation ID lub request id?
+- Czy testy nie generują kosztów ani prawdziwych wiadomości do klientów?
+
+## Linki
+
+- [Network mocking](https://playwright.dev/docs/mock)
+- [HAR replay](https://playwright.dev/docs/network)
+- [API testing](https://playwright.dev/docs/api-testing)
+- [Authentication](https://playwright.dev/docs/auth)
+
+## 7. Dane testowe dostawców
+
+Dostawcy integracji zwykle mają specjalne dane testowe: numery kart, adresy email sandbox, testowe konta SSO, numery telefonów SMS. Trzymaj je w dokumentacji projektu i nie mieszaj ze środowiskiem produkcyjnym.
+
+## 8. Idempotencja integracji
+
+Test integracji może zostać uruchomiony ponownie. Operacje powinny być idempotentne albo mieć unikalny identyfikator:
+
+```typescript
+const externalId = `e2e-${runId}-${crypto.randomUUID()}`;
+```
+
+Dzięki temu retry nie stworzy konfliktu u zewnętrznego dostawcy.
+
+## 9. Kontrakt zamiast pełnego E2E dla każdego wariantu
+
+Nie musisz sprawdzać każdego błędu dostawcy przez prawdziwą integrację. Krytyczne happy path może działać na sandboxie, a warianty błędów mogą być pokryte przez mocki, HAR albo testy kontraktowe.
+
+## 10. Rejestrowanie request id dostawcy
+
+W integracjach zewnętrznych zapisuj identyfikator requestu dostawcy, jeśli jest dostępny:
+
+```typescript
+await testInfo.attach('provider-request-id', {
+  body: response.headers()['x-request-id'] ?? 'missing',
+  contentType: 'text/plain',
+});
+```
+
+To przyspiesza kontakt z supportem dostawcy i analizę logów.
+
+## 11. Matrix strategii integracji
+
+| Scenariusz | Strategia |
+|---|---|
+| krytyczny happy path płatności | sandbox prawdziwego dostawcy |
+| karta odrzucona | sandbox albo mock |
+| timeout dostawcy | mock / route abort |
+| format webhooka | test kontraktowy |
+| treść emaila | testowy inbox / Mailpit |
+
+Nie każda ścieżka wymaga pełnego E2E z prawdziwą integracją.
+
+## 12. Webhooki integracji
+
+Wiele integracji działa asynchronicznie przez webhooki. Test powinien sprawdzić idempotencję i ponowienia:
+
+```typescript
+await providerClient.sendWebhook({ eventId, type: 'payment.succeeded' });
+await providerClient.sendWebhook({ eventId, type: 'payment.succeeded' });
+
+const order = await ordersClient.getOrder(orderId);
+expect(order.status).toBe('PAID');
+```
+
+Podwójny webhook nie powinien podwójnie zaksięgować płatności.
+
+## 13. Testowanie integracji bez kosztów produkcyjnych
+
+Upewnij się, że testy nie wysyłają prawdziwych SMS, emaili do klientów, przelewów ani faktur produkcyjnych. Każda integracja powinna mieć środowisko testowe, sandbox albo mock.
+
+## 14. Diagnostyka integracji
+
+Przy awarii integracji zbierz:
+
+- request id dostawcy;
+- correlation ID aplikacji;
+- status HTTP;
+- body błędu po zamaskowaniu sekretów;
+- timestamp;
+- środowisko dostawcy;
+- link do dashboardu sandboxa, jeśli istnieje.
+
+## 15. Testy kontraktowe integracji
+
+Dla integracji zewnętrznych warto utrzymywać testy kontraktowe: jaki webhook przychodzi, jakie pola są wymagane, jakie kody błędów obsługujemy. Dzięki temu nie musisz każdej sytuacji odtwarzać przez prawdziwego dostawcę.
+
+## 16. Tryb degradacji
+
+Jeśli integracja jest niedostępna, aplikacja powinna mieć przewidywalny fallback: komunikat, retry, kolejkę, status „oczekuje” albo manualną obsługę. Testuj degradację tak samo jak ścieżkę sukcesu.
+
+## 17. Checklist release dla integracji
+
+- Czy sandbox działa?
+- Czy sekrety są ustawione w CI?
+- Czy webhook URL jest poprawny?
+- Czy correlation ID jest widoczny w logach?
+- Czy testy nie używają produkcyjnych danych?
+- Czy istnieje test błędu dostawcy?
+
+## 18. Separacja sekretów integracji
+
+Każda integracja powinna mieć osobne sekrety dla środowiska testowego. Nie używaj produkcyjnych tokenów w CI E2E. Sekrety powinny być rotowane i ograniczone uprawnieniami.
+
+## 19. Testy manualne jako uzupełnienie
+
+Niektóre integracje, np. z bankiem, podpisem kwalifikowanym albo zewnętrznym SSO, mogą wymagać okresowej weryfikacji manualnej. Automatyzacja powinna pokrywać stabilne kontrakty i najważniejsze smoke, a resztę opisać w planie testów.
+
+## 20. Zasada końcowa
+
+Integracja zewnętrzna musi mieć świadomie dobrany poziom realizmu. Jeden test na prawdziwym sandboxie może dawać więcej wartości niż dziesięć niestabilnych E2E zależnych od dostawcy.

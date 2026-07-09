@@ -5,7 +5,7 @@ export const lesson16_2: Lesson = {
   "id": "16.2",
   "moduleId": 16,
   "title": "Testowanie poczty elektronicznej",
-  "description": "MailHog, Mailpit, testowanie SMTP, linki aktywacyjne, reset hasła, szablony HTML i REST API skrzynki testowej.",
+  "description": "Testowanie poczty: MailHog/Mailpit, polling skrzynki, linki aktywacyjne, reset hasła, izolacja skrzynek i diagnostyka email.",
   "order": 2,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson16_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Docker",
+        "title": "API testing",
+        "url": "https://playwright.dev/docs/api-testing",
+        "description": "Odczyt skrzynki testowej przez API."
+      },
+      {
+        "title": "Assertions poll",
+        "url": "https://playwright.dev/docs/test-assertions",
+        "description": "expect.poll zamiast sleep."
+      },
+      {
+        "title": "Docker",
         "url": "https://playwright.dev/docs/docker",
-        "description": "Oficjalne obrazy Docker i praktyki uruchamiania Playwright w kontenerach."
-      },
-      {
-        "title": "Testcontainers",
-        "url": "https://testcontainers.com/",
-        "description": "Biblioteka do uruchamiania zależności testowych w kontenerach."
-      },
-      {
-        "title": "Testowanie komponentów w Playwright",
-        "url": "https://playwright.dev/docs/test-components",
-        "description": "Dokumentacja testowania komponentów w Playwright."
-      },
-      {
-        "title": "MDN WebSocket API",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
-        "description": "Podstawy WebSocket i komunikacji dwukierunkowej."
+        "description": "Uruchamianie zależności testowych w kontenerach."
       }
     ],
     "tipsAndTricks": [

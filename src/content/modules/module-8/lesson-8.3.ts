@@ -5,7 +5,7 @@ export const lesson8_3: Lesson = {
   "id": "8.3",
   "moduleId": 8,
   "title": "Kontrakty API i walidacja schematów",
-  "description": "OpenAPI, schemat JSON, Ajv, Pact, wykrywanie zmian niekompatybilnych, wersjonowanie i podejście contract-first.",
+  "description": "Kontrakty API: JSON Schema, Ajv, OpenAPI, błędy, autoryzacja, nagłówki, paginacja, contract drift i breaking changes.",
   "order": 3,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,24 @@ export const lesson8_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Testowanie API",
+        "title": "Playwright API testing",
         "url": "https://playwright.dev/docs/api-testing",
-        "description": "Oficjalna dokumentacja testowania API w Playwright."
+        "description": "Testowanie API z Playwright."
       },
       {
-        "title": "MDN HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Dokumentacja metod HTTP, statusów, nagłówków i semantyki protokołu."
+        "title": "APIResponseAssertions",
+        "url": "https://playwright.dev/docs/api/class-apiresponseassertions",
+        "description": "Asercje odpowiedzi API."
       },
       {
-        "title": "GraphQL Documentation",
-        "url": "https://graphql.org/learn/",
-        "description": "Podstawy GraphQL: query, mutation, variables, fragments i errors."
+        "title": "OpenAPI",
+        "url": "https://www.openapis.org/",
+        "description": "Specyfikacja kontraktów REST API."
       },
       {
-        "title": "JSON Schema",
-        "url": "https://json-schema.org/",
-        "description": "Standard opisu i walidacji struktury danych JSON."
+        "title": "Ajv",
+        "url": "https://ajv.js.org/",
+        "description": "Walidator JSON Schema."
       }
     ],
     "tipsAndTricks": [

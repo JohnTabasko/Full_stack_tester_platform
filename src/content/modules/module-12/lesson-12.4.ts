@@ -5,7 +5,7 @@ export const lesson12_4: Lesson = {
   "id": "12.4",
   "moduleId": 12,
   "title": "Współpraca zespołowa i standardy",
-  "description": "Conventional Commits, szablony PR, CODEOWNERS, ADR, dzielenie wiedzy, branching, przegląd kodu i Definition of Done.",
+  "description": "Standardy zespołowe: PR, code review, data-testid, artefakty, nazwy testów, flakiness, CODEOWNERS i onboarding.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson12_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Best Practices",
+        "title": "Best Practices",
         "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalne dobre praktyki Playwright."
+        "description": "Spójne praktyki testowe."
       },
       {
-        "title": "Martin Fowler - Test Pyramid",
-        "url": "https://martinfowler.com/articles/practical-test-pyramid.html",
-        "description": "Praktyczne omówienie piramidy testów."
+        "title": "Annotations",
+        "url": "https://playwright.dev/docs/test-annotations",
+        "description": "Tagi i adnotacje jako kontrakt z CI."
       },
       {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania commitów."
-      },
-      {
-        "title": "Architecture Decision Records",
-        "url": "https://adr.github.io/",
-        "description": "Materiały o dokumentowaniu decyzji architektonicznych."
+        "title": "Reporters",
+        "url": "https://playwright.dev/docs/test-reporters",
+        "description": "Raportowanie i artefakty zespołowe."
       }
     ],
     "tipsAndTricks": [

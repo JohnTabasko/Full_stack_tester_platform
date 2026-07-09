@@ -40,7 +40,7 @@ on:                               # Trigger — kiedy workflow się uruchamia
     branches: [main, develop]
 
 env:                              # Zmienne globalne dla całego workflow
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 'true'
 
 jobs:
@@ -144,7 +144,7 @@ on:
 
 ## Matrix builds — testy na wielu przeglądarkach/środowiskach
 
-### Matrix strategy —并行ne wykonanie
+### Matrix strategy —równoległe wykonanie
 
 ```yaml
 jobs:
@@ -167,7 +167,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           
       - name: Install dependencies
@@ -211,7 +211,7 @@ Całkowity czas: ~5 min (vs. 25 min sekwencyjnie)
 - name: Setup Node.js with cache
   uses: actions/setup-node@v4
   with:
-    node-version: '20'
+    node-version: '22'
     cache: 'npm'
     cache-dependency-path: package-lock.json  # Klucz cache — zmiana lock = invalidate cache
 ```
@@ -520,7 +520,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   # ============================================================
@@ -656,3 +656,85 @@ Dobry pipeline CI to nie jest "zrobione raz i zapomniane". To żywy dokument, kt
 - [Caching Dependencies in GitHub Actions](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows)
 - [Matrix Strategy in GitHub Actions](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix)
 - [Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
+
+---
+
+## Aktualny minimalny workflow Playwright
+
+Oficjalny, praktyczny workflow powinien zawierać deterministyczną instalację zależności, instalację przeglądarek z zależnościami systemowymi oraz upload raportu nawet po awarii.
+
+```yaml
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npx playwright test
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+```
+
+Wariant produkcyjny możesz rozbudować o sharding, matrix projektów, sekrety i cache, ale minimalny workflow powinien pozostać czytelny dla każdej osoby w zespole.
+
+## Raport HTML i trace jako artefakty
+
+W CI raport jest często ważniejszy niż log terminala. Log mówi, że test padł. Raport HTML i trace pokazują, dlaczego.
+
+```yaml
+- name: Upload test-results
+  uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: test-results
+    path: test-results/
+    retention-days: 7
+```
+
+Jeśli używasz `trace: 'on-first-retry'` albo `retain-on-failure`, pamiętaj, aby `test-results` było publikowane zawsze.
+
+## Sharding z matrix
+
+```yaml
+strategy:
+  fail-fast: false
+  matrix:
+    shard: [1, 2, 3, 4]
+
+steps:
+  - run: npx playwright test --shard=${{ matrix.shard }}/4
+```
+
+Każdy shard powinien publikować własny raport lub blob report. Inaczej po awarii jednego sharda stracisz diagnostykę.
+
+## Checklista GitHub Actions dla Playwright
+
+- Czy używasz wspieranej wersji Node.js, np. 22.x?
+- Czy instalujesz przeglądarki przez `npx playwright install --with-deps`?
+- Czy raport HTML jest uploadowany przy `if: always()`?
+- Czy `test-results` z trace jest artefaktem?
+- Czy sekrety są w GitHub Secrets, a nie w repozytorium?
+- Czy sharding nie gubi raportów?
+- Czy PR uruchamia szybki zestaw smoke, a nightly pełną regresję?

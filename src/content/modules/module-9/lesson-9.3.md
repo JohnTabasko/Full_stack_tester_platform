@@ -1,83 +1,209 @@
 # Obsługa błędów i odzyskiwanie
 
-> Moduł dziewiąty uczy traktować awarię testu jak informację diagnostyczną, a nie przeszkodę do szybkiego obejścia. Debugowanie, stabilność i monitoring decydują o zaufaniu zespołu do automatyzacji.
+Obsługa błędów w testach automatycznych nie polega na tym, aby test „jakoś przeszedł”. Test ma ujawnić problem, zostawić dowody i posprzątać zasoby. `try-catch`, retry, soft assertions i cleanup są narzędziami diagnostycznymi, a nie sposobem ukrywania defektów.
 
-## Jak czytać ten moduł
+## 1. Kiedy używać try-catch
 
-Czytaj ten moduł jak podręcznik pracy z niepewnością. Test może zawieść z powodu produktu, danych, środowiska, konfiguracji, synchronizacji, integracji zewnętrznej albo błędu w samym teście. Dojrzałość polega na szybkim rozróżnianiu tych klas problemów.
+`try-catch` ma sens, gdy:
 
-Trzy zasady modułu:
+- dodajesz kontekst do błędu;
+- załączasz artefakty;
+- sprzątasz dane;
+- zamieniasz techniczny błąd na komunikat domenowy;
+- obsługujesz oczekiwany wariant negatywny.
 
-1. **Nie naprawiaj objawu bez diagnozy.** Dłuższy timeout rzadko jest prawdziwym rozwiązaniem.
-2. **Artefakty są częścią testu.** Trace, screenshot, logi i odpowiedzi API muszą być dostępne wtedy, gdy test zawiedzie.
-3. **Flaky test to defekt procesu.** Nie wolno go ignorować tylko dlatego, że czasem przechodzi.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **try-catch z kontekstem, retry z backoff, soft assertions, gwarancja cleanupu i circuit breaker**. Główne ryzyko: **test łapie wyjątki po to, aby przejść mimo awarii, albo nie sprząta zasobów po błędzie setupu**. Po lekturze powinieneś umieć postawić hipotezę diagnostyczną, zebrać dowody i zaproponować naprawę przyczyny, nie tylko objawu.
-
-## Sytuacja przewodnia
-
-test tworzy zamówienie, rezerwuje płatność i musi posprzątać dane nawet wtedy, gdy asercja UI zawiedzie
-
-## 1. Try-catch z intencją
-
-`try-catch` ma sens, gdy dodaje kontekst, sprząta zasoby albo zamienia błąd na czytelniejszy komunikat. Nie powinien ukrywać defektu.
-
-## 2. Retry z backoff
-
-Ponowienie z narastającym opóźnieniem może pomóc przy chwilowej niedostępności zależności, ale nie może maskować błędów kontraktu lub logiki.
-
-## 3. Soft assertions
-
-Soft assertions pozwalają zebrać kilka błędów w jednym przebiegu, ale nie powinny być używane w krytycznych punktach, od których zależy dalszy scenariusz.
-
-## 4. Cleanup guarantee
-
-Sprzątanie powinno działać nawet po awarii testu. Najlepiej rejestrować utworzone zasoby natychmiast po ich utworzeniu.
-
-## 5. Circuit breaker
-
-Jeżeli zależność zewnętrzna masowo zawodzi, pipeline powinien umieć odróżnić awarię środowiska od regresji produktu i ograniczyć szum.
-
-## Przykład referencyjny
+Nie używaj `catch`, aby ignorować awarię:
 
 ```typescript
-const createdOrderIds: string[] = [];
+try {
+  await page.getByRole('button', { name: 'Zapłać' }).click();
+} catch {}
+```
 
-test.afterEach(async ({ request }) => {
-  for (const orderId of createdOrderIds.reverse()) {
-    await request.delete(`/api/orders/${orderId}`).catch((error) => {
-      console.warn(`Nie udało się usunąć zamówienia ${orderId}:`, error);
-    });
-  }
-});
+To ukrywa problem i tworzy fałszywie zielony test.
 
-test('zamówienie może zostać opłacone', async ({ page, request }) => {
-  const order = await (await request.post('/api/orders', { data: { productId: 'book-1' } })).json();
-  createdOrderIds.push(order.id);
+## 2. Dodawanie kontekstu
 
-  await page.goto(`/orders/${order.id}`);
-  await page.getByRole('button', { name: 'Opłać' }).click();
-  await expect(page.getByRole('status')).toContainText('Opłacone');
+```typescript
+try {
+  await expect(page.getByText('Płatność przyjęta')).toBeVisible();
+} catch (error) {
+  throw new Error(`Nie potwierdzono płatności dla orderId=${order.id}: ${error}`);
+}
+```
+
+Jeszcze lepiej: dodaj attachmenty przez `testInfo.attach`.
+
+```typescript
+await testInfo.attach('order-id', {
+  body: order.id,
+  contentType: 'text/plain',
 });
 ```
 
-Przykład pokazuje, że diagnostyka powinna być projektowana przed awarią. Po awarii jest za późno na zgadywanie, jakie dane byłyby przydatne.
+## 3. Cleanup guarantee
 
-## Lista kontrolna
+Sprzątanie musi wykonać się także po awarii.
 
-- Czy awaria zostawia trace lub inny artefakt diagnostyczny?
-- Czy test ma czytelne kroki?
-- Czy dane testowe są możliwe do odtworzenia?
-- Czy problem można sklasyfikować: produkt, dane, test, środowisko, integracja?
-- Czy retry nie ukrywa przyczyny?
-- Czy alert lub raport prowadzi do właściciela problemu?
+```typescript
+test('zamówienie może zostać opłacone', async ({ page, request }) => {
+  const createdOrderIds: string[] = [];
 
+  try {
+    const response = await request.post('/api/orders', { data: buildOrder() });
+    const order = await response.json();
+    createdOrderIds.push(order.id);
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+    await page.goto(`/orders/${order.id}`);
+    await page.getByRole('button', { name: 'Opłać' }).click();
+    await expect(page.getByRole('status')).toContainText('Opłacone');
+  } finally {
+    for (const orderId of createdOrderIds.reverse()) {
+      await request.delete(`/api/orders/${orderId}`).catch(() => undefined);
+    }
+  }
+});
+```
+
+W większym projekcie lepszy jest CleanupTracker albo cleanup po `runId`.
+
+## 4. Retry z backoff
+
+Retry ma sens dla operacji infrastrukturalnych, np. chwilowego 503 przy setupie danych. Nie powinien maskować błędów produktu.
+
+```typescript
+async function retry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
+    }
+  }
+  throw lastError;
+}
+```
+
+Używaj ostrożnie i loguj, że retry wystąpiło.
+
+## 5. Soft assertions
+
+Soft assertions są dobre, gdy chcesz zebrać wiele niezależnych błędów:
+
+```typescript
+await expect.soft(page.getByTestId('name')).toHaveText('Jan');
+await expect.soft(page.getByTestId('email')).toHaveText('jan@example.com');
+await expect.soft(page.getByTestId('role')).toHaveText('Admin');
+```
+
+Nie używaj ich dla warunku, bez którego dalszy test jest bez sensu, np. brak zalogowania.
+
+## 6. Circuit breaker w pipeline
+
+Jeżeli zależność zewnętrzna masowo pada, warto odróżnić awarię środowiska od regresji produktu. Przykład: bramka płatnicza sandbox zwraca 503 dla wszystkich testów. Wtedy pipeline powinien pokazać jasny komunikat: „awaria zależności”, a nie 200 losowych błędów UI.
+
+Można dodać szybki health check przed suite:
+
+```typescript
+const health = await request.get('/api/health/dependencies');
+expect(health.status()).toBe(200);
+```
+
+## 7. Checklista
+
+- Czy catch nie ukrywa błędu?
+- Czy błąd zawiera kontekst domenowy?
+- Czy cleanup działa w `finally` albo fixture teardown?
+- Czy retry dotyczy infrastruktury, a nie błędu logiki?
+- Czy soft assertions nie przepuszczają krytycznego błędu?
+- Czy masowe awarie zależności są rozpoznawalne?
+
+## Linki
+
+- [Retries](https://playwright.dev/docs/test-retries)
+- [Fixtures teardown](https://playwright.dev/docs/test-fixtures)
+- [Assertions](https://playwright.dev/docs/test-assertions)
+- [TestInfo attachments](https://playwright.dev/docs/api/class-testinfo)
+
+## 8. `testInfo.attach` w bloku błędu
+
+Jeśli wiesz, że dany fragment jest trudny diagnostycznie, dołącz dane zanim rzucisz błąd:
+
+```typescript
+try {
+  await expect(page.getByRole('status')).toContainText('Opłacone');
+} catch (error) {
+  await testInfo.attach('payment-context.json', {
+    body: JSON.stringify({ orderId: order.id, userId: user.id }, null, 2),
+    contentType: 'application/json',
+  });
+  throw error;
+}
+```
+
+Pamiętaj o maskowaniu sekretów.
+
+## 9. Błędy oczekiwane vs nieoczekiwane
+
+Scenariusz negatywny powinien jawnie oczekiwać błędu:
+
+```typescript
+const response = await request.post('/api/orders', { data: { items: [] } });
+expect(response.status()).toBe(400);
+```
+
+Nie traktuj oczekiwanego błędu jako wyjątku infrastruktury. Test powinien jasno pokazywać, że błąd jest częścią kontraktu.
+
+## 10. Cleanup w fixture teardown
+
+Najczystszy cleanup często znajduje się w fixture:
+
+```typescript
+export const test = base.extend<{ testOrder: Order }>({
+  testOrder: async ({ request }, use) => {
+    const order = await createOrder(request, buildOrder());
+    await use(order);
+    await request.delete(`/api/orders/${order.id}`).catch(() => undefined);
+  },
+});
+```
+
+Test nie musi pamiętać o sprzątaniu, ale nadal widzi, że używa zasobu `testOrder`. Fixture nie powinna ukrywać złożonego flow biznesowego.
+
+## 11. Odzyskiwanie po awarii środowiska
+
+Niektóre błędy są infrastrukturalne: chwilowy 502, brak dostępności sandboxa, timeout bazy. Warto rozróżniać je od błędów produktu. Możesz oznaczać takie awarie w raporcie przez attachment lub annotation:
+
+```typescript
+testInfo.annotations.push({
+  type: 'infra',
+  description: 'payment sandbox returned 503 during setup',
+});
+```
+
+Nie oznacza to, że test ma przejść. Oznacza to, że raport lepiej klasyfikuje przyczynę.
+
+## 12. Nie łap błędów Playwright bez potrzeby
+
+Playwright generuje dobre komunikaty błędów dla locatorów i asercji. Jeśli opakujesz wszystko w ogólny `try-catch`, możesz stracić szczegóły. Łap wyjątki tylko tam, gdzie dodajesz realny kontekst albo cleanup.
+
+## 13. Idempotentne sprzątanie
+
+Cleanup powinien być idempotentny. Jeśli usuwasz zasób, a on już nie istnieje, cleanup nie powinien powodować kolejnej awarii maskującej pierwotny problem.
+
+```typescript
+async function deleteOrderIfExists(request: APIRequestContext, orderId: string) {
+  const response = await request.delete(`/api/orders/${orderId}`);
+  expect([200, 204, 404]).toContain(response.status());
+}
+```
+
+## 14. Odzyskiwanie po częściowym setupie
+
+Najtrudniejsze są awarie w połowie setupu. Rejestruj cleanup natychmiast po utworzeniu każdego zasobu. Jeśli najpierw tworzysz usera, potem order, potem payment, każdy etap powinien dopisać własny cleanup. Dzięki temu nawet częściowy setup nie zaśmieci środowiska.
+
+## 15. Zasada końcowa
+
+Obsługa błędów ma zwiększać ilość informacji, a nie zmniejszać wiarygodność testu. Jeśli po dodaniu `try-catch` test częściej przechodzi, ale mniej mówi o problemie, rozwiązanie jest błędne.

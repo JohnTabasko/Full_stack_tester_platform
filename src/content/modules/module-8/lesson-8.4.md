@@ -1,85 +1,183 @@
 # Wydajność i testy obciążeniowe API
 
-> Moduł ósmy pokazuje, jak testować system szybciej i precyzyjniej przez warstwę API. Testy API są doskonałe do kontraktów, reguł biznesowych, autoryzacji, przygotowania danych i diagnostyki. Nie zastępują testów UI, ale pozwalają nie przeciążać przeglądarki problemami, które lepiej sprawdzić niżej.
+Playwright może mierzyć czasy odpowiedzi API i wykrywać oczywiste regresje wydajnościowe, ale nie zastępuje narzędzi obciążeniowych takich jak k6, JMeter czy Gatling. W module Playwright celem jest nauczyć się, jak dodać lekkie asercje wydajnościowe do testów API i jak nie pomylić smoke performance z prawdziwym load testem.
 
-## Jak czytać ten moduł
+## 1. Co Playwright robi dobrze
 
-Czytaj ten moduł jak podręcznik kontraktu między systemami. Endpoint nie jest tylko adresem URL. Jest obietnicą: jakie dane przyjmuje, jakie zwraca, jakie błędy są możliwe, kto ma prawo go użyć i jak zachowuje się pod obciążeniem.
+Playwright dobrze nadaje się do:
 
-Trzy zasady modułu:
+- sprawdzania, czy endpoint odpowiada w rozsądnym czasie;
+- porównania prostego SLA dla krytycznego API;
+- smoke testów po deployu;
+- diagnostyki payloadu i nagłówków;
+- setupu danych do testów UI;
+- testów pojedynczych requestów w CI.
 
-1. **Status HTTP nie wystarcza.** Sprawdzaj ciało odpowiedzi, nagłówki, semantykę danych i scenariusze błędów.
-2. **API jest świetne do setupu danych.** Przygotowanie przez API jest zwykle szybsze i stabilniejsze niż przez UI.
-3. **Kontrakt musi chronić konsumentów.** Test ma wykryć zmianę, która zepsuje klienta, zanim trafi na środowisko użytkownika.
+Nie nadaje się jako główne narzędzie do generowania tysięcy użytkowników i długich testów obciążeniowych.
 
+## 2. Prosty pomiar czasu
 
-## Cel lekcji
+```typescript
+test('lista produktów odpowiada szybko', async ({ request }) => {
+  const start = performance.now();
+  const response = await request.get('/api/products');
+  const duration = performance.now() - start;
 
-Ta lekcja koncentruje się na: **k6, testy load, stress, spike i soak, wirtualni użytkownicy, percentyle, progi jakości i podstawy analizy wydajności API**. Główne ryzyko: **zespół mierzy średni czas odpowiedzi bez modelu ruchu, progów i metryk, przez co wynik nie mówi nic o realnym ryzyku**. Po lekturze powinieneś umieć zaprojektować test API, który sprawdza kontrakt, dane, uprawnienia i diagnostykę, a nie tylko status techniczny.
+  await expect(response).toBeOK();
+  expect(duration).toBeLessThan(500);
+});
+```
 
-## Sytuacja przewodnia
+Taka asercja powinna mieć rozsądny próg. Nie ustawiaj 50 ms, jeśli CI działa w zmiennych warunkach.
 
-endpoint wyszukiwania produktów musi obsłużyć kampanię marketingową i utrzymać p95 poniżej 500 ms
+## 3. Progi jakości
 
-## 1. Test wydajnościowy jako eksperyment
+Przykładowe progi:
 
-Test obciążeniowy wymaga hipotezy, modelu ruchu, środowiska, metryk i progów. Bez tych elementów jest tylko generowaniem ruchu.
+- endpoint health: < 200 ms;
+- krytyczny odczyt: < 500 ms;
+- złożone wyszukiwanie: < 1500 ms;
+- eksport raportu: osobny test async, nie zwykły request timeout.
 
-## 2. Rodzaje obciążenia
+Progi powinny wynikać z wymagań, SLO albo obserwacji produkcyjnych, nie z życzeń testera.
 
-Load test sprawdza oczekiwany ruch, stress test szuka granicy, spike test bada nagły skok, a soak test długotrwałą stabilność.
+## 4. Percentyle zamiast pojedynczego wyniku
 
-## 3. Percentyle
+Pojedynczy request może być przypadkowo szybki albo wolny. Dla lekkiego smoke możesz wykonać kilka prób:
 
-Średnia ukrywa problemy użytkowników na końcu rozkładu. P95 i P99 często mówią więcej o doświadczeniu niż average.
+```typescript
+const durations: number[] = [];
 
-## 4. Thresholds
+for (let i = 0; i < 5; i++) {
+  const start = performance.now();
+  const response = await request.get('/api/products');
+  await expect(response).toBeOK();
+  durations.push(performance.now() - start);
+}
 
-Progi jakości zamieniają oczekiwania w automatyczny wynik. Test powinien jasno mówić, kiedy wydajność jest nieakceptowalna.
+const max = Math.max(...durations);
+expect(max).toBeLessThan(1000);
+```
 
-## 5. Korelacja z monitoringiem
+Do prawdziwych percentyli i obciążenia użyj k6/JMeter.
 
-Bez metryk bazy, CPU, pamięci i usług zewnętrznych trudno znaleźć wąskie gardło. k6 powinien iść w parze z obserwowalnością.
+## 5. Payload size
 
-## Przykład referencyjny
+Wydajność API to nie tylko czas. Zbyt duży payload spowalnia frontend.
 
-```javascript
-import http from 'k6/http';
-import { check, sleep } from 'k6';
+```typescript
+const response = await request.get('/api/products');
+const body = await response.text();
+expect(Buffer.byteLength(body, 'utf8')).toBeLessThan(200_000);
+```
 
-export const options = {
-  thresholds: {
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<500'],
-  },
-  stages: [
-    { duration: '2m', target: 50 },
-    { duration: '5m', target: 50 },
-    { duration: '2m', target: 0 },
-  ],
-};
+To dobre dla endpointów, które przypadkowo zaczynają zwracać za dużo danych.
 
-export default function () {
-  const res = http.get(`${__ENV.BASE_URL}/api/products?q=book`);
-  check(res, { 'status 200': r => r.status === 200 });
-  sleep(1);
+## 6. Rate limiting i timeouty
+
+Playwright może sprawdzić zachowanie przy rate limit:
+
+```typescript
+const response = await request.get('/api/search?q=test');
+if (response.status() === 429) {
+  expect(response.headers()['retry-after']).toBeTruthy();
 }
 ```
 
-Przykład pokazuje styl testowania API: jawne żądanie, asercja statusu, sprawdzenie kontraktu i odniesienie do semantyki danych.
+Nie przeciążaj współdzielonego stagingu testami wydajnościowymi bez zgody zespołu. Możesz spowodować flaky tests u innych.
 
-## Lista kontrolna
+## 7. Kiedy użyć k6/JMeter
 
-- Czy test sprawdza więcej niż status HTTP?
-- Czy scenariusz ma wariant negatywny?
-- Czy autoryzacja jest sprawdzona dla właściwych ról?
-- Czy kontrakt odpowiedzi jest jawny?
-- Czy dane tworzone przez test są sprzątane?
-- Czy awaria zostawia request id, ciało odpowiedzi lub inne dane diagnostyczne?
+Użyj narzędzia load testing, gdy chcesz sprawdzić:
 
+- wielu użytkowników równocześnie;
+- throughput;
+- percentyle p95/p99;
+- soak test;
+- stress test;
+- spike test;
+- limity infrastruktury;
+- degradację pod obciążeniem.
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Playwright testuje poprawność i lekkie progi. k6/JMeter testują zachowanie systemu pod obciążeniem.
+
+## 8. Checklista
+
+- Czy próg czasu jest uzasadniony?
+- Czy test nie przeciąża środowiska?
+- Czy mierzysz także rozmiar payloadu, jeśli ma znaczenie?
+- Czy rozróżniasz smoke performance od load testu?
+- Czy wynik w CI nie będzie losowo flaky?
+- Czy prawdziwe testy obciążeniowe są w osobnym pipeline?
+
+## Linki
+
+- [Playwright API testing](https://playwright.dev/docs/api-testing)
+- [Test timeouts](https://playwright.dev/docs/test-timeouts)
+- [k6 documentation](https://grafana.com/docs/k6/latest/)
+- [JMeter](https://jmeter.apache.org/)
+
+## 9. Budżet wydajności API
+
+Budżet wydajności to jawna granica akceptowalnego czasu lub rozmiaru odpowiedzi. Przykład:
+
+```typescript
+const apiBudget = {
+  productsListMs: 700,
+  productDetailsMs: 400,
+  maxProductsPayloadBytes: 200_000,
+};
+```
+
+Budżet powinien być uzgodniony z zespołem, a nie przypadkowo wpisany w test. Jeśli endpoint regularnie przekracza budżet, to sygnał do analizy, nie do automatycznego zwiększenia progu.
+
+## 10. Oddziel performance smoke od regresji funkcjonalnej
+
+Nie każdy test API powinien mierzyć czas. Jeśli w każdej asercji dodasz timing, suite stanie się niestabilna. Wybierz kilka krytycznych endpointów i uruchamiaj performance smoke w osobnym jobie albo jako osobną grupę tagów.
+
+## 11. Flakiness testów wydajnościowych
+
+Testy timingowe są podatne na szum CI. Aby ograniczyć flakiness:
+
+- używaj rozsądnych progów;
+- mierz kilka próbek;
+- nie uruchamiaj ciężkich testów równolegle z pełną regresją;
+- zapisuj metryki jako trend;
+- nie traktuj jednego wolniejszego requestu jak dowodu regresji bez kontekstu.
+
+## 12. Diagnostyka przekroczenia budżetu
+
+Gdy endpoint przekroczy budżet, dołącz status, czas, rozmiar payloadu i correlation ID. Sam komunikat „było wolno” nie wystarczy do naprawy.
+
+## 13. Testy wydajnościowe a dane
+
+Wynik wydajności zależy od danych. Endpoint z dziesięcioma rekordami będzie szybszy niż z dziesięcioma tysiącami. Dlatego performance smoke powinien jasno określać dataset:
+
+```typescript
+const response = await request.get('/api/products?dataset=performance-smoke');
+```
+
+Jeśli dataset zmienia się losowo, trend wydajnościowy będzie mało wiarygodny.
+
+## 14. Oddziel regresję wydajności od awarii funkcjonalnej
+
+Jeśli endpoint zwraca 500, to nie jest problem wydajnościowy, tylko funkcjonalny lub infrastrukturalny. Test performance najpierw powinien sprawdzić sukces odpowiedzi, a dopiero potem analizować czas.
+
+```typescript
+await expect(response).toBeOK();
+expect(duration).toBeLessThan(apiBudget.productsListMs);
+```
+
+## 15. Raportowanie metryk
+
+Nawet jeśli test nie przekroczy progu, warto zapisać metrykę do raportu lub JSON. Trendy są bardziej wartościowe niż pojedynczy wynik.
+
+## 16. Zasada końcowa
+
+Playwright może pilnować lekkich budżetów API w CI, ale prawdziwą odpowiedź na pytanie „ile system wytrzyma” dają narzędzia load testing i obserwowalność produkcyjna.
+
+Budżet wydajności ma sens tylko wtedy, gdy zespół na niego reaguje.
+
+Metryki bez właściciela i trendu szybko stają się tylko szumem raportowym.
+
+Koniec.

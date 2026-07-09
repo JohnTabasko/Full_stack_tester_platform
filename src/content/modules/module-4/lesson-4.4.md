@@ -459,6 +459,149 @@ test('test E2E z częściowym mockiem', async ({ page, request }) => {
 });
 ```
 
+
+---
+
+## HAR — nagrywanie i odtwarzanie ruchu sieciowego
+
+HAR (HTTP Archive) pozwala zapisać rzeczywisty ruch sieciowy i później użyć go jako kontrolowanego źródła odpowiedzi. To przydatne, gdy chcesz testować frontend z realistycznymi danymi, ale bez zależności od niestabilnego środowiska backendowego.
+
+Najprostszy wzorzec odtwarzania:
+
+```typescript
+await page.routeFromHAR('tests/fixtures/products.har', {
+  url: '**/api/products/**',
+  update: false,
+});
+
+await page.goto('/products');
+await expect(page.getByText('Laptop Pro')).toBeVisible();
+```
+
+HAR jest szczególnie przydatny dla:
+
+- testów frontendu z realistycznymi odpowiedziami;
+- izolacji od niestabilnego stagingu;
+- powtarzalnych regresji UI;
+- pracy offline;
+- reprodukcji błędu klienta.
+
+Nie traktuj HAR jako zamiennika pełnego E2E. Jeśli API się zmieni, test z HAR może nadal przechodzić, mimo że prawdziwa integracja jest zepsuta.
+
+## `route.fetch()` — modyfikacja prawdziwej odpowiedzi
+
+Czasem nie chcesz całkowicie mockować odpowiedzi. Chcesz pobrać prawdziwą odpowiedź i zmienić tylko fragment.
+
+```typescript
+await page.route('**/api/profile', async route => {
+  const response = await route.fetch();
+  const json = await response.json();
+
+  json.featureFlags = {
+    ...json.featureFlags,
+    newCheckout: true,
+  };
+
+  await route.fulfill({
+    response,
+    json,
+  });
+});
+```
+
+To dobry kompromis, gdy większość kontraktu ma pozostać prawdziwa, ale test wymaga konkretnej flagi albo stanu trudnego do ustawienia w backendzie.
+
+## `route.fallback()` — warstwowe route handlery
+
+W większych projektach możesz mieć kilka route handlerów. `fallback()` pozwala przekazać żądanie do kolejnego pasującego handlera zamiast kończyć obsługę.
+
+```typescript
+await page.route('**/api/**', async route => {
+  // globalna diagnostyka albo dodanie nagłówka
+  await route.fallback({
+    headers: {
+      ...route.request().headers(),
+      'x-test-run-id': process.env.TEST_RUN_ID ?? 'local',
+    },
+  });
+});
+
+await page.route('**/api/products', async route => {
+  await route.fulfill({ json: [{ id: 'p1', name: 'Laptop' }] });
+});
+```
+
+To pomaga budować warstwowe mocki: globalna obsługa wszystkich requestów, a potem specyficzne mocki dla konkretnych endpointów.
+
+## GraphQL mocking
+
+GraphQL zwykle używa jednego endpointu, np. `/graphql`, więc nie wystarczy mockowanie po URL. Trzeba sprawdzić `operationName` albo treść query.
+
+```typescript
+await page.route('**/graphql', async route => {
+  const postData = route.request().postDataJSON();
+
+  if (postData.operationName === 'GetProducts') {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          products: [
+            { id: 'p1', name: 'Laptop Pro', price: 9999 },
+          ],
+        },
+      }),
+    });
+    return;
+  }
+
+  await route.fallback();
+});
+```
+
+Dla GraphQL warto mieć helper typu `mockGraphQLOperation(page, operationName, response)`, ale nie ukrywaj w nim zbyt dużo logiki.
+
+## Service workers — ważna pułapka
+
+Service worker może przechwycić request zanim zobaczy go Playwright route. W testach mockujących sieć często warto zablokować service workery w konfiguracji kontekstu:
+
+```typescript
+export default defineConfig({
+  use: {
+    serviceWorkers: 'block',
+  },
+});
+```
+
+Jeśli mock nie działa mimo poprawnego `page.route`, sprawdź, czy aplikacja nie korzysta z service workera, cache albo PWA offline mode.
+
+## WebSocket i WebSocketRoute
+
+Klasyczne `page.route()` dotyczy HTTP. Aplikacje realtime używają WebSocketów. Playwright pozwala obserwować WebSockety, a nowsze API umożliwia także ich routing w wybranych scenariuszach.
+
+Obserwacja:
+
+```typescript
+page.on('websocket', ws => {
+  console.log('WS opened:', ws.url());
+  ws.on('framesent', frame => console.log('sent:', frame.payload));
+  ws.on('framereceived', frame => console.log('received:', frame.payload));
+});
+```
+
+Przy testach realtime sprawdzaj nie tylko, że wiadomość została wysłana, ale że UI zareagował poprawnie: pojawiło się powiadomienie, status zamówienia się zmienił albo czat wyświetlił wiadomość.
+
+## Checklista mockowania sieci
+
+- Czy route jest zarejestrowany przed akcją lub nawigacją?
+- Czy mock nie ukrywa integracji, którą test ma sprawdzić?
+- Czy service worker nie przechwytuje requestów przed Playwright?
+- Czy dla GraphQL rozpoznajesz `operationName`, a nie tylko URL?
+- Czy HAR jest używany jako świadomy kompromis, nie jako pełny E2E?
+- Czy mockowane błędy mają asercję na zachowanie UI?
+- Czy route handlery są sprzątane albo ograniczone do testu?
+
 ---
 
 ## Podsumowanie

@@ -5,7 +5,7 @@ export const lesson7_5: Lesson = {
   "id": "7.5",
   "moduleId": 7,
   "title": "Organizacja i utrzymanie danych testowych",
-  "description": "Struktura folderów, nazewnictwo, dane wrażliwe, walidacja schematów JSON, refaktoryzacja i zarządzanie danymi testowymi.",
+  "description": "Organizacja danych testowych: katalogi, runId, dane referencyjne, retencja, prywatność, monitoring, audyt i test data contract.",
   "order": 5,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson7_5: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Test Fixtures",
+        "title": "Playwright Best Practices",
+        "url": "https://playwright.dev/docs/best-practices",
+        "description": "Izolacja i deterministyczność testów."
+      },
+      {
+        "title": "Fixtures",
         "url": "https://playwright.dev/docs/test-fixtures",
-        "description": "Fixtures jako miejsce przygotowania i sprzątania danych testowych."
+        "description": "Fixtures jako standard setupu i cleanupu."
       },
       {
-        "title": "Faker.js Documentation",
-        "url": "https://fakerjs.dev/",
-        "description": "Generowanie realistycznych i deterministycznych danych testowych."
-      },
-      {
-        "title": "Martin Fowler - Test Data Builders",
-        "url": "https://martinfowler.com/bliki/TestDataBuilder.html",
-        "description": "Klasyczny opis wzorca Test Data Builder."
-      },
-      {
-        "title": "OWASP - Test Data and Privacy",
-        "url": "https://owasp.org/www-project-top-ten/",
-        "description": "Kontekst ochrony danych wrażliwych i prywatności w testach."
+        "title": "Authentication",
+        "url": "https://playwright.dev/docs/auth",
+        "description": "Bezpieczna praca ze stanem sesji i plikami auth."
       }
     ],
     "tipsAndTricks": [

@@ -5,7 +5,7 @@ export const lesson8_5: Lesson = {
   "id": "8.5",
   "moduleId": 8,
   "title": "Organizacja testów API i wzorce",
-  "description": "Klient API, klasy zasobów, fikstury, tracker sprzątania, ponowienia i struktura folderów i utrzymywalna architektura testów API.",
+  "description": "Organizacja API tests: API Client Objects, fixtures, tagi, warstwy suite, cleanup, diagnostyka i wspólne asercje błędów.",
   "order": 5,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson8_5: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Testowanie API",
+        "title": "Playwright API testing",
         "url": "https://playwright.dev/docs/api-testing",
-        "description": "Oficjalna dokumentacja testowania API w Playwright."
+        "description": "Oficjalny przewodnik po API testing."
       },
       {
-        "title": "MDN HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Dokumentacja metod HTTP, statusów, nagłówków i semantyki protokołu."
+        "title": "Fixtures",
+        "url": "https://playwright.dev/docs/test-fixtures",
+        "description": "Wstrzykiwanie klientów API jako fixtures."
       },
       {
-        "title": "GraphQL Documentation",
-        "url": "https://graphql.org/learn/",
-        "description": "Podstawy GraphQL: query, mutation, variables, fragments i errors."
-      },
-      {
-        "title": "JSON Schema",
-        "url": "https://json-schema.org/",
-        "description": "Standard opisu i walidacji struktury danych JSON."
+        "title": "Annotations",
+        "url": "https://playwright.dev/docs/test-annotations",
+        "description": "Tagi i selekcja testów API."
       }
     ],
     "tipsAndTricks": [

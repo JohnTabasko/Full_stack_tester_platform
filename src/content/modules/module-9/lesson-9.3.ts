@@ -5,7 +5,7 @@ export const lesson9_3: Lesson = {
   "id": "9.3",
   "moduleId": 9,
   "title": "Obsługa błędów i odzyskiwanie",
-  "description": "Try-catch z kontekstem, ponowienia z narastającym opóźnieniem, miękkie asercje, gwarancja sprzątania i circuit breaker.",
+  "description": "Obsługa błędów z kontekstem: try-catch, testInfo.attach, cleanup guarantee, retry z backoff, soft assertions i idempotentny teardown.",
   "order": 3,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson9_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Debugging",
-        "url": "https://playwright.dev/docs/debug",
-        "description": "Oficjalny przewodnik po Inspectorze, tryb UI i debugowaniu testów Playwright."
-      },
-      {
-        "title": "Playwright Trace Viewer",
-        "url": "https://playwright.dev/docs/trace-viewer",
-        "description": "Dokumentacja nagrywania i analizy trace."
-      },
-      {
-        "title": "Playwright Test Retries",
+        "title": "Retries",
         "url": "https://playwright.dev/docs/test-retries",
-        "description": "Retry, niestabilne testy i raportowanie ponowień w Playwright Test."
+        "description": "Strategia retry i klasyfikacja flaky."
       },
       {
-        "title": "Google SRE Book - Monitoring",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i obserwowalności systemów."
+        "title": "Fixtures",
+        "url": "https://playwright.dev/docs/test-fixtures",
+        "description": "Teardown fixtures i cleanup zasobów."
+      },
+      {
+        "title": "TestInfo",
+        "url": "https://playwright.dev/docs/api/class-testinfo",
+        "description": "Attachments, annotations i dane diagnostyczne."
       }
     ],
     "tipsAndTricks": [

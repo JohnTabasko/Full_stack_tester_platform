@@ -5,7 +5,7 @@ export const lesson8_4: Lesson = {
   "id": "8.4",
   "moduleId": 8,
   "title": "Wydajność i testy obciążeniowe API",
-  "description": "k6, testy load/stress/spike/soak, wirtualni użytkownicy, percentyle i progi jakości i podstawy wydajności API.",
+  "description": "Lekkie testy wydajnościowe API w Playwright: timing, payload size, budżety, dataset, flakiness i granica z k6/JMeter.",
   "order": 4,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson8_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Testowanie API",
+        "title": "Playwright API testing",
         "url": "https://playwright.dev/docs/api-testing",
-        "description": "Oficjalna dokumentacja testowania API w Playwright."
+        "description": "Pomiar i walidacja odpowiedzi API."
       },
       {
-        "title": "MDN HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Dokumentacja metod HTTP, statusów, nagłówków i semantyki protokołu."
+        "title": "Test timeouts",
+        "url": "https://playwright.dev/docs/test-timeouts",
+        "description": "Timeouty testów i asercji."
       },
       {
-        "title": "GraphQL Documentation",
-        "url": "https://graphql.org/learn/",
-        "description": "Podstawy GraphQL: query, mutation, variables, fragments i errors."
-      },
-      {
-        "title": "JSON Schema",
-        "url": "https://json-schema.org/",
-        "description": "Standard opisu i walidacji struktury danych JSON."
+        "title": "k6",
+        "url": "https://grafana.com/docs/k6/latest/",
+        "description": "Dedykowane narzędzie do testów obciążeniowych."
       }
     ],
     "tipsAndTricks": [

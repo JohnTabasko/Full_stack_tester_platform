@@ -5,7 +5,7 @@ export const lesson16_4: Lesson = {
   "id": "16.4",
   "moduleId": 16,
   "title": "Testowanie komponentów w Playwright",
-  "description": "Testowanie komponentów React/Vue/Svelte, mount, props/state, regresja wizualna komponentu oraz porównanie CT, E2E i testów jednostkowych.",
+  "description": "Playwright Component Testing: mount, props/state, provider wrappers, accessibility, visual snapshots, design system i granice CT vs E2E.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson16_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Docker",
-        "url": "https://playwright.dev/docs/docker",
-        "description": "Oficjalne obrazy Docker i praktyki uruchamiania Playwright w kontenerach."
-      },
-      {
-        "title": "Testcontainers",
-        "url": "https://testcontainers.com/",
-        "description": "Biblioteka do uruchamiania zależności testowych w kontenerach."
-      },
-      {
-        "title": "Testowanie komponentów w Playwright",
+        "title": "Component testing",
         "url": "https://playwright.dev/docs/test-components",
-        "description": "Dokumentacja testowania komponentów w Playwright."
+        "description": "Oficjalny przewodnik po Playwright CT."
       },
       {
-        "title": "MDN WebSocket API",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
-        "description": "Podstawy WebSocket i komunikacji dwukierunkowej."
+        "title": "Locators",
+        "url": "https://playwright.dev/docs/locators",
+        "description": "Locatory dostępnościowe w CT."
+      },
+      {
+        "title": "Visual comparisons",
+        "url": "https://playwright.dev/docs/test-snapshots",
+        "description": "Snapshoty komponentów."
       }
     ],
     "tipsAndTricks": [

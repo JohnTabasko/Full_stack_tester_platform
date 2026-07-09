@@ -498,3 +498,53 @@ Najlepsi testerzy, których spotkałem, traktują każdy projekt jako okazję do
 - [ADR — Architecture Decision Records](https://adr.github.io/) — documenting decisions
 - [Technical Portfolio Tips — Tech interviewing](https://techdevguide.withgoogle.com/) — portfolio building
 - [Showcasing Test Automation — Ministry of Testing](https://www.ministryoftesting.com/) — testing career resources
+---
+
+## Matryca pokrycia Playwright w projekcie końcowym
+
+Projekt końcowy powinien pokazać nie tylko, że umiesz napisać kilka testów, ale że rozumiesz pełny ekosystem Playwright. Dobrym dodatkiem do README jest matryca pokrycia:
+
+| Obszar Playwright | Jak pokazać w projekcie |
+|---|---|
+| Locators | `getByRole`, `getByLabel`, `filter`, unikanie kruchego CSS |
+| Web-first assertions | `toBeVisible`, `toHaveText`, `toHaveURL`, `toHaveCount` |
+| Fixtures | własny `base-test.ts`, dane testowe, Page Objecty, klienci API |
+| Auth | setup project, `storageState`, role użytkowników |
+| API testing | `request`, API clients, kontrakty, scenariusze negatywne |
+| Network mocking | błędy 500/403/timeout, HAR albo route mocking |
+| POM | Page Objects, Component Objects, Service/API Objects |
+| Debugging | trace, screenshot, video, `test.step`, `testInfo.attach` |
+| CI/CD | GitHub Actions, sharding, artifacts, report HTML |
+| Accessibility | Axe, role/name assertions, ARIA snapshot dla komponentu |
+| Visual regression | screenshot komponentu albo krytycznej strony |
+| Test data | buildery, factory, `runId`, cleanup |
+
+Taka matryca bardzo pomaga na rozmowie rekrutacyjnej, bo pokazuje, że projekt nie jest przypadkowym zbiorem testów.
+
+## Minimalny zestaw dowodów w portfolio
+
+W repozytorium końcowym warto pokazać:
+
+- screenshot raportu HTML;
+- link do przykładowego trace albo opis, jak go otworzyć;
+- fragment GitHub Actions workflow;
+- przykład testu UI + API;
+- przykład fixture;
+- przykład Page Objecta;
+- przykład buildera danych;
+- checklistę znanych ograniczeń.
+
+## Rubryka Playwright-specific
+
+Oceń swój projekt także pod kątem Playwright:
+
+| Kryterium | Pytanie |
+|---|---|
+| Stabilność | Czy testy unikają `waitForTimeout`? |
+| Czytelność | Czy testy mówią językiem użytkownika? |
+| Diagnostyka | Czy każda awaria ma trace i raport? |
+| Izolacja | Czy testy mogą działać równolegle? |
+| CI | Czy pipeline publikuje artefakty przy `if: always()`? |
+| Zakres | Czy UI nie testuje rzeczy, które lepiej sprawdzić przez API? |
+
+Projekt końcowy powinien być Twoją odpowiedzią na pytanie: „Jak zaprojektowałbyś automatyzację w prawdziwym zespole?”.

@@ -5,7 +5,7 @@ export const lesson9_4: Lesson = {
   "id": "9.4",
   "moduleId": 9,
   "title": "Stabilność i niezawodność testów",
-  "description": "Testy deterministyczne, niezależność, warunki wyścigu, strategia ponowień, wykrywanie niestabilności, mockowanie i izolacja workerów.",
+  "description": "Stabilność testów: deterministyczność, izolacja danych, race conditions, retry, mockowanie z umiarem, health checks i Playwright Clock.",
   "order": 4,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson9_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Debugging",
-        "url": "https://playwright.dev/docs/debug",
-        "description": "Oficjalny przewodnik po Inspectorze, tryb UI i debugowaniu testów Playwright."
+        "title": "Best Practices",
+        "url": "https://playwright.dev/docs/best-practices",
+        "description": "Oficjalne zasady stabilnych testów."
       },
       {
-        "title": "Playwright Trace Viewer",
-        "url": "https://playwright.dev/docs/trace-viewer",
-        "description": "Dokumentacja nagrywania i analizy trace."
+        "title": "Parallelism",
+        "url": "https://playwright.dev/docs/test-parallel",
+        "description": "Izolacja przy równoległości."
       },
       {
-        "title": "Playwright Test Retries",
-        "url": "https://playwright.dev/docs/test-retries",
-        "description": "Retry, niestabilne testy i raportowanie ponowień w Playwright Test."
-      },
-      {
-        "title": "Google SRE Book - Monitoring",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i obserwowalności systemów."
+        "title": "Clock",
+        "url": "https://playwright.dev/docs/clock",
+        "description": "Kontrola czasu w testach."
       }
     ],
     "tipsAndTricks": [

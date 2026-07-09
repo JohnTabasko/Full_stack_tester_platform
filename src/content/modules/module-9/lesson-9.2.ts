@@ -5,7 +5,7 @@ export const lesson9_2: Lesson = {
   "id": "9.2",
   "moduleId": 9,
   "title": "Typowe problemy i rozwiązania",
-  "description": "Timeouty, brak elementu, niestabilne testy, strict mode, uwierzytelnianie, różnice CI kontra lokalnie i systematyczna triage.",
+  "description": "Triage typowych awarii: timeouty, element not found, strict mode, CI vs local, auth, network, Inspector, UI Mode i trace.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson9_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Debugging",
+        "title": "Debugging tests",
         "url": "https://playwright.dev/docs/debug",
-        "description": "Oficjalny przewodnik po Inspectorze, tryb UI i debugowaniu testów Playwright."
+        "description": "Inspector, debug mode i page.pause."
       },
       {
-        "title": "Playwright Trace Viewer",
+        "title": "Trace Viewer",
         "url": "https://playwright.dev/docs/trace-viewer",
-        "description": "Dokumentacja nagrywania i analizy trace."
+        "description": "Analiza DOM, network, console i kroków testu."
       },
       {
-        "title": "Playwright Test Retries",
-        "url": "https://playwright.dev/docs/test-retries",
-        "description": "Retry, niestabilne testy i raportowanie ponowień w Playwright Test."
-      },
-      {
-        "title": "Google SRE Book - Monitoring",
-        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-        "description": "Kontekst metryk, alertów i obserwowalności systemów."
+        "title": "Locators",
+        "url": "https://playwright.dev/docs/locators",
+        "description": "Diagnoza i poprawa locatorów."
       }
     ],
     "tipsAndTricks": [

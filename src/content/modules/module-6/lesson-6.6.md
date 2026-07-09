@@ -1,82 +1,197 @@
-# Wzorzec obiektu strony z fiksturami
+# Page Object Model z fixtures — wstrzykiwanie stron, komponentów i klientów API
 
-> Moduł szósty porządkuje architekturę kodu testowego. Wcześniejsze moduły uczyły, jak sterować przeglądarką i jak potwierdzać rezultat. Teraz pytanie brzmi: jak zorganizować ten kod, aby był czytelny, rozszerzalny i możliwy do utrzymania przez zespół.
+Fixtures są naturalnym partnerem Page Object Model. Page Object jest zależnością testu, tak samo jak `page`, `request` albo dane użytkownika. Jeśli każdy test ręcznie tworzy `new LoginPage(page)`, `new DashboardPage(page)` i `new OrdersClient(request)`, szybko pojawia się duplikacja. Fixtures pozwalają dostarczyć te obiekty spójnie i typowo.
 
-## Jak czytać ten moduł
-
-Nie traktuj wzorca obiektu strony jako obowiązkowego rytuału. POM jest narzędziem do zmniejszania kosztu zmiany, a nie celem samym w sobie. Dobry POM sprawia, że testy są bliżej języka domeny. Zły POM tylko przenosi chaos z testów do klas pomocniczych.
-
-Trzy zasady modułu:
-
-1. **Abstrakcja ma nazywać intencję.** Metoda `loginAs` jest lepsza niż `clickLoginButton`.
-2. **Odpowiedzialność ma być mała.** Strona, komponent, journey i helper powinny mieć jasne granice.
-3. **Czytelność testu jest nadrzędna.** Jeżeli abstrakcja utrudnia zrozumienie scenariusza, jest zła.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **page object jako fikstura, fikstura aplikacji, automatyczne fikstury, fikstury workerowe i migracja z ręcznego new PageObject**. Główne ryzyko: **każdy test ręcznie tworzy obiekty stron, powiela setup i miesza odpowiedzialność testu z konfiguracją zależności**. Po lekturze powinieneś umieć ocenić, czy abstrakcja rzeczywiście pomaga, czy tylko ukrywa złożoność.
-
-## Sytuacja przewodnia
-
-zespół chce, aby testy dostawały gotowe obiekty `loginPage`, `dashboardPage` i `ordersClient` bez ręcznego tworzenia w każdym pliku
-
-## 1. Dlaczego łączyć POM z fiksturami
-
-Fixture dostarcza zależności testowi. Page object jest zależnością. Połączenie tych mechanizmów zmniejsza powtarzanie i ujednolica sposób tworzenia obiektów.
-
-## 2. Ręczne new PageObject
-
-Ręczne tworzenie obiektów w każdym teście jest akceptowalne na początku, ale z czasem prowadzi do duplikacji i niespójności.
-
-## 3. Fikstura aplikacji
-
-W większych projektach można dostarczać obiekt `app`, który grupuje strony i komponenty. Trzeba uważać, aby nie stał się kolejnym God Object.
-
-## 4. Automatyczne fikstury
-
-Auto-fixtures są dobre do diagnostyki albo globalnych przygotowań, ale łatwo ukryć w nich zbyt dużo magii.
-
-## 5. Migracja
-
-Migrację zacznij od najczęściej używanych page objectów. Nie przepisuj całego projektu naraz, jeśli możesz wprowadzać wzorzec stopniowo.
-
-## Przykład referencyjny
+## 1. Problem ręcznego tworzenia Page Objectów
 
 ```typescript
-import { test as base } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { DashboardPage } from '../pages/DashboardPage';
+test('użytkownik widzi zamówienia', async ({ page, request }) => {
+  const loginPage = new LoginPage(page);
+  const ordersPage = new OrdersPage(page);
+  const ordersClient = new OrdersClient(request);
 
-type PageObjects = {
+  // ...
+});
+```
+
+Na początku to jest akceptowalne. W większym projekcie powtarza się w wielu plikach. Gdy konstruktor Page Objecta się zmieni, trzeba poprawić wiele testów.
+
+## 2. Podstawowa fixture dla POM
+
+```typescript
+// tests/fixtures/base-test.ts
+import { test as base, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+import { OrdersPage } from '../pages/OrdersPage';
+
+type PageFixtures = {
   loginPage: LoginPage;
-  dashboardPage: DashboardPage;
+  ordersPage: OrdersPage;
 };
 
-export const test = base.extend<PageObjects>({
+export const test = base.extend<PageFixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
   },
-  dashboardPage: async ({ page }, use) => {
-    await use(new DashboardPage(page));
+  ordersPage: async ({ page }, use) => {
+    await use(new OrdersPage(page));
+  },
+});
+
+export { expect };
+```
+
+Test:
+
+```typescript
+import { test, expect } from '../fixtures/base-test';
+
+test('użytkownik widzi zamówienia', async ({ ordersPage }) => {
+  await ordersPage.goto();
+  await ordersPage.expectLoaded();
+});
+```
+
+Test importuje własny `test`, nie `@playwright/test`.
+
+## 3. Fixtures dla komponentów
+
+Możesz dostarczać komponenty:
+
+```typescript
+type Components = {
+  header: HeaderComponent;
+  toast: ToastComponent;
+};
+
+export const test = base.extend<Components>({
+  header: async ({ page }, use) => {
+    await use(new HeaderComponent(page.getByRole('banner')));
+  },
+  toast: async ({ page }, use) => {
+    await use(new ToastComponent(page.getByRole('status')));
   },
 });
 ```
 
-Przykład pokazuje kierunek projektowania: klasa lub komponent ma jedną odpowiedzialność, używa stabilnych lokatorów i nie ukrywa celu testu.
+To ma sens dla elementów obecnych w większości testów. Nie twórz fixtures dla każdego małego komponentu, jeśli używa go tylko jeden Page Object.
 
-## Lista kontrolna
+## 4. Fixtures dla klientów API
 
-- Czy nazwa klasy odpowiada odpowiedzialności?
-- Czy metoda opisuje zachowanie, a nie techniczny klik?
-- Czy lokatory są semantyczne lub świadomie oparte o test id?
-- Czy klasa nie zna zbyt wielu obszarów produktu?
-- Czy test po użyciu abstrakcji nadal jest zrozumiały?
-- Czy awaria prowadzi do czytelnej przyczyny?
+```typescript
+type ApiFixtures = {
+  ordersClient: OrdersClient;
+};
 
+export const test = base.extend<ApiFixtures>({
+  ordersClient: async ({ request }, use) => {
+    await use(new OrdersClient(request));
+  },
+});
+```
 
-## Dobre praktyki i perspektywa inżynierska
-Automatyzacja to proces ciągłego doskonalenia. Aby Twoje testy niosły realną wartość, stosuj się do poniższych zasad:
-- **Testuj zachowanie, nie kod**: Skup się na tym, co widzi i robi użytkownik. Zmienne nazwy klas CSS nie powinny psuć Twoich testów.
-- **Fail-fast**: Test powinien dawać jasny sygnał o błędzie tak szybko, jak to możliwe. Unikaj "wiszących" testów, które blokują kolejkę CI.
-- **Ewoluuj**: Regularnie przeglądaj swoje testy. Usuwaj te, które są niestabilne i nie dają wartości, a refaktoryzuj te, które stają się zbyt skomplikowane.
+Użycie:
+
+```typescript
+test('zamówienie utworzone przez API jest widoczne w UI', async ({ ordersClient, ordersPage }) => {
+  const order = await ordersClient.createOrder();
+  await ordersPage.open(order.id);
+  await ordersPage.expectOrderVisible(order.id);
+});
+```
+
+To jest czysty Full Stack pattern: API przygotowuje stan, UI potwierdza zachowanie użytkownika.
+
+## 5. App fixture — ostrożnie
+
+Czasem wygodne jest dostarczenie obiektu `app`:
+
+```typescript
+class App {
+  readonly login: LoginPage;
+  readonly orders: OrdersPage;
+  readonly ordersApi: OrdersClient;
+
+  constructor(page: Page, request: APIRequestContext) {
+    this.login = new LoginPage(page);
+    this.orders = new OrdersPage(page);
+    this.ordersApi = new OrdersClient(request);
+  }
+}
+```
+
+Fixture:
+
+```typescript
+export const test = base.extend<{ app: App }>({
+  app: async ({ page, request }, use) => {
+    await use(new App(page, request));
+  },
+});
+```
+
+Uważaj, aby `app` nie stał się God Objectem. Jeśli ma zbyt wiele odpowiedzialności, lepsze są osobne fixtures.
+
+## 6. Auto fixtures dla diagnostyki
+
+Auto fixtures są dobre do rzeczy technicznych, np. logów konsoli:
+
+```typescript
+export const test = base.extend<{ consoleLogs: void }>({
+  consoleLogs: [async ({ page }, use, testInfo) => {
+    const logs: string[] = [];
+    page.on('console', msg => logs.push(`${msg.type()}: ${msg.text()}`));
+
+    await use();
+
+    if (testInfo.status !== testInfo.expectedStatus) {
+      await testInfo.attach('console.log', {
+        body: logs.join('\n'),
+        contentType: 'text/plain',
+      });
+    }
+  }, { auto: true }],
+});
+```
+
+Nie używaj auto fixtures do ukrywania logowania, tworzenia danych i przechodzenia flow biznesowego bez wiedzy testu.
+
+## 7. Łączenie fixtures
+
+W większych projektach możesz rozdzielić fixtures:
+
+```text
+tests/fixtures/
+  pages.fixture.ts
+  api.fixture.ts
+  diagnostics.fixture.ts
+  base-test.ts
+```
+
+`base-test.ts` eksportuje finalny `test` używany w specach. Dzięki temu testy mają jeden import i spójne zależności.
+
+## 8. Migracja krok po kroku
+
+1. Zacznij od najczęściej używanych Page Objectów.
+2. Stwórz `base-test.ts`.
+3. Przenieś ręczne `new LoginPage(page)` do fixture.
+4. Popraw importy w kilku testach.
+5. Dopiero potem migruj kolejne obszary.
+6. Nie przepisuj całej suite naraz, jeśli nie musisz.
+
+## 9. Checklista
+
+- Czy testy importują własny `test` z fixtures?
+- Czy fixtures mają małą odpowiedzialność?
+- Czy Page Objecty są tworzone per test, a nie współdzielone globalnie?
+- Czy API clients są oddzielone od Page Objectów?
+- Czy auto fixtures nie ukrywają logiki biznesowej?
+- Czy typy fixtures są jawne?
+- Czy migracja może być stopniowa?
+
+## Linki
+
+- [Fixtures](https://playwright.dev/docs/test-fixtures)
+- [Page Object Models](https://playwright.dev/docs/pom)
+- [API testing](https://playwright.dev/docs/api-testing)
+- [Best practices](https://playwright.dev/docs/best-practices)

@@ -329,9 +329,9 @@ function analyzeResults(jsonPath: string) {
 `testInfo.attach()` dodaje dowolny plik lub tekst do raportu. To kluczowe dla diagnostyki:
 
 ```typescript
-import { test, expect, testInfo } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-test('tworzenie zamówienia zapiuje dane do backendu', async ({ page, request }, testInfo) => {
+test('tworzenie zamówienia zapisuje dane do backendu', async ({ page, request }, testInfo) => {
   // 1. Załącz odpowiedź API do raportu
   const orderResponse = await request.post('/api/orders', {
     data: { items: [{ productId: 'PROD-001', quantity: 2 }] },

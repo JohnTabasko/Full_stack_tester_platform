@@ -370,3 +370,70 @@ Umiejętność integracji Axe w CI/CD, interpretacji raportów accessibility i p
 - [WCAG 2.1 — W3C Official](https://www.w3.org/WAI/standards-guidelines/wcag/)
 - [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
 - [Lighthouse Accessibility Audits](https://developer.chrome.com/docs/lighthouse/accessibility/)
+---
+
+## Playwright locators jako pierwszy test dostępności
+
+Stabilne testy Playwright naturalnie promują dostępność. Jeśli element można znaleźć przez rolę i nazwę, zwykle ma poprawną semantykę:
+
+```typescript
+await page.getByRole('button', { name: 'Zapisz' }).click();
+await expect(page.getByRole('alert')).toContainText('Zapisano');
+```
+
+Jeśli musisz używać kruchego CSS, bo przycisk nie ma roli albo nazwy, to nie tylko problem testu. To potencjalny problem dostępności.
+
+## Role/name assertions
+
+Testy funkcjonalne mogą sprawdzać accessible name:
+
+```typescript
+await expect(page.getByRole('button', { name: 'Zamknij modal' })).toBeVisible();
+await expect(page.getByLabel('Adres e-mail')).toBeEditable();
+```
+
+To pomaga wykryć regresje, w których UI wizualnie wygląda poprawnie, ale czytnik ekranu traci etykietę.
+
+## Axe jako fixture
+
+W większym projekcie warto opakować Axe w fixture lub helper:
+
+```typescript
+export async function expectNoCriticalA11yViolations(page: Page) {
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+
+  const critical = results.violations.filter(v =>
+    v.impact === 'critical' || v.impact === 'serious'
+  );
+
+  expect(critical).toEqual([]);
+}
+```
+
+Użycie:
+
+```typescript
+await page.goto('/checkout');
+await expectNoCriticalA11yViolations(page);
+```
+
+## ARIA snapshots
+
+ARIA snapshot pozwala kontrolować strukturę dostępności, nie piksele:
+
+```typescript
+await expect(page.getByRole('navigation')).toMatchAriaSnapshot();
+```
+
+To przydatne dla nawigacji, dialogów, menu, formularzy i komponentów design systemu. Snapshot ARIA wykryje np. utratę accessible name albo zmianę struktury menu.
+
+## Checklista Playwright accessibility
+
+- Czy główne akcje używają `getByRole` i accessible name?
+- Czy formularze mają `getByLabel`?
+- Czy modale mają role `dialog` i poprawny focus?
+- Czy Axe działa przynajmniej dla krytycznych stron?
+- Czy ARIA snapshots są użyte dla komponentów o złożonej semantyce?
+- Czy testy klawiatury obejmują najważniejsze flow?

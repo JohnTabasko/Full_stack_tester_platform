@@ -1,76 +1,203 @@
-# Przeglądarka, kontekst i strona (Deep Dive)
+# Przeglądarka, kontekst i strona — Browser, BrowserContext, Page
 
-Jako Full Stack Tester, zrozumienie hierarchii obiektów Playwrighta jest kluczem do pisania testów, które są szybkie, stabilne i oszczędne zasobowo. W tej lekcji przeanalizujemy, jak zarządzać cyklem życia przeglądarki w profesjonalnych scenariuszach.
+Hierarchia `Browser → BrowserContext → Page` jest fundamentem Playwright. Jeśli ją rozumiesz, łatwiej projektujesz izolację testów, logowanie, scenariusze wielu użytkowników, emulację urządzeń i równoległe wykonanie w CI. Jeśli jej nie rozumiesz, szybko zaczniesz pisać testy zależne od wspólnej sesji, powolne i trudne w debugowaniu.
 
-## 1. Browser: Proces systemowy
+## 1. Model obiektów Playwright
 
-Obiekt `Browser` reprezentuje instancję silnika przeglądarki (np. Chromium). Uruchomienie przeglądarki jest operacją kosztowną.
-```typescript
-const browser = await chromium.launch({ headless: false });
+```text
+Browser
+  BrowserContext
+    Page
 ```
-W profesjonalnym środowisku:
-- Testy zazwyczaj uruchamiamy w trybie **headless: true** (bez widocznego okna), co jest szybsze i zużywa mniej pamięci na serwerach CI.
-- Możemy sterować parametrami takimi jak `args` (flagi Chromium), `proxy` (jeśli testujemy zza firewalla) czy `slowMo` (spowolnienie każdej akcji o X milisekund - przydatne do debugowania).
 
-## 2. BrowserContext: Izolacja sesji deweloperskiej
+- `Browser` — proces przeglądarki, np. Chromium, Firefox lub WebKit.
+- `BrowserContext` — izolowany profil/sesja w przeglądarce.
+- `Page` — karta w danym kontekście.
 
-To tutaj dzieje się "magia" wydajności Playwrighta. `BrowserContext` to odizolowana sesja deweloperska.
-- **Pełna Izolacja**: Ciasteczka, `localStorage`, `sessionStorage` oraz `IndexedDB` są unikalne dla każdego kontekstu.
-- **Zero narzutu**: Tworzenie nowego kontekstu trwa milisekundy i nie wymaga uruchamiania nowego procesu przeglądarki.
+W Playwright Test najczęściej nie tworzysz tych obiektów ręcznie. Runner dostarcza je jako fixtures:
 
-### Scenariusz komercyjny: Testowanie Uprawnień
-Wyobraź sobie aplikację SaaS, gdzie Admin nadaje uprawnienia Użytkownikowi. W Selenium musiałbyś uruchomić dwie osobne przeglądarki. W Playwright robisz to tak:
 ```typescript
-const adminContext = await browser.newContext();
-const userContext = await browser.newContext();
+import { test, expect } from '@playwright/test';
+
+test('strona główna działa', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('main')).toBeVisible();
+});
+```
+
+Fixture `page` oznacza, że Playwright przygotował dla testu stronę w izolowanym kontekście.
+
+## 2. Browser — proces przeglądarki
+
+`Browser` reprezentuje uruchomiony silnik przeglądarki. Ręczne użycie wygląda tak:
+
+```typescript
+import { chromium } from '@playwright/test';
+
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext();
+const page = await context.newPage();
+await page.goto('https://example.com');
+await browser.close();
+```
+
+W Playwright Test taki kod jest rzadki, bo runner zarządza przeglądarką za Ciebie. Ręczne tworzenie browsera ma sens w skryptach, narzędziach wewnętrznych albo bardzo niestandardowych fixtures.
+
+Typowe opcje uruchomienia:
+
+- `headless` — bez widocznego okna, typowo w CI;
+- `channel` — np. Chrome lub Edge, jeśli chcesz użyć konkretnego kanału;
+- `slowMo` — spowolnienie akcji do debugowania;
+- `proxy` — konfiguracja proxy;
+- `args` — flagi przeglądarki, głównie dla zaawansowanych scenariuszy Chromium.
+
+Nie nadużywaj flag `args`. Jeśli test wymaga wielu specjalnych flag, opisz powód w konfiguracji.
+
+## 3. BrowserContext — izolowana sesja
+
+`BrowserContext` to jedna z najważniejszych koncepcji Playwright. Możesz go traktować jak osobny profil incognito. Każdy kontekst ma własne:
+
+- cookies;
+- localStorage;
+- sessionStorage;
+- IndexedDB;
+- permissions;
+- geolokalizację;
+- ustawienia viewportu;
+- nagłówki;
+- storage state.
+
+Dzięki temu każdy test może działać w czystej sesji. To ogranicza flaky tests wynikające z przecieków stanu.
+
+```typescript
+const context = await browser.newContext({
+  locale: 'pl-PL',
+  timezoneId: 'Europe/Warsaw',
+  viewport: { width: 1440, height: 900 },
+});
+```
+
+## 4. Page — karta przeglądarki
+
+`Page` to karta, na której wykonujesz większość operacji:
+
+```typescript
+await page.goto('/login');
+await page.getByLabel('Email').fill('user@example.com');
+await page.getByRole('button', { name: 'Zaloguj' }).click();
+await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+```
+
+`Page` obsługuje też zdarzenia:
+
+```typescript
+page.on('console', message => console.log(message.text()));
+page.on('request', request => console.log(request.method(), request.url()));
+page.on('response', response => console.log(response.status(), response.url()));
+```
+
+To ważne dla Full Stack Testera, bo pozwala łączyć test UI z diagnostyką sieci i konsoli.
+
+## 5. Wielu użytkowników w jednym teście
+
+Jedna z praktycznych przewag Playwright to wiele kontekstów w jednym browserze.
+
+```typescript
+const adminContext = await browser.newContext({ storageState: 'playwright/.auth/admin.json' });
+const userContext = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
 
 const adminPage = await adminContext.newPage();
 const userPage = await userContext.newPage();
 
-// Admin nadaje uprawnienia na adminPage
-// User sprawdza efekt na userPage - bez przeładowywania i przelogowywania!
+await adminPage.goto('/admin/orders');
+await userPage.goto('/orders');
 ```
 
-## 3. Page: Interakcja z dokumentem
+Scenariusze:
 
-Obiekt `Page` to pojedyncza karta. To na niej wykonujesz większość operacji:
-- `page.goto(url)`: Nawigacja.
-- `page.locator(selector)`: Definiowanie elementów.
-- `page.on('request', ...)`: Nasłuchiwanie zdarzeń sieciowych (Full Stack skill!).
+- admin nadaje uprawnienia, user widzi zmianę;
+- konsultant odpowiada na czacie, klient widzi wiadomość;
+- użytkownik składa zamówienie, panel admina pokazuje status;
+- dwa konta współpracują w czasie rzeczywistym.
 
-## 4. Zarządzanie stanem: StorageState
+Pamiętaj o zamykaniu ręcznie utworzonych kontekstów:
 
-Jako Full Stack Tester będziesz często testował aplikacje wymagające logowania. Logowanie przez UI w każdym teście to błąd architektoniczny (powolność, kruchliwość).
-Playwright pozwala zapisać stan zalogowanego kontekstu do pliku:
 ```typescript
-// W teście logowania
-await context.storageState({ path: 'auth/user.json' });
-
-// W każdym innym teście
-const context = await browser.newContext({ storageState: 'auth/user.json' });
+await adminContext.close();
+await userContext.close();
 ```
-Dzięki temu test zaczyna się od razu na stronie głównej jako użytkownik zalogowany, oszczędzając 5-10 sekund na każdym przebiegu.
 
-## 5. Viewport i Emulacja
+## 6. Storage state
 
-Kontekst pozwala na błyskawiczną emulację urządzeń:
+`storageState` pozwala zapisać stan logowania:
+
+```typescript
+await page.context().storageState({ path: 'playwright/.auth/user.json' });
+```
+
+A potem użyć go w konfiguracji:
+
+```typescript
+use: {
+  storageState: 'playwright/.auth/user.json',
+}
+```
+
+To przyspiesza testy i ogranicza powtarzanie logowania przez UI. Nie oznacza jednak, że testy logowania są zbędne. Powinny istnieć osobno, ale nie każdy test musi przechodzić pełny login flow.
+
+Pliki `.auth/*.json` traktuj jak sekrety. Mogą zawierać cookies i tokeny.
+
+## 7. Emulacja w kontekście
+
+Kontekst pozwala symulować warunki użytkownika:
+
 ```typescript
 const mobileContext = await browser.newContext({
-  ...devices['iPhone 13'],
+  ...devices['iPhone 15'],
   locale: 'pl-PL',
+  timezoneId: 'Europe/Warsaw',
   geolocation: { longitude: 21.0122, latitude: 52.2297 },
-  permissions: ['geolocation']
+  permissions: ['geolocation'],
+  colorScheme: 'dark',
 });
 ```
-Możesz testować responsywność, formaty dat czy funkcje oparte na lokalizacji GPS bez dotykania prawdziwego telefonu.
 
-## Podsumowanie inżynierskie
-- **Browser** = Proces (ciężki).
-- **Context** = Sesja/Profil (lekki, klucz do izolacji).
-- **Page** = Karta (miejsce akcji).
+To przydatne dla testów responsywności, lokalizacji, uprawnień i trybu dark mode.
 
-*Pytanie kontrolne*: Dlaczego Playwright Runner domyślnie tworzy nowy kontekst dla każdego testu, a nie używa jednego wspólnego? (Podpowiedź: Ataki typu Side-channel i czystość danych).
+## 8. Persistent context
 
-## Linki merytoryczne
-- [Playwright Architecture](https://playwright.dev/docs/intro#architecture)
+Playwright umożliwia także persistent context, czyli kontekst oparty o katalog profilu użytkownika:
+
+```typescript
+const context = await chromium.launchPersistentContext('user-data-dir', {
+  headless: false,
+});
+```
+
+To zaawansowany temat, używany np. przy testowaniu rozszerzeń Chrome. W zwykłych testach E2E preferuj standardowe, izolowane konteksty.
+
+## 9. Antywzorce
+
+- Jeden wspólny kontekst dla całej suite.
+- Logowanie przez UI w każdym teście bez potrzeby.
+- Ręczne tworzenie browsera w każdym teście Playwright Test.
+- Brak zamykania ręcznie utworzonych kontekstów.
+- Przechowywanie prawdziwego `storageState` w repozytorium.
+- Testy zależne od cookies pozostałych po poprzednim teście.
+
+## 10. Checklista
+
+- Czy test korzysta z izolowanego kontekstu?
+- Czy stan logowania jest przygotowany przez setup project albo fixture?
+- Czy wiele ról użytkowników ma osobne konteksty?
+- Czy ręcznie utworzone konteksty są zamykane?
+- Czy storage state nie trafia do repozytorium?
+- Czy emulacja jest ustawiona na poziomie kontekstu lub projektu?
+
+## Linki
+
+- [Browser contexts](https://playwright.dev/docs/browser-contexts)
+- [Pages](https://playwright.dev/docs/pages)
+- [Authentication](https://playwright.dev/docs/auth)
+- [Emulation](https://playwright.dev/docs/emulation)
 - [BrowserContext API](https://playwright.dev/docs/api/class-browsercontext)

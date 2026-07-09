@@ -18,7 +18,7 @@ export const lesson15_3: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz zaprojektować i ocenić projekt „Pełna konfiguracja projektu z CI/CD” jako spójny system testów full stack z danymi, CI, raportowaniem i dokumentacją.",
     "theory": theory15_3,
     "codeExamples": [
-      "name: quality-gate\non: [pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 20, cache: 'npm' }\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npm run lint\n      - run: npm run typecheck\n      - run: npm run test:smoke\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with: { name: playwright-report, path: playwright-report }\n",
+      "name: quality-gate\non: [pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 22, cache: 'npm' }\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npm run lint\n      - run: npm run typecheck\n      - run: npm run test:smoke\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with: { name: playwright-report, path: playwright-report }\n",
       "# PR checklist\n- [ ] Ryzyko opisane\n- [ ] Dane testowe izolowane\n- [ ] Raport i trace dostępne\n- [ ] Brak sekretów\n- [ ] README zaktualizowane\n"
     ],
     "exercises": [

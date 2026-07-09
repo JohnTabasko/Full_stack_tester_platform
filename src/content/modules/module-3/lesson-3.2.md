@@ -1,112 +1,218 @@
-# Asercje ogólne
+# Asercje ogólne — matchery `expect` dla danych, obiektów i błędów
 
-> Moduł trzeci przenosi uwagę z wykonywania kroków na dowodzenie, że system osiągnął oczekiwany stan. Akcja bez asercji jest tylko ruchem. Asercja bez zrozumienia ryzyka może być formalnością. Dobra asercja jest dowodem.
+Nie każda asercja w Playwright dotyczy widocznego elementu na stronie. Full Stack Tester często sprawdza dane zwrócone przez API, wynik działania helpera, obiekt domenowy, payload eventu, zawartość pliku albo błąd walidacji. Do tego służą asercje ogólne, czyli matchery `expect` dla wartości JavaScript/TypeScript.
 
-## Jak czytać ten moduł
+Najważniejsze pytanie brzmi: **co dokładnie jest kontraktem?** Czy liczy się pełna struktura obiektu, tylko kilka pól, kolejność elementów, typ wartości, format daty, czy fakt rzucenia błędu?
 
-Czytając lekcje o asercjach, stale zadawaj pytanie: co dokładnie chcę udowodnić? Nie pytaj najpierw, jakiego matchera użyć. Najpierw określ stan oczekiwany. Dopiero potem wybierz `toBeVisible`, `toHaveText`, `toEqual`, `toBeOK`, helper domenowy albo własny matcher.
-
-W module trzecim obowiązują trzy zasady:
-
-1. **Asercja musi być znacząca.** Powinna potwierdzać zachowanie, kontrakt albo stan ważny dla użytkownika lub systemu.
-2. **Asercja musi być stabilna.** Nie powinna wiązać testu z przypadkowymi szczegółami implementacji.
-3. **Asercja musi pomagać w diagnozie.** Gdy zawiedzie, komunikat błędu powinien przybliżać do przyczyny.
-
-
-## Cel lekcji
-
-Ta lekcja koncentruje się na: **matchery expect dla danych: toBe, toEqual, toStrictEqual, toMatch, toContain, toThrow, obiekty częściowe, tablice i wyjątki**. Najważniejsze ryzyko: **test porównuje dane zbyt płytko, zbyt dokładnie albo w sposób niezgodny z intencją, przez co daje fałszywe wyniki**. Po lekturze powinieneś umieć dobrać asercję do intencji testu, a nie odwrotnie.
-
-## Sytuacja przewodnia
-
-test API pobiera obiekt zamówienia i musi sprawdzić kluczowe pola bez wiązania się z każdym technicznym szczegółem odpowiedzi
-
-## 1. Tożsamość i równość
-
-`toBe` sprawdza tożsamość lub wartość prymitywną. `toEqual` porównuje strukturę obiektu. `toStrictEqual` jest bardziej rygorystyczne i rozróżnia m.in. brak pola od pola z wartością `undefined`. Wybór matchera powinien wynikać z kontraktu danych.
-
-## 2. Obiekty częściowe
-
-`expect.objectContaining` pozwala sprawdzić pola istotne dla testu bez wiązania się z całą odpowiedzią. To dobre, gdy API zwraca dodatkowe pola techniczne, których test nie powinien stabilizować.
-
-## 3. Tablice
-
-Dla tablic rozróżniaj kolejność i zawartość. `toEqual` wymaga konkretnej kolejności, `arrayContaining` sprawdza obecność elementów. Przy wynikach sortowania kolejność jest kontraktem; przy liście tagów może nie być.
-
-## 4. Wyrażenia regularne
-
-`toMatch` pomaga przy identyfikatorach, datach i tekstach częściowo dynamicznych. Nie używaj jednak zbyt szerokich regexów, które przepuszczą błędny format.
-
-## 5. Wyjątki
-
-`toThrow` jest dobre dla kodu synchronicznego. Dla obietnic używaj `await expect(promise).rejects...`. Mylenie tych modeli prowadzi do testów, które nie sprawdzają błędów.
-
-## Przykład referencyjny
+## 1. `toBe` — wartości prymitywne i tożsamość
 
 ```typescript
-const order = await response.json();
+expect(response.status()).toBe(200);
+expect(order.status).toBe('PAID');
+expect(isValid).toBe(true);
+```
 
+`toBe` używa porównania podobnego do `Object.is`. Jest idealne dla stringów, liczb, booleanów i `null`/`undefined`.
+
+Nie używaj `toBe` do porównywania obiektów:
+
+```typescript
+expect({ status: 'PAID' }).toBe({ status: 'PAID' }); // źle
+```
+
+Dwa obiekty o tej samej zawartości nadal są różnymi referencjami.
+
+## 2. `toEqual` i `toStrictEqual`
+
+```typescript
+expect(order).toEqual({
+  id: 'ORD-123',
+  status: 'PAID',
+  total: 120,
+});
+```
+
+`toEqual` porównuje strukturę. `toStrictEqual` jest bardziej rygorystyczne: rozróżnia m.in. brak pola od pola z `undefined`.
+
+```typescript
+expect({ a: undefined }).toEqual({});       // może przejść w zależności od semantyki matcherów
+expect({ a: undefined }).toStrictEqual({}); // nie powinno przejść
+```
+
+W testach kontraktu API pełne `toStrictEqual` ma sens tylko wtedy, gdy naprawdę chcesz zamrozić całą odpowiedź. W wielu przypadkach lepsze są asercje częściowe.
+
+## 3. Asercje częściowe obiektów
+
+API często zwraca pola techniczne: `createdAt`, `updatedAt`, `links`, `metadata`, `traceId`. Test nie zawsze powinien wiązać się z każdym polem.
+
+```typescript
 expect(order).toEqual(expect.objectContaining({
   id: expect.any(String),
   status: 'PAID',
-  total: expect.any(Number),
+  totalGross: expect.any(Number),
+  currency: 'PLN',
 }));
-
-expect(order.items).toEqual(
-  expect.arrayContaining([
-    expect.objectContaining({ sku: 'BOOK-1', quantity: 1 }),
-  ])
-);
 ```
 
-Przykład pokazuje zasadę: asercja nie jest ozdobą na końcu testu. Jest miejscem, w którym test udowadnia, że system zachował się zgodnie z oczekiwaniem.
+Albo:
 
-## Lista kontrolna
+```typescript
+expect(order).toMatchObject({
+  status: 'PAID',
+  customer: {
+    email: 'jan@example.com',
+  },
+});
+```
 
-- Czy asercja potwierdza zachowanie, a nie szczegół implementacji?
-- Czy awaria asercji da czytelny komunikat?
-- Czy asercja nie jest ani zbyt ogólna, ani zbyt szczegółowa?
-- Czy dane dynamiczne są ustabilizowane lub sprawdzane częściowo?
-- Czy scenariusz negatywny sprawdza właściwy błąd?
-- Czy helper nie ukrywa sensu testu?
+To sprawdza pola ważne dla scenariusza bez stabilizowania całego obiektu.
 
+## 4. Typy dynamiczne
 
-Asercję projektuj od oczekiwanego stanu. Dla tematu „Asercje ogólne” kluczowe jest: matchery expect dla danych: toBe, toEqual, toStrictEqual, toMatch, toContain, toThrow, obiekty częściowe, tablice i wyjątki. Zacznij od zdania: „test przejdzie, jeśli...”. Jeżeli nie umiesz dokończyć tego zdania językiem produktu albo kontraktu, prawdopodobnie nie wiesz jeszcze, co sprawdzasz.
+```typescript
+expect(order.id).toEqual(expect.any(String));
+expect(order.totalGross).toEqual(expect.any(Number));
+expect(order.items).toEqual(expect.any(Array));
+```
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+`expect.any()` jest dobre dla pól dynamicznych, ale nie wystarczy, jeśli format ma znaczenie. Dla ID albo daty lepiej dodać regex.
 
+```typescript
+expect(order.id).toMatch(/^ORD-[0-9]+$/);
+expect(order.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+```
 
-Najgroźniejszy problem to test zielony mimo błędu produktu. Dzieje się tak, gdy sprawdzasz zbyt mało: sam status 200, samo istnienie elementu, samo kliknięcie albo dowolny tekst. Ryzyko tej lekcji to test porównuje dane zbyt płytko, zbyt dokładnie albo w sposób niezgodny z intencją, przez co daje fałszywe wyniki, dlatego asercja musi być dobrana do realnego skutku.
+## 5. Tablice: kolejność czy zawartość?
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Jeśli kolejność jest kontraktem, użyj `toEqual`:
 
+```typescript
+expect(statuses).toEqual(['NEW', 'PAID', 'SHIPPED']);
+```
 
-Test czerwony mimo poprawnego produktu zwykle oznacza zbyt kruchą asercję. Przykładem jest pełne porównanie obiektu zawierającego daty, identyfikatory techniczne albo pola nieistotne dla scenariusza. Rozwiązaniem bywa asercja częściowa, stabilizacja danych albo przeniesienie sprawdzenia na właściwy poziom.
+Jeśli ważna jest obecność elementów, a kolejność nie:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+expect(user.roles).toEqual(expect.arrayContaining(['ADMIN', 'BILLING']));
+```
 
+Dla tablic obiektów:
 
-W CI komunikat asercji jest często pierwszą i najważniejszą informacją o awarii. Dlatego warto preferować asercje, które pokazują oczekiwany i otrzymany stan. Dodatkowo używaj trace, logów, odpowiedzi API i identyfikatorów korelacji, gdy sama asercja nie wystarczy.
+```typescript
+expect(order.items).toEqual(expect.arrayContaining([
+  expect.objectContaining({ sku: 'BOOK-1', quantity: 1 }),
+]));
+```
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Nie używaj `arrayContaining`, jeśli testujesz sortowanie. Wtedy kolejność jest sednem testu.
 
+## 6. Stringi i regex
 
-Dla przypadku: test API pobiera obiekt zamówienia i musi sprawdzić kluczowe pola bez wiązania się z każdym technicznym szczegółem odpowiedzi zaprojektuj także ścieżkę błędu. Dobre testy nie sprawdzają wyłącznie sukcesu. Sprawdzają brak uprawnień, błędne dane, brak zasobu, konflikt, pustą listę albo niedostępność zależności.
+```typescript
+expect(message).toContain('Niepoprawne hasło');
+expect(invoiceNumber).toMatch(/^FV\/2026\/\d+$/);
+expect(email).toMatch(/^[^@]+@[^@]+\.[^@]+$/);
+```
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Regex nie powinien być zbyt szeroki. `/.+/` prawie niczego nie sprawdza.
 
+## 7. Liczby
 
-Podczas review zapytaj: czy ta asercja padnie z właściwego powodu? Czy jest odporna na nieistotne zmiany? Czy wskazuje przyczynę? Czy nie powiela asercji z niższego poziomu? Czy nazwa testu i asercja mówią o tym samym zachowaniu?
+```typescript
+expect(total).toBeGreaterThan(0);
+expect(discount).toBeGreaterThanOrEqual(0);
+expect(taxRate).toBeCloseTo(0.23, 2);
+```
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+Dla pieniędzy unikaj porównań floatów bez tolerancji, jeśli wartości są wynikiem obliczeń zmiennoprzecinkowych. W systemach finansowych preferuj grosze/cents jako liczby całkowite.
 
+## 8. Błędy synchroniczne i asynchroniczne
 
-Im większy projekt, tym ważniejsza jest spójność stylu asercji. Jeśli jeden autor sprawdza status przez `toBe(200)`, drugi przez `toBeOK`, trzeci ignoruje body, a czwarty porównuje całe obiekty, raporty będą niespójne. Standard zespołowy powinien określać preferowany sposób sprawdzania typowych sytuacji.
+Kod synchroniczny:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+function parseAmount(value: string) {
+  if (!/^\d+\.\d{2}$/.test(value)) throw new Error('Invalid amount');
+  return Number(value);
+}
 
+expect(() => parseAmount('abc')).toThrow('Invalid amount');
+```
 
-Weź istniejący test związany z tematem „Asercje ogólne”. Zidentyfikuj jedną asercję zbyt słabą i jedną zbyt kruchą. Przepisz je tak, aby lepiej odpowiadały intencji scenariusza. Następnie celowo zepsuj aplikację lub dane i sprawdź, czy komunikat błędu jest zrozumiały.
+Kod asynchroniczny:
 
-Asercja jest umową między testem a oczekiwanym zachowaniem systemu. Jeżeli umowa jest nieprecyzyjna, test nie daje zaufania. Jeżeli jest zbyt szczegółowa, będzie pękał przy refaktoryzacji. Dojrzałość polega na znalezieniu właściwej granicy.
+```typescript
+await expect(api.createOrder({ items: [] })).rejects.toThrow(/validation/i);
+```
 
+Nie pisz:
+
+```typescript
+expect(async () => api.createOrder({})).toThrow(); // źle
+```
+
+To częsty błąd — `toThrow` nie sprawdza odrzuconej obietnicy w taki sposób.
+
+## 9. `expect.soft` dla danych
+
+Soft assertions działają również dla zwykłych wartości:
+
+```typescript
+expect.soft(order.status).toBe('PAID');
+expect.soft(order.currency).toBe('PLN');
+expect.soft(order.totalGross).toBeGreaterThan(0);
+```
+
+To przydatne w walidacji raportów i dużych struktur, gdy chcesz zobaczyć kilka błędów naraz. Nie stosuj soft assertions, jeśli dalsze kroki zależą od krytycznego warunku.
+
+## 10. `expect.poll` i `expect.toPass`
+
+Czasem oczekiwany stan pojawia się poza UI, np. w API po procesie asynchronicznym.
+
+```typescript
+await expect.poll(async () => {
+  const response = await request.get('/api/orders/ORD-123');
+  const order = await response.json();
+  return order.status;
+}).toBe('PAID');
+```
+
+`expect.toPass` pozwala ponawiać blok asercji:
+
+```typescript
+await expect(async () => {
+  const response = await request.get('/api/orders/ORD-123');
+  expect(response.status()).toBe(200);
+  const order = await response.json();
+  expect(order.status).toBe('PAID');
+}).toPass({ timeout: 30_000 });
+```
+
+To dobre dla eventual consistency, kolejek, webhooków i procesów backendowych.
+
+## 11. Antywzorce
+
+- `expect(true).toBeTruthy()` po akcji.
+- Pełne porównanie obiektu API, gdy istotne są tylko trzy pola.
+- `arrayContaining` w teście sortowania.
+- Zbyt szeroki regex.
+- Mylenie `toThrow` z `rejects.toThrow`.
+- Ignorowanie typu i formatu pól dynamicznych.
+- Brak komunikatu przy trudnej asercji domenowej.
+
+## 12. Checklista asercji ogólnych
+
+- Czy matcher odpowiada intencji kontraktu?
+- Czy porównujesz pełny obiekt tylko wtedy, gdy to potrzebne?
+- Czy pola dynamiczne są sprawdzane przez typ lub format?
+- Czy kolejność tablicy jest ważna?
+- Czy błędy async są sprawdzane przez `rejects`?
+- Czy `expect.poll`/`toPass` ma sens dla procesu asynchronicznego?
+- Czy asercja nie jest zbyt słaba ani zbyt krucha?
+
+## Linki
+
+- [Assertions](https://playwright.dev/docs/test-assertions)
+- [GenericAssertions API](https://playwright.dev/docs/api/class-genericassertions)
+- [Jest Expect](https://jestjs.io/docs/expect)
+- [API testing](https://playwright.dev/docs/api-testing)
