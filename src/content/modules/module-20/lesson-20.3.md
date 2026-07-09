@@ -49,7 +49,7 @@ ACID to akronim opisujący cztery fundamentalne właściwości, które gwarantuj
 ```typescript
 test('zamówienie musi być atomowe — wszystko albo nic', async ({ db }) => {
   const productId = 42;
-  const początkowyStock = await db.getValue<number>(
+  const initialStock = await db.getValue<number>(
     'SELECT stock FROM products WHERE id = $1',
     [productId]
   );
@@ -89,7 +89,7 @@ test('zamówienie musi być atomowe — wszystko albo nic', async ({ db }) => {
     [productId]
   );
   
-  expect(finalStock).toBe(początkowyStock);
+  expect(finalStock).toBe(initialStock);
   
   // Weryfikacja: brak zamówienia
   const orderCount = await db.getValue<number>(
@@ -113,16 +113,16 @@ test('przelew musi zachować spójność — suma sald bez zmian', async ({ db }
   const transferAmount = 500;
   
   // Pobierz stan początkowy
-  const początkowySum = await db.getValue<number>(`
+  const initialSum = await db.getValue<number>(`
     SELECT COALESCE(SUM(balance), 0) FROM accounts WHERE id IN ($1, $2)
   `, [accountAId, accountBId]);
   
-  const początkowyBalanceA = await db.getValue<number>(
+  const initialBalanceA = await db.getValue<number>(
     'SELECT balance FROM accounts WHERE id = $1',
     [accountAId]
   );
   
-  const początkowyBalanceB = await db.getValue<number>(
+  const initialBalanceB = await db.getValue<number>(
     'SELECT balance FROM accounts WHERE id = $2',
     [accountBId]
   );
@@ -161,11 +161,11 @@ test('przelew musi zachować spójność — suma sald bez zmian', async ({ db }
   );
   
   // Suma sald bez zmian
-  expect(finalSum).toBe(początkowySum);
+  expect(finalSum).toBe(initialSum);
   
   // Salda zmienione poprawnie
-  expect(finalBalanceA).toBe(początkowyBalanceA - transferAmount);
-  expect(finalBalanceB).toBe(początkowyBalanceB + transferAmount);
+  expect(finalBalanceA).toBe(initialBalanceA - transferAmount);
+  expect(finalBalanceB).toBe(initialBalanceB + transferAmount);
   
   // Ograniczenie: saldo nie może być ujemne (jeśli zdefiniowane)
   const negativeBalances = await db.getValue<number>(
@@ -223,7 +223,7 @@ test('zatwierdzone zamówienie musi przetrwać restart', async ({ db }) => {
 
 ```typescript
 test('błąd w transakcji powoduje pełny rollback', async ({ db }) => {
-  const początkowyCount = await db.getValue<number>(
+  const initialCount = await db.getValue<number>(
     'SELECT COUNT(*) FROM users WHERE email LIKE $1',
     ['test-rollback-%@example.com']
   );
@@ -255,7 +255,7 @@ test('błąd w transakcji powoduje pełny rollback', async ({ db }) => {
     ['test-rollback-%@example.com']
   );
   
-  expect(finalCount).toBe(początkowyCount);
+  expect(finalCount).toBe(initialCount);
 });
 ```
 
@@ -407,7 +407,7 @@ test('transakcja A nie widzi niezatwierdzonych zmian transakcji B', async ({ db 
   const clientB = new Client(dbConfig);
   
   const productId = 1;
-  const początkowyStock = await db.getValue<number>(
+  const initialStock = await db.getValue<number>(
     'SELECT stock FROM products WHERE id = $1',
     [productId]
   );
@@ -419,7 +419,7 @@ test('transakcja A nie widzi niezatwierdzonych zmian transakcji B', async ({ db 
     await clientB.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
     await clientB.query(
       'UPDATE products SET stock = $1 WHERE id = $2',
-      [początkowyStock - 10, productId]
+      [initialStock - 10, productId]
     );
     console.log('Transakcja B: zmodyfikowano stock, nie zatwierdzono');
     
@@ -433,10 +433,10 @@ test('transakcja A nie widzi niezatwierdzonych zmian transakcji B', async ({ db 
       [productId]
     ).then(r => r.rows[0].stock);
     
-    console.log(`Transakcja A widzi stock: ${visibleStock} (początkowy: ${początkowyStock})`);
+    console.log(`Transakcja A widzi stock: ${visibleStock} (initial: ${initialStock})`);
     
     // Asercja: widoczny jest stary stan (zmiany B nie są widoczne)
-    expect(visibleStock).toBe(początkowyStock);
+    expect(visibleStock).toBe(initialStock);
     
     // Zatwierdź transakcję A
     await clientA.query('COMMIT');
@@ -454,7 +454,7 @@ test('transakcja A nie widzi niezatwierdzonych zmian transakcji B', async ({ db 
     'SELECT stock FROM products WHERE id = $1',
     [productId]
   );
-  expect(finalStock).toBe(początkowyStock - 10);
+  expect(finalStock).toBe(initialStock - 10);
 });
 ```
 
@@ -472,7 +472,7 @@ test('w repeatable read wielokrotne odczyty tego samego wiersza dają ten sam wy
   const clientB = new Client(dbConfig);
   
   const productId = 1;
-  const początkowyStock = await db.getValue<number>(
+  const initialStock = await db.getValue<number>(
     'SELECT stock FROM products WHERE id = $1',
     [productId]
   );
@@ -494,7 +494,7 @@ test('w repeatable read wielokrotne odczyty tego samego wiersza dają ten sam wy
     await clientB.query('BEGIN');
     await clientB.query(
       'UPDATE products SET stock = $1 WHERE id = $2',
-      [początkowyStock - 5, productId]
+      [initialStock - 5, productId]
     );
     await clientB.query('COMMIT');
     
@@ -506,7 +506,7 @@ test('w repeatable read wielokrotne odczyty tego samego wiersza dają ten sam wy
     
     // Asercja: oba odczyty są identyczne
     expect(firstRead).toBe(secondRead);
-    expect(secondRead).toBe(początkowyStock);  // Nie widać zmian B!
+    expect(secondRead).toBe(initialStock);  // Nie widać zmian B!
     
     await clientA.query('COMMIT');
     
@@ -531,7 +531,7 @@ test('serializable wymusza sekwencyjne wykonanie konfliktujących transakcji', a
   const clientB = new Client(dbConfig);
   
   const productId = 1;
-  const początkowyStock = await db.getValue<number>(
+  const initialStock = await db.getValue<number>(
     'SELECT stock FROM products WHERE id = $1',
     [productId]
   );
@@ -584,8 +584,8 @@ test('serializable wymusza sekwencyjne wykonanie konfliktujących transakcji', a
       [productId]
     );
     
-    console.log(`Stock końcowy: ${finalStock} (początkowy: ${początkowyStock})`);
-    expect(finalStock).toBe(początkowyStock - 5);  // Tylko zmiana B
+    console.log(`Stock końcowy: ${finalStock} (initial: ${initialStock})`);
+    expect(finalStock).toBe(initialStock - 5);  // Tylko zmiana B
     
   } finally {
     await clientA.end();
@@ -621,7 +621,7 @@ Transakcja B: WRITE stock = 0 (sprzedaż)  ← LOST UPDATE! Zmiana A zginęła
 test('współbieżne zamówienia nie powinny powodować lost update na stanie magazynowym', async ({ db }) => {
   const productId = 1;
   
-  // Ustaw stan początkowy: 1 sztuka
+  // Ustaw stan initial: 1 sztuka
   await db.query(
     'UPDATE products SET stock = 1 WHERE id = $1',
     [productId]
@@ -711,7 +711,7 @@ test('współbieżne zamówienia nie powinny powodować lost update na stanie ma
 test('FOR UPDATE zapobiega lost update — tylko jedna transakcja przechodzi', async ({ db }) => {
   const productId = 1;
   
-  // Ustaw stan początkowy: 1 sztuka
+  // Ustaw stan initial: 1 sztuka
   await db.query(
     'UPDATE products SET stock = 1 WHERE id = $1',
     [productId]
@@ -812,7 +812,7 @@ test('optimistic locking zapobiega lost update przez wersjonowanie', async ({ db
   `, [productId]);
   
   // Odczytaj początkową wersję
-  const początkowyVersion = await db.getValue<number>(
+  const initialVersion = await db.getValue<number>(
     'SELECT version FROM products WHERE id = $1',
     [productId]
   );
@@ -823,7 +823,7 @@ test('optimistic locking zapobiega lost update przez wersjonowanie', async ({ db
     SET stock = stock - 1, version = version + 1
     WHERE id = $1 AND version = $2 AND stock >= 1
     RETURNING id, stock, version
-  `, [productId, początkowyVersion]);
+  `, [productId, initialVersion]);
   
   if (updateResult.rowCount === 0) {
     console.log('Aktualizacja nie powiodła się — wersja się nie zgadza');
@@ -835,7 +835,7 @@ test('optimistic locking zapobiega lost update przez wersjonowanie', async ({ db
     [productId]
   );
   
-  expect(product!.version).toBe(początkowyVersion + 1);
+  expect(product!.version).toBe(initialVersion + 1);
   expect(product!.stock).toBe(0);
 });
 ```

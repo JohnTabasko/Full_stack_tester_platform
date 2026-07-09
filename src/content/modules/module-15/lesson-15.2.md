@@ -724,7 +724,7 @@ test.describe('Dashboard and Real-Time Updates', () => {
     await page.goto('/dashboard');
     
     // Get początkowy project count
-    const początkowyCount = await page.locator('.metric-card:has-text("Projekty") .value').textContent();
+    const initialCount = await page.locator('.metric-card:has-text("Projekty") .value').textContent();
     
     // Create project in another tab (simulating other user)
     const newProject = await api.projects.create(admin.token, { name: 'Real-time Test' });
@@ -734,7 +734,7 @@ test.describe('Dashboard and Real-Time Updates', () => {
     
     // Dashboard should show updated count
     const updatedCount = await page.locator('.metric-card:has-text("Projekty") .value').textContent();
-    expect(parseInt(updatedCount ?? '0')).toBeGreaterThan(parseInt(początkowyCount ?? '0'));
+    expect(parseInt(updatedCount ?? '0')).toBeGreaterThan(parseInt(initialCount ?? '0'));
   });
   
   test('charts render correctly', async ({ page }) => {

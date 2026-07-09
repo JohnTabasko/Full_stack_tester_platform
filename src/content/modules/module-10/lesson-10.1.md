@@ -487,5 +487,5 @@ Zasada: projektuj raportowanie z myślą o odbiorcy i decyzji, którą ma wspier
 
 - [Playwright Reporters](https://playwright.dev/docs/test-reporters)
 - [JUnit XML Format](https://github.com/testmoapp/junitxml)
-- [GitHub Actions Artifacts](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artefakty)
+- [GitHub Actions Artifacts](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts)
 - [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer)

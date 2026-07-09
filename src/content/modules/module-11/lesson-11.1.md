@@ -1,11 +1,11 @@
 # Integracja z GitHub Actions — kompletny przewodnik po CI/CD pipeline
 
 > **Perspektywa Full Stack Testera**
-> W profesjonalnym zespole testy są uruchamiane przy każdym Pull Requeście. Jeśli "pękną" — deweloper nie może zmergować kodu. Jeśli testy działają — pipeline zielony, merge możliwy. Ta prosta zasada "gatekeeper" jest fundamentem quality gates w nowoczesnym DevOps. GitHub Actions to natywny system CI/CD GitHuba, który oferuje potężne możliwości konfiguracji: sharding (podział testów na wiele runnerów), caching (przyspieszenie instalacji), matrix builds (testy na wielu przeglądarkach/wersjach), artefakty (przechowywanie raportów), i conditional triggers (uruchamianie tylko gdy potrzeba). Jako Full Stack Tester powinieneś opanować GitHub Actions do perfekcji — to Twój pierwszy kontakt z prawdziwym CI.
+> W profesjonalnym zespole testy są uruchamiane przy każdym Pull Requeście. Jeśli "pękną" — deweloper nie może zmergować kodu. Jeśli testy działają — pipeline zielony, merge możliwy. Ta prosta zasada "gatekeeper" jest fundamentem quality gates w nowoczesnym DevOps. GitHub Actions to natywny system CI/CD GitHuba, który oferuje potężne możliwości konfiguracji: sharding (podział testów na wiele runnerów), caching (przyspieszenie instalacji), matrix builds (testy na wielu przeglądarkach/wersjach), artefakty (przechowywanie raportów), i warunki uruchamiania (uruchamianie tylko gdy potrzeba). Jako Full Stack Tester powinieneś opanować GitHub Actions do perfekcji — to Twój pierwszy kontakt z prawdziwym CI.
 
 ## Cel lekcji
 
-Po ukończeniu tej lekcji potrafisz zbudować kompletny workflow GitHub Actions dla Playwrighta, konfigurujesz matrix builds dla wielu przeglądarek/środowisk, implementujesz caching (node_modules, Playwright browsers), optymalizujesz pipeline pod kątem czasu i kosztów, konfigurujesz artefakty i artifact retention, zarządzasz sekretami i zmiennymi środowiskowymi, stosujesz conditional triggers (pomiń testy na zmianach dokumentacji), konfigurujesz fail-fast i retry strategies, i wiesz, jak łączyć Playwright z Dockerem w CI.
+Po ukończeniu tej lekcji potrafisz zbudować kompletny workflow GitHub Actions dla Playwrighta, konfigurujesz matrix builds dla wielu przeglądarek/środowisk, implementujesz caching (node_modules, Playwright browsers), optymalizujesz pipeline pod kątem czasu i kosztów, konfigurujesz artefakty i retencję artefaktów, zarządzasz sekretami i zmiennymi środowiskowymi, stosujesz warunki uruchamiania (pomiń testy na zmianach dokumentacji), konfigurujesz fail-fast i strategie retry, i wiesz, jak łączyć Playwright z Dockerem w CI.
 
 ---
 
@@ -181,7 +181,7 @@ jobs:
           BASE_URL: ${{ matrix.environment == 'staging' && 'https://staging.app.pl' || 'https://app.pl' }}
         run: npx playwright test --project=${{ matrix.browser }}
         
-      - name: Upload artefakty
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -330,7 +330,7 @@ jobs:
       - name: Run tests (shard ${{ matrix.shard }}/4)
         run: npx playwright test --shard=${{ matrix.shard }}/4
         
-      - name: Upload artefakty
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -345,7 +345,7 @@ jobs:
 
 ## Artifacts — przechowywanie wyników
 
-### Upload artefakty
+### Upload artifacts
 
 ```yaml
 - name: Upload Playwright Report

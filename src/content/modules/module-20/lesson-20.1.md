@@ -618,7 +618,7 @@ test.describe('Składanie zamówienia — weryfikacja bazy danych', () => {
     const testEmail = `test-order-${Date.now()}@example.com`;
     
     // Pobierz stan początkowy
-    const początkowyOrderCount = await db.getValue<number>(`
+    const initialOrderCount = await db.getValue<number>(`
       SELECT COUNT(*) FROM orders 
       WHERE user_id = (SELECT id FROM users WHERE email = $1)
     `, [testEmail]);
@@ -632,7 +632,7 @@ test.describe('Składanie zamówienia — weryfikacja bazy danych', () => {
       WHERE user_id = (SELECT id FROM users WHERE email = $1)
     `, [testEmail]);
 
-    expect(finalOrderCount).toBe(początkowyOrderCount + 1);
+    expect(finalOrderCount).toBe(initialOrderCount + 1);
   });
 });
 ```

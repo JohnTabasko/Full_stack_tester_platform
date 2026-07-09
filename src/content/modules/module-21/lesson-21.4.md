@@ -360,7 +360,7 @@ jobs:
               console.log('✅ All contract checks passed — deployment allowed');
             }
             
-      - name: Upload verification artefakty
+      - name: Upload verification artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:

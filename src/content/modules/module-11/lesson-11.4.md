@@ -27,7 +27,7 @@ Zanim zagłębisz się w składnię, zapamiętaj pięć zasad, które są identy
 | **Powtarzalność** | Docker container | Docker image | Docker agent | Docker container | Docker executor |
 | **Cache** | `actions/cache` | `cache:` | `cache:` | `Cache@0` task | `save_cache`/`restore_cache` |
 | **Secrets** | `secrets:` | `variables:` (masked) | `credentials()` | `variables:` (secret) | `environment:` |
-| **Artifacts** | `actions/upload-artifact` | `artifacts:` | `archiveArtifacts` | `PublishBuildArtifacts` | `store_artifacts` |
+| **Artefakty** | `actions/upload-artifact` | `artifacts:` | `archiveArtifacts` | `PublishBuildArtifacts` | `store_artifacts` |
 | **Parallelism** | `matrix:` / `strategy:` | `parallel:` | `parallel:` | `parallel:` | `parallelism:` |
 
 Składnia jest inna, koncepcje te same. Stąd ta lekcja pokazuje każdą platformę przez pryzmat tych samych problemów.

@@ -11,9 +11,9 @@ Po tej lekcji będziesz potrafić:
 
 - **Zbudować projekt końcowy** demonstrujący strategiczne myślenie
 - **Zdefiniować kryteria oceny** dla własnego projektu
-- **Strukturyzować portfolio** dla maksymalny efekt
-- **Przygotować się do rozmowy** o projekcie jako evidence kompetencji
-- **Planować dalszy rozwój** po zakończeniu projektu początkowy
+- **Strukturyzować portfolio** dla maksymalnego efektu
+- **Przygotować się do rozmowy** o projekcie jako dowodzie kompetencji
+- **Planować dalszy rozwój** po zakończeniu projektu początkowego
 
 ---
 
@@ -202,13 +202,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Category | Excellent (5) | Good (3) | Needs Work (1) |
 |----------|--------------|----------|----------------|
-| **Scope definition** | Clear risks, justified zakres | Some rationale | No clear strategy |
+| **Scope definition** | Clear risks, justified scope | Some rationale | No clear strategy |
 | **Test quality** | Well-structured, maintainable | Functional but messy | Random, brittle |
 | **Data management** | Isolated, deterministic | Some isolation | Shared data, conflicts |
 | **CI/CD integration** | Complete pipeline | Partial | No CI |
 | **Documentation** | README, ADR, comments | Basic README | No docs |
 | **Architecture** | Clean separation | Functional | Monolithic |
-| **Debugging** | Trace, zrzuty ekranu, logi | Część artefaktów | No diagnostics |
+| **Debugging** | Trace, zrzuty ekranu, logi | Some artifacts | No diagnostics |
 
 ### Score calculation
 
@@ -338,7 +338,7 @@ Odpowiedź: "The biggest challenge was [specific problem]. I solved it by [appro
 
 **Q: Why did you test X but not Y?**
 
-Odpowiedź: "I defined scope based on business risk. [X] represents [risk description], so it needed coverage. [Y] was lower risk because [reason]. If Y were to break, the impact would be [minimal/acceptable], so I allocated time to higher-risk areas."
+Odpowiedź: "Zdefiniowałem zakres na podstawie ryzyka biznesowego. [X] reprezentuje [opis ryzyka], więc wymagało pokrycia. [Y] miało niższe ryzyko, ponieważ [powód]. Gdyby Y się zepsuło, wpływ byłby [minimalny/akceptowalny], dlatego przeznaczyłem czas na obszary wyższego ryzyka."
 
 **Q: How do you handle flaky tests?**
 
@@ -442,7 +442,7 @@ Structure: **Context → Decision → Consequences**
 
 ### CI/CD
 - [ ] Pipeline runs on PR
-- [ ] Pipeline publikuje artefakty
+- [ ] Pipeline publishes artifacts
 - [ ] Quality gate configured
 - [ ] Report is accessible
 
@@ -481,10 +481,10 @@ Najlepsi testerzy, których spotkałem, traktują każdy projekt jako okazję do
 
 ## Podsumowanie
 
-- **Wybór projektu**: Realny problem, measurable results, kontrolowany zakres, dopasowanie do target.
-- **Architecture**: Clear structure, Page Objects, fixtures, builders, CI/CD.
+- **Wybór projektu**: Realny problem, mierzalne rezultaty, kontrolowany zakres, dopasowanie do celu.
+- **Architecture**: czytelna struktura, Page Objects, fixtures, builders, CI/CD.
 - **Kryteria oceny**: Self-assessment rubric dla strategicznych i technical skills.
-- **Portfolio-ready**: README z quick start, strategy, metrics, known limitations.
+- **Gotowe do portfolio**: README z quick start, strategia, metryki, znane ograniczenia.
 - **Rozmowa rekrutacyjna**: Anticipate questions, discuss decisions with Context→Decision→Consequences framework.
 - **Continuous improvement**: Post-project roadmap i learning resources.
 - **Final checklist**: Code quality, test quality, documentation, CI/CD, presentation.

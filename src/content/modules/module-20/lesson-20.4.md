@@ -580,7 +580,7 @@ test.describe('Testy z fiksturą bazodanową', () => {
       category_id: 1
     });
     
-    const początkowyStock = await db.getValue<number>(
+    const initialStock = await db.getValue<number>(
       'SELECT stock FROM products WHERE id = $1',
       [productId]
     );
@@ -595,7 +595,7 @@ test.describe('Testy z fiksturą bazodanową', () => {
       [productId]
     );
     
-    expect(finalStock).toBe(początkowyStock - 2);
+    expect(finalStock).toBe(initialStock - 2);
   });
 });
 ```
