@@ -182,3 +182,76 @@ To przydatne przy aplikacjach realtime: czaty, powiadomienia, dashboardy i statu
 - [Pages](https://playwright.dev/docs/pages)
 - [Downloads](https://playwright.dev/docs/downloads)
 - [Network](https://playwright.dev/docs/network)
+
+## 13. Eventy jako źródło diagnostyki, nie zamiennik asercji
+
+Zdarzenie mówi, że coś się wydarzyło technicznie. Test nadal powinien sprawdzić rezultat użytkownika. Jeśli złapiesz response `/api/orders`, ale UI nadal pokazuje stary status, test powinien wykryć problem renderowania.
+
+```typescript
+const responsePromise = page.waitForResponse('**/api/orders/**');
+await page.getByRole('button', { name: 'Odśwież status' }).click();
+await responsePromise;
+await expect(page.getByText('Status: opłacone')).toBeVisible();
+```
+
+## 14. Eventy i timeouty lokalne
+
+Dla zdarzeń używaj lokalnych timeoutów z komunikatem:
+
+```typescript
+const popupPromise = page.waitForEvent('popup', { timeout: 10_000 });
+```
+
+Jeśli popup nie pojawi się w 10 sekund, problem powinien być jasny: akcja nie otworzyła nowej strony albo popup został zablokowany.
+
+## 15. Eventy w fixture diagnostycznej
+
+Możesz zbudować fixture zbierającą console, pageerror, requestfailed i response 5xx. Przy awarii dołącz skrócony log do raportu. To pomaga szczególnie w CI, gdzie nie masz otwartego DevTools.
+
+## 16. Typowe eventy warte znajomości
+
+- `popup` — nowa karta związana ze stroną;
+- `download` — pobranie pliku;
+- `filechooser` — wybór pliku;
+- `dialog` — alert/confirm/prompt;
+- `request` / `response` — ruch sieciowy;
+- `requestfailed` — błąd requestu;
+- `console` — logi przeglądarki;
+- `pageerror` — wyjątek JS na stronie;
+- `websocket` — komunikacja realtime.
+
+## 17. Zasada końcowa
+
+Event-first pattern chroni przed race condition. Najpierw zacznij czekać, potem wykonaj akcję, a na końcu sprawdź widoczny rezultat.
+
+## 18. Eventy w testach wielu stron
+
+Przy wielu kartach łatwo pomylić, na której stronie nasłuchujesz zdarzenia. Jeśli kliknięcie na stronie głównej otwiera popup, użyj `page.waitForEvent('popup')`. Jeśli dowolna strona w kontekście może się otworzyć, użyj `context.waitForEvent('page')`.
+
+```typescript
+const newPagePromise = context.waitForEvent('page');
+await page.getByRole('link', { name: 'Otwórz fakturę' }).click();
+const invoicePage = await newPagePromise;
+await invoicePage.waitForLoadState('domcontentloaded');
+```
+
+## 19. `requestfailed` i awarie sieci
+
+`requestfailed` pomaga wykryć problemy, których UI może nie pokazać od razu:
+
+```typescript
+const failedRequests: string[] = [];
+page.on('requestfailed', request => {
+  failedRequests.push(`${request.failure()?.errorText}: ${request.url()}`);
+});
+```
+
+Przy awarii testu możesz dołączyć listę do raportu. To przyspiesza diagnozę błędów CORS, DNS, TLS, timeoutów i zablokowanych zasobów.
+
+## 20. Dialogi a testy negatywne
+
+Dialog nie powinien być tylko zaakceptowany. Sprawdź jego typ i treść. Jeśli aplikacja pokazuje confirm przy usunięciu konta, brak dialogu jest błędem bezpieczeństwa UX, a błędna treść może prowadzić do nieświadomej destrukcyjnej akcji.
+
+## 21. Zdarzenia a cleanup
+
+Jeśli test pobiera plik, otwiera popup albo tworzy nową stronę, posprzątaj zasoby: zamknij popup, zapisz plik do katalogu test-results, usuń dane testowe. Event-first pattern rozwiązuje synchronizację, ale nie zwalnia z higieny testu.

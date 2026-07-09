@@ -1,71 +1,270 @@
 # Podstawy testów penetracyjnych
 
-> Moduł czternasty rozszerza jakość poza pytanie „czy funkcja działa”. System może działać funkcjonalnie, a jednocześnie być niebezpieczny, niedostępny dla części użytkowników, wizualnie uszkodzony albo niezgodny z regulacjami.
+Testy penetracyjne i testowanie bezpieczeństwa mają wspólny cel: znaleźć ryzyka, które mogą doprowadzić do naruszenia poufności, integralności albo dostępności systemu. Nie są jednak tym samym. Tester automatyzujący może i powinien wykonywać podstawowe testy bezpieczeństwa aplikacji, ale pełny pentest wymaga formalnego zakresu, zgody, doświadczenia i często osobnej roli specjalisty security.
 
-## Jak czytać ten moduł
+Ta lekcja pokazuje, jak Full Stack Tester może bezpiecznie i odpowiedzialnie włączyć podstawy testów penetracyjnych do procesu jakości, nie przekraczając granic etycznych i organizacyjnych.
 
-Czytaj ten moduł przez pryzmat ryzyka niefunkcjonalnego. Automatyzacja może wspierać bezpieczeństwo, dostępność, zgodność i testy wizualne, ale wymaga świadomej interpretacji. Nie każdy wynik narzędzia jest defektem i nie każdy brak wyniku oznacza bezpieczeństwo.
+## 1. Pentest vs security testing w QA
 
-Trzy zasady modułu:
+**Security testing w QA** to regularne sprawdzanie znanych klas ryzyka w kontrolowany sposób:
 
-1. **Automatyzacja nie zastępuje eksperta.** Może wykrywać regresje i klasy problemów, ale nie zastąpi audytu bezpieczeństwa ani pełnej oceny dostępności.
-2. **Dowód musi być audytowalny.** Przy bezpieczeństwie i compliance ważne jest, co sprawdzono, kiedy i z jakim wynikiem.
-3. **Testuj także odmowę i fallback.** Brak zgody, brak uprawnień, błąd kontrastu, zewnętrzny dostawca i użytkownik klawiatury są częścią jakości.
+- autoryzacja;
+- uwierzytelnianie;
+- walidacja danych wejściowych;
+- nagłówki bezpieczeństwa;
+- cookies;
+- CORS;
+- rate limiting;
+- brak wycieku danych w odpowiedziach i logach.
 
+**Pentest** to głębsza, często manualna próba znalezienia i wykorzystania podatności w uzgodnionym zakresie. Może obejmować chainowanie podatności, omijanie zabezpieczeń, testy konfiguracji infrastruktury i techniki ofensywne.
 
-## Cel lekcji
+Tester QA powinien znać podstawy, ale nie powinien wykonywać agresywnych testów bez pisemnej zgody i zakresu.
 
-Ta lekcja koncentruje się na: **OWASP ZAP, testy SQL injection, wykrywanie XSS, nagłówki bezpieczeństwa, auth bypass, rate limiting i przechowywanie JWT**. Główne ryzyko: **automatyzacja bezpieczeństwa daje fałszywe poczucie pokrycia, mimo że sprawdza tylko powierzchowne sygnały**. Po lekturze powinieneś umieć zaprojektować testy niefunkcjonalne, które dają użyteczny dowód, ale nie obiecują więcej, niż mogą sprawdzić.
+## 2. Zasady etyczne i zakres
 
-## Sytuacja przewodnia
+Przed testami bezpieczeństwa ustal:
 
-zespół chce dodać podstawowy security smoke do CI, który wykryje brak nagłówków, publicznie dostępny panel admina i proste XSS w formularzu
+- środowisko: local, test, staging, nigdy produkcja bez zgody;
+- zakres endpointów i funkcji;
+- zakazane techniki, np. DoS, brute force, skan całej sieci;
+- konta testowe i role;
+- sposób zgłaszania podatności;
+- osoby kontaktowe;
+- okno testowe;
+- zasady pracy z danymi.
 
-## 1. Pentest a automatyzacja
+Nie testuj cudzych systemów, produkcji, usług zewnętrznych ani kont prawdziwych użytkowników bez formalnej zgody.
 
-Test penetracyjny wymaga myślenia ofensywnego i kontekstu. Automatyzacja może wspierać security smoke, ale nie zastępuje pentestera.
+## 3. OWASP jako mapa ryzyk
 
-## 2. OWASP ZAP
+Najważniejsze źródła:
 
-ZAP może skanować aplikację i wykrywać część problemów. Wyniki wymagają triage, bo mogą zawierać false positives.
+- OWASP Top 10 — klasy ryzyk webowych;
+- OWASP Web Security Testing Guide — techniki testowania;
+- OWASP API Security Top 10 — ryzyka API;
+- OWASP Cheat Sheet Series — praktyczne zabezpieczenia.
 
-## 3. Injection
+Dla Full Stack Testera szczególnie ważne są:
 
-SQL injection i XSS warto testować na kontrolowanych payloadach. Nigdy nie wykonuj agresywnych testów na środowisku bez zgody.
+- broken access control;
+- injection;
+- authentication/session issues;
+- security misconfiguration;
+- vulnerable components;
+- logging and monitoring failures;
+- SSRF jako świadomość ryzyka;
+- API authorization i mass assignment.
 
-## 4. Auth bypass
+## 4. Testy autoryzacji i IDOR
 
-Próby obejścia autoryzacji powinny sprawdzać role, brak tokena, cudzy zasób i bezpośredni dostęp do URL.
+IDOR występuje, gdy użytkownik może dostać się do cudzego zasobu przez zmianę identyfikatora.
 
-## 5. Rate limiting i JWT
-
-Rate limiting chroni przed nadużyciem, a JWT musi być przechowywany bezpiecznie. Testy mogą wykrywać regresje podstawowych ustawień.
-
-## Przykład referencyjny
+Przykład testu API:
 
 ```typescript
-const response = await request.get('/admin');
-expect([401, 403]).toContain(response.status());
+const response = await request.get(`/api/orders/${otherUserOrderId}`, {
+  headers: { Authorization: `Bearer ${regularUserToken}` },
+});
 
-const headers = response.headers();
-expect(headers['x-frame-options'] ?? headers['content-security-policy']).toBeTruthy();
+expect([403, 404]).toContain(response.status());
 ```
 
-Przykład pokazuje, że test niefunkcjonalny powinien mieć jasny zakres i interpretację. Wynik automatyczny jest sygnałem, który trzeba rozumieć w kontekście ryzyka.
+Ważne przypadki:
 
-## Lista kontrolna
+- użytkownik A czyta zasób użytkownika B;
+- użytkownik bez roli admina wykonuje akcję admina;
+- tenant A próbuje zobaczyć tenant B;
+- zmiana `userId`, `orderId`, `tenantId` w URL albo body;
+- masowe przypisanie roli przez dodatkowe pole w payloadzie.
 
-- Czy test dotyczy konkretnego ryzyka?
-- Czy wynik jest możliwy do audytu?
-- Czy scenariusz obejmuje wariant negatywny lub fallback?
-- Czy automatyzacja nie udaje pełnego audytu eksperckiego?
-- Czy dane wrażliwe są chronione?
-- Czy raport zawiera dowody potrzebne do decyzji?
+Testy IDOR są jednymi z najbardziej wartościowych automatycznych testów security.
 
-## Głębsza analiza tematu: SQL
+## 5. Injection — SQL, NoSQL, command, template
 
-Bezpośredni dostęp do bazy danych w testach Playwright pozwala na:
-1. **Weryfikację danych**: Sprawdź czy po rejestracji rekord w tabeli `users` faktycznie powstał.
-2. **Setup danych**: Wstaw zamówienie bezpośrednio do bazy, aby od razu przetestować stronę jego szczegółów.
-3. **Cleanup**: Usuń użytkownika po teście, aby nie zaśmiecać środowiska.
-Używaj bibliotek takich jak `pg` (PostgreSQL) czy `mysql2` wewnątrz swoich testów lub fikstur.
+Tester nie musi wykonywać destrukcyjnych exploitów, ale powinien sprawdzać, czy aplikacja bezpiecznie obsługuje podejrzane wejścia.
+
+Przykładowe payloady testowe:
+
+```text
+' OR '1'='1
+<script>alert(1)</script>
+../../etc/passwd
+${{7*7}}
+```
+
+Bezpieczny test sprawdza, że aplikacja:
+
+- nie zwraca stack trace;
+- nie wykonuje payloadu;
+- waliduje dane;
+- loguje błąd bez sekretów;
+- zwraca kontrolowany status 400/422.
+
+Nie wykonuj destructive payloadów na niekontrolowanym środowisku.
+
+## 6. XSS
+
+XSS oznacza wykonanie niechcianego JavaScriptu w kontekście aplikacji. Automatyczny test może sprawdzić, że tekst jest renderowany jako tekst, a nie HTML.
+
+```typescript
+await page.getByLabel('Komentarz').fill('<img src=x onerror=alert(1)>');
+await page.getByRole('button', { name: 'Zapisz' }).click();
+
+await expect(page.getByText('<img src=x onerror=alert(1)>')).toBeVisible();
+await expect(page.locator('img[src="x"]')).toHaveCount(0);
+```
+
+Testuj szczególnie:
+
+- komentarze;
+- nazwy produktów;
+- profile użytkownika;
+- pola admina wyświetlane klientom;
+- import CSV;
+- treści zewnętrzne.
+
+## 7. CSRF, cookies i sesje
+
+W aplikacjach używających cookies sprawdzaj:
+
+- `HttpOnly`;
+- `Secure`;
+- `SameSite`;
+- czas życia sesji;
+- logout invaliduje sesję;
+- back button po logout nie pokazuje danych;
+- token CSRF jest wymagany dla operacji zmieniających stan.
+
+Przykład inspekcji cookies w Playwright:
+
+```typescript
+const cookies = await page.context().cookies();
+const session = cookies.find(cookie => cookie.name === 'session');
+expect(session?.httpOnly).toBe(true);
+expect(session?.secure).toBe(true);
+expect(['Lax', 'Strict']).toContain(session?.sameSite);
+```
+
+## 8. Nagłówki bezpieczeństwa
+
+Podstawowe nagłówki:
+
+- `Content-Security-Policy`;
+- `X-Frame-Options` lub `frame-ancestors` w CSP;
+- `Strict-Transport-Security`;
+- `X-Content-Type-Options: nosniff`;
+- `Referrer-Policy`;
+- `Permissions-Policy`.
+
+Przykład:
+
+```typescript
+const response = await request.get('/');
+const headers = response.headers();
+
+expect(headers['content-security-policy']).toBeTruthy();
+expect(headers['x-content-type-options']).toBe('nosniff');
+```
+
+Nagłówki nie zastępują bezpiecznego kodu, ale są ważną warstwą obrony.
+
+## 9. Rate limiting i brute force
+
+Testuj kontrolowanie liczby prób:
+
+- logowanie z błędnym hasłem;
+- reset hasła;
+- wysyłka kodu SMS/email;
+- publiczne API wyszukiwania;
+- endpointy kosztowne obliczeniowo.
+
+Przykład:
+
+```typescript
+for (let i = 0; i < 6; i++) {
+  await request.post('/api/login', {
+    data: { email: 'qa@example.test', password: `wrong-${i}` },
+  });
+}
+
+const blocked = await request.post('/api/login', {
+  data: { email: 'qa@example.test', password: 'wrong-final' },
+});
+
+expect([429, 423, 403]).toContain(blocked.status());
+```
+
+Nie uruchamiaj masowego brute force bez uzgodnienia zakresu.
+
+## 10. OWASP ZAP i automatyczne skanery
+
+OWASP ZAP baseline scan może być częścią CI dla środowiska testowego:
+
+```bash
+docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+  -t https://staging.example.test \
+  -r zap-report.html
+```
+
+Ograniczenia skanera:
+
+- nie zna kontekstu biznesowego;
+- może generować false positives;
+- nie zastępuje testów autoryzacji;
+- wymaga interpretacji;
+- może pominąć logikę zależną od roli i danych.
+
+Skaner jest narzędziem pomocniczym, nie pełnym pentestem.
+
+## 11. Raportowanie podatności
+
+Raport security powinien zawierać:
+
+- tytuł i typ podatności;
+- środowisko;
+- zakres;
+- kroki reprodukcji;
+- oczekiwany i rzeczywisty rezultat;
+- wpływ biznesowy;
+- dowody;
+- potencjalną kategorię OWASP;
+- severity i priority;
+- rekomendację naprawy;
+- informację, czy dane zostały naruszone.
+
+Nie publikuj szczegółów podatności publicznie przed naprawą.
+
+## 12. CVSS i priorytetyzacja
+
+CVSS pomaga opisać techniczną powagę podatności, ale priorytet naprawy zależy też od kontekstu biznesowego:
+
+- czy funkcja jest publiczna?
+- czy wymaga konta?
+- czy dotyczy danych osobowych?
+- czy istnieje exploit?
+- czy jest workaround?
+- czy podatność dotyczy produkcji?
+
+Tester powinien umieć opisać wpływ, nie tylko wskazać payload.
+
+## 13. Checklista podstawowego security testingu QA
+
+- Czy użytkownik nie może dostać się do cudzych zasobów?
+- Czy role są egzekwowane po stronie API?
+- Czy wejścia są walidowane i escapowane?
+- Czy aplikacja nie zwraca stack trace użytkownikowi?
+- Czy cookies mają bezpieczne flagi?
+- Czy nagłówki bezpieczeństwa są obecne?
+- Czy rate limiting działa dla krytycznych endpointów?
+- Czy logi nie zawierają sekretów?
+- Czy testy są wykonywane tylko w uzgodnionym zakresie?
+
+## Linki
+
+- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
+- [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
+- [OWASP ZAP](https://www.zaproxy.org/)
+- [FIRST CVSS](https://www.first.org/cvss/)

@@ -133,3 +133,25 @@ Dla upload zones coraz częściej potrzebne są specjalne mechanizmy DataTransfe
 - [Downloads](https://playwright.dev/docs/downloads)
 - [Events](https://playwright.dev/docs/events)
 - [Locator dragTo API](https://playwright.dev/docs/api/class-locator#locator-drag-to)
+
+## 10. Upload przez bufor
+
+Nie zawsze musisz mieć plik na dysku. Playwright pozwala ustawić plik z bufora:
+
+```typescript
+await page.getByLabel('Załącz plik').setInputFiles({
+  name: 'test.txt',
+  mimeType: 'text/plain',
+  buffer: Buffer.from('hello world'),
+});
+```
+
+To przydatne dla testów generujących dane dynamicznie.
+
+## 11. Download i cleanup
+
+Pobrane pliki zapisuj w katalogu test-results albo katalogu tymczasowym. Nie zapisuj ich na stałe do repozytorium. Po teście możesz sprawdzić zawartość i usunąć plik albo zostawić jako artefakt CI przy awarii.
+
+## 12. Custom select i accessibility
+
+Jeśli custom select nie ma roli `combobox` i opcji `option`, test będzie trudniejszy, a komponent mniej dostępny. Dobrze zaprojektowany komponent UI jest jednocześnie łatwiejszy do testowania i bardziej dostępny.

@@ -184,3 +184,56 @@ Nie przekazuj sekretów do strony bez potrzeby. Kod wykonywany w kontekście str
 - [Clock](https://playwright.dev/docs/clock)
 - [Mock browser APIs](https://playwright.dev/docs/mock-browser-apis)
 - [Emulation](https://playwright.dev/docs/emulation)
+
+## 11. Evaluate a bezpieczeństwo testu
+
+Kod w `page.evaluate` działa w kontekście strony. To oznacza, że widzi `window`, `document`, localStorage i inne API przeglądarki. Nie przekazuj tam sekretów bez potrzeby. Jeśli test musi ustawić stan, preferuj oficjalne opcje kontekstu albo API aplikacji.
+
+## 12. Evaluate jako narzędzie diagnostyczne
+
+`evaluate` jest świetne do diagnostyki:
+
+```typescript
+const storage = await page.evaluate(() => ({
+  theme: localStorage.getItem('theme'),
+  online: navigator.onLine,
+  title: document.title,
+}));
+```
+
+Taki odczyt nie omija zachowania użytkownika, tylko zbiera kontekst. To znacznie bezpieczniejsze niż klikanie przez `document.querySelector().click()`.
+
+## 13. Clock i procesy zależne od czasu
+
+Kontrola czasu jest przydatna dla:
+
+- wygasłych tokenów;
+- promocji czasowych;
+- debounce;
+- retry po czasie;
+- sesji wygasającej po bezczynności;
+- komunikatów toast z auto-hide.
+
+Zamiast czekać realne minuty, przesuwasz zegar i sprawdzasz stan.
+
+## 14. Mock browser APIs vs emulation
+
+Najpierw użyj oficjalnej emulacji Playwright:
+
+- permissions;
+- geolocation;
+- locale;
+- timezone;
+- colorScheme;
+- reducedMotion;
+- offline.
+
+Dopiero gdy Playwright nie ma opcji dla danego API, użyj `addInitScript`.
+
+## 15. Handle lifecycle
+
+Jeśli używasz `evaluateHandle`, pamiętaj o `dispose`. Uchwyty trzymają referencje do obiektów w przeglądarce. W długich testach i helperach brak zwalniania może powodować wycieki pamięci.
+
+## 16. Zasada końcowa
+
+JavaScript evaluation to skalpel, nie młotek. Używaj go tam, gdzie Playwrightowe locatory, akcje i konteksty nie rozwiązują problemu w sposób bliższy użytkownikowi.

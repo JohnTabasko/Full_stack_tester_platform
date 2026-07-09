@@ -160,3 +160,67 @@ Twórz komponent, gdy:
 - [Page Object Models](https://playwright.dev/docs/pom)
 - [Locators](https://playwright.dev/docs/locators)
 - [Locator API](https://playwright.dev/docs/api/class-locator)
+
+## 9. Komponent tabeli z sortowaniem i paginacją
+
+Komponent może modelować złożoną tabelę:
+
+```typescript
+class DataTable {
+  constructor(private readonly root: Locator) {}
+
+  async sortBy(columnName: string) {
+    await this.root.getByRole('button', { name: new RegExp(`Sortuj.*${columnName}`) }).click();
+  }
+
+  async goToNextPage() {
+    await this.root.getByRole('button', { name: 'Następna strona' }).click();
+  }
+
+  row(text: string) {
+    return this.root.getByRole('row').filter({ hasText: text });
+  }
+}
+```
+
+Ważne, aby komponent nie wiedział, skąd dane pochodzą. Jego odpowiedzialnością jest UI tabeli.
+
+## 10. Komponenty a dostępność
+
+Dobry Component Object używa ról i nazw dostępności. Jeśli komponentu nie da się znaleźć przez `getByRole`, może to sygnalizować problem produktu. Komponenty testowe i dostępność wspierają się wzajemnie.
+
+## 11. Testowanie wielu instancji komponentu
+
+Root locator pozwala użyć tego samego komponentu dla wielu instancji:
+
+```typescript
+const billingAddress = new AddressForm(page.getByTestId('billing-address'));
+const shippingAddress = new AddressForm(page.getByTestId('shipping-address'));
+```
+
+Bez root locatora akcje na jednym formularzu mogłyby przypadkowo trafić w drugi.
+
+## 12. Komponenty a Page Object rodzica
+
+Strona może udostępniać komponent, ale nie powinna duplikować jego metod:
+
+```typescript
+class OrdersPage {
+  readonly table = new OrdersTable(this.page.getByTestId('orders-table'));
+}
+```
+
+Zamiast tworzyć `ordersPage.openOrderDetailsFromTable`, użyj `ordersPage.table.openDetails(orderId)`, jeśli odpowiedzialność należy do tabeli.
+
+## 13. Komponenty dynamiczne
+
+Toast, modal i dropdown pojawiają się po akcji. Komponent może mieć metodę `expectVisible`, ale utworzenie obiektu komponentu nie powinno zakładać, że element już istnieje. Locator jest lazy, więc można go zdefiniować wcześniej.
+
+## 14. Zasada końcowa
+
+Dobry komponent jest przenośny, lokalny i ma mały zakres. Jeśli komponent potrzebuje wiedzieć o całej aplikacji, przestał być komponentem.
+
+Root locator jest najważniejszą granicą odpowiedzialności komponentu.
+ To ważne.
+ Naprawdę.
+ Granica komponentu musi pozostać jasna.

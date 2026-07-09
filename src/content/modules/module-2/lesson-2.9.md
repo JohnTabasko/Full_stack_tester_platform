@@ -179,3 +179,25 @@ ARIA snapshot może wykryć, że przycisk stracił accessible name, nawet jeśli
 - [Visual comparisons](https://playwright.dev/docs/test-snapshots)
 - [Trace Viewer](https://playwright.dev/docs/trace-viewer)
 - [ARIA snapshots](https://playwright.dev/docs/aria-snapshots)
+
+## 12. Visual testing a review
+
+Aktualizacja baseline nie powinna być automatycznie akceptowana. Każda zmiana snapshotu musi przejść review: czy różnica jest oczekiwana, czy to regresja UI? W PR warto dołączyć diff albo raport Playwright.
+
+## 13. ARIA snapshot vs screenshot
+
+Screenshot mówi, jak wygląda UI. ARIA snapshot mówi, jak UI jest widziany przez technologie asystujące. Dla menu, dialogów i formularzy warto używać obu technik w różnych miejscach.
+
+## 14. Stabilne dane wizualne
+
+Przed screenshotem ustabilizuj:
+
+- daty;
+- animacje;
+- avatary;
+- losowe ID;
+- reklamy;
+- zegary;
+- dane zewnętrzne.
+
+Visual test ma wykrywać regresje layoutu, a nie naturalną zmienność danych.

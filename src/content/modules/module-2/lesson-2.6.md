@@ -141,3 +141,29 @@ await page.getByRole('option', { name: 'Polska' }).click();
 - [Input actions](https://playwright.dev/docs/input)
 - [Actionability](https://playwright.dev/docs/actionability)
 - [Locators](https://playwright.dev/docs/locators)
+
+## 10. Akcja zawsze powinna mieć skutek
+
+Kliknięcie bez asercji nie jest testem. Po każdej ważnej akcji sprawdź rezultat:
+
+```typescript
+await page.getByRole('button', { name: 'Zapisz' }).click();
+await expect(page.getByRole('status')).toHaveText('Zapisano');
+```
+
+Jeśli akcja uruchamia request, możesz dodatkowo poczekać na odpowiedź, ale nadal sprawdzaj UI.
+
+## 11. Realistyczne wprowadzanie danych
+
+`fill()` jest najlepsze dla większości pól, ale nie sprawdza wszystkich zachowań klawiatury. Dla masek, autocomplete i pól reagujących na każde naciśnięcie używaj `pressSequentially`. Dla skrótów klawiszowych używaj `keyboard.press`.
+
+## 12. Focus i accessibility
+
+Akcje podstawowe są też okazją do testów dostępności:
+
+```typescript
+await page.keyboard.press('Tab');
+await expect(page.getByLabel('Email')).toBeFocused();
+```
+
+Jeśli formularz nie da się obsłużyć klawiaturą, to problem jakości produktu, nie tylko testu.

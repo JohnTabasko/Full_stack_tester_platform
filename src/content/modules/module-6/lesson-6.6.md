@@ -195,3 +195,43 @@ tests/fixtures/
 - [Page Object Models](https://playwright.dev/docs/pom)
 - [API testing](https://playwright.dev/docs/api-testing)
 - [Best practices](https://playwright.dev/docs/best-practices)
+
+## 10. Worker-scoped fixtures a POM
+
+Page Objecty zwykle są test-scoped, bo opierają się na `page`. Klienci API, konta per worker albo ciężkie dane mogą być worker-scoped. Nie mieszaj tych zakresów bez potrzeby.
+
+```typescript
+export const test = base.extend<{}, { workerAccount: Account }>({
+  workerAccount: [async ({ request }, use, workerInfo) => {
+    const account = await createAccount(request, `worker-${workerInfo.parallelIndex}`);
+    await use(account);
+  }, { scope: 'worker' }],
+});
+```
+
+Page Object korzysta potem z danych konta, ale nie jest współdzielony między testami.
+
+## 11. Typed app fixture
+
+Jeśli tworzysz `app` fixture, dobrze ją typuj:
+
+```typescript
+type App = {
+  pages: { login: LoginPage; orders: OrdersPage };
+  api: { orders: OrdersClient };
+};
+```
+
+Dzięki temu `app` jest wygodą, nie magicznym workiem zależności.
+
+## 12. Kiedy nie używać app fixture
+
+Jeśli test potrzebuje tylko jednej strony, importowanie ogromnego `app` może ukrywać zależności. Używaj najmniejszej fixture, która wyraża potrzebę testu.
+
+## 13. Checklista POM + fixtures
+
+- Czy Page Object jest tworzony per test?
+- Czy API clients są oddzielone od Page Objectów?
+- Czy worker fixtures nie przechowują stanu UI?
+- Czy `app` fixture nie stała się God Objectem?
+- Czy test nadal pokazuje intencję biznesową?

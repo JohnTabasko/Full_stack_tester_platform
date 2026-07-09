@@ -131,3 +131,65 @@ Jeśli funkcja dotyczy tylko niektórych stron, zrób komponent albo helper, nie
 - [Page Object Models](https://playwright.dev/docs/pom)
 - [Locators](https://playwright.dev/docs/locators)
 - [Assertions](https://playwright.dev/docs/test-assertions)
+
+## 8. BasePage a diagnostyka CI
+
+BasePage może pomagać w diagnostyce, ale nie powinna zastępować mechanizmów Playwright. Dobrym kompromisem jest metoda, która dołącza kontekst tylko wtedy, gdy test tego potrzebuje:
+
+```typescript
+async attachPageContext(testInfo: TestInfo, name: string) {
+  await testInfo.attach(`${name}-url`, {
+    body: this.page.url(),
+    contentType: 'text/plain',
+  });
+  await testInfo.attach(`${name}-screenshot`, {
+    body: await this.page.screenshot({ fullPage: true }),
+    contentType: 'image/png',
+  });
+}
+```
+
+Nie dodawaj automatycznie screenshotu po każdej akcji — raport stanie się ciężki. Używaj diagnostyki tam, gdzie skraca analizę awarii.
+
+## 9. BasePage i nawigacja z parametrami
+
+Nie każda strona ma stały `path`. Często potrzebujesz ID zasobu:
+
+```typescript
+class OrderDetailsPage extends BasePage {
+  pathFor(orderId: string) {
+    return `/orders/${orderId}`;
+  }
+
+  async gotoOrder(orderId: string) {
+    await this.page.goto(this.pathFor(orderId));
+    await this.expectLoaded(orderId);
+  }
+
+  async expectLoaded(orderId: string) {
+    await expect(this.page.getByRole('heading', { name: `Zamówienie ${orderId}` })).toBeVisible();
+  }
+}
+```
+
+To lepsze niż trzymanie dynamicznego ID w stanie klasy.
+
+## 10. Kiedy BasePage usunąć
+
+Jeśli BasePage ma tylko konstruktor i żadnej realnej wspólnej logiki, nie jest potrzebna. Dziedziczenie bez wartości komplikuje kod. Użyj prostych klas Page Object i wróć do BasePage, gdy pojawi się rzeczywista powtarzalność.
+
+## 11. BasePage i konfiguracja środowiska
+
+BasePage nie powinna czytać sekretów ani decydować, na jakim środowisku działa test. To rola `playwright.config.ts` i fixtures. Jeśli BasePage zaczyna zawierać `process.env.BASE_URL`, tokeny albo dane użytkowników, miesza odpowiedzialności.
+
+## 12. BasePage a oczekiwania na sieć
+
+Unikaj globalnego `waitForLoadState('networkidle')` w każdej nawigacji. Aplikacje SPA, analytics, polling i WebSocket mogą sprawić, że networkidle będzie niestabilne. Lepsze jest `expectLoaded()` oparte na widocznym stanie strony.
+
+## 13. Zasada końcowa
+
+BasePage jest dobra, gdy usuwa powtarzalność cyklu życia strony. Jest zła, gdy staje się miejscem dla każdej metody, której nie wiadomo gdzie włożyć.
+
+BasePage pozostaje narzędziem pomocniczym, nie centrum architektury.
+ To ważne.
+ Naprawdę.

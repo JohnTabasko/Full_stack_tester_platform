@@ -159,3 +159,28 @@ Nie próbuj łapać elementów iframe zwykłym `page.getByLabel`, jeśli znajduj
 - [Locators](https://playwright.dev/docs/locators)
 - [Frames](https://playwright.dev/docs/frames)
 - [Assertions](https://playwright.dev/docs/test-assertions)
+
+## 12. Stabilna iteracja po elementach
+
+Jeśli musisz sprawdzić teksty wielu elementów, najpierw poczekaj na stabilny stan listy:
+
+```typescript
+const products = page.getByTestId('product-card');
+await expect(products).toHaveCount(3);
+
+const names = await products.evaluateAll(cards => cards.map(card => card.textContent?.trim()));
+expect(names).toContain('Laptop Pro');
+```
+
+Nie iteruj po `all()` zanim lista skończy się ładować. W aplikacjach SPA lista może zostać przebudowana po odpowiedzi API.
+
+## 13. Kolekcje i asercje biznesowe
+
+Nie sprawdzaj tylko liczby elementów. Jeśli test dotyczy zamówień, sprawdź konkretny rekord:
+
+```typescript
+const row = page.getByRole('row').filter({ hasText: orderId });
+await expect(row).toContainText('Opłacone');
+```
+
+To daje lepszą informację diagnostyczną niż `toHaveCount(1)` na całej tabeli.

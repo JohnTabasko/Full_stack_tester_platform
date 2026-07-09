@@ -153,3 +153,60 @@ Nie używaj journey, fasady i strategii dla jednego prostego testu. Najpierw nap
 - [Page Object Models](https://playwright.dev/docs/pom)
 - [Fixtures](https://playwright.dev/docs/test-fixtures)
 - [API testing](https://playwright.dev/docs/api-testing)
+
+## 8. Strategy dla ról użytkowników
+
+Ten sam proces może różnić się zależnie od roli. Strategia pozwala zamknąć różnice w małych klasach:
+
+```typescript
+type LoginStrategy = { login(): Promise<void> };
+
+class AdminLogin implements LoginStrategy {
+  constructor(private readonly loginPage: LoginPage) {}
+  async login() { await this.loginPage.login('admin@example.test', 'secret'); }
+}
+
+class CustomerLogin implements LoginStrategy {
+  constructor(private readonly loginPage: LoginPage) {}
+  async login() { await this.loginPage.login('customer@example.test', 'secret'); }
+}
+```
+
+Nie używaj strategii, jeśli wystarczy jeden parametr metody. Wzorzec ma zmniejszać złożoność, nie ją zwiększać.
+
+## 9. Journey z test.step
+
+Długi journey powinien być widoczny w raporcie:
+
+```typescript
+await test.step('Klient kupuje produkt', async () => {
+  await checkoutJourney.buyProduct(product.name);
+});
+```
+
+Jeśli journey ukrywa zbyt wiele, rozbij go na kilka kroków w teście. Raport powinien pokazywać, gdzie proces się zatrzymał.
+
+## 10. Service Object jako granica backendu
+
+Service Object nie jest Page Objectem. Powinien mieć własne asercje techniczne i zwracać dane domenowe. Dzięki temu test może łączyć szybki setup przez API z czytelną weryfikacją UI.
+
+## 11. Builder + Service + POM w jednym scenariuszu
+
+Zaawansowana architektura często łączy trzy warstwy:
+
+```typescript
+const order = buildOrder({ status: 'PAID' });
+const created = await ordersClient.createOrder(order);
+await ordersPage.open(created.id);
+await ordersPage.expectOrderStatus(created.id, 'Opłacone');
+```
+
+To czytelniejsze niż tworzenie zamówienia przez UI, jeśli celem testu jest wyświetlenie statusu, a nie flow tworzenia zamówienia.
+
+## 12. Fasada a jawność zależności
+
+Fasada `app` jest wygodna, ale może ukrywać zależności. Jeśli test używa tylko `app.doEverything()`, reviewer nie widzi, czy test dotyka UI, API, bazy czy mocków. Używaj fasady do organizacji, nie do ukrywania zakresu.
+
+## 13. Zasada końcowa
+
+Zaawansowany wzorzec jest uzasadniony tylko wtedy, gdy zmniejsza koszt zmiany albo poprawia diagnostykę. W przeciwnym razie prosty test jest lepszy.

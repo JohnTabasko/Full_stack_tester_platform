@@ -169,3 +169,44 @@ Nie projektuj ogromnej architektury na zapas. Refaktoryzuj, gdy widzisz:
 - [Best practices](https://playwright.dev/docs/best-practices)
 - [Locators](https://playwright.dev/docs/locators)
 - [Fixtures](https://playwright.dev/docs/test-fixtures)
+
+## 10. Antywzorzec: POM ukrywa złe oczekiwania
+
+Jeśli metoda `expectLoaded()` sprawdza tylko, że `body` jest widoczne, to niczego nie dowodzi. Warunek gotowości powinien być charakterystyczny dla strony:
+
+```typescript
+await expect(page.getByRole('heading', { name: 'Zamówienia' })).toBeVisible();
+await expect(page.getByRole('table', { name: 'Lista zamówień' })).toBeVisible();
+```
+
+## 11. Antywzorzec: POM z asercjami technicznymi bez języka domeny
+
+Metoda `checkElement()` mówi mniej niż `expectOrderStatus(orderId, 'Opłacone')`. Dobra nazwa zmniejsza potrzebę otwierania implementacji.
+
+## 12. Refaktoryzacja bez zmiany testu
+
+Dobry POM pozwala zmienić lokator bez zmiany testów. Jeśli każda zmiana UI wymaga edycji wielu speców, abstrakcja nie spełnia zadania. Jeśli każda zmiana scenariusza wymaga edycji wielu Page Objectów, abstrakcja jest zbyt sztywna.
+
+## 13. Checklista antywzorców POM
+
+- Czy klasa ma więcej niż jedną odpowiedzialność?
+- Czy publiczne metody są techniczne zamiast domenowe?
+- Czy Page Object wykonuje requesty API?
+- Czy locatory są semantyczne?
+- Czy test jest czytelny bez znajomości implementacji POM?
+
+## 14. Antywzorzec: dziedziczenie wszystkiego
+
+Głęboka hierarchia `BasePage -> AuthenticatedPage -> AdminPage -> AdminOrdersPage` często komplikuje projekt. Kompozycja komponentów i fixtures jest zwykle prostsza. Dziedziczenie zostaw dla naprawdę wspólnego cyklu życia.
+
+## 15. Antywzorzec: asercje ukryte w akcjach
+
+Metoda `clickSave()` nie powinna po cichu wykonywać pięciu asercji biznesowych. Jeśli metoda sprawdza rezultat, nazwij ją `saveAndExpectSuccess()` albo rozdziel akcję od asercji.
+
+## 16. Antywzorzec: POM bez testów review
+
+Page Object też jest kodem. Review powinno sprawdzać nazwy metod, locatory, odpowiedzialność, typy i diagnostykę. Zły POM jest kopiowany tak samo szybko jak zły test.
+
+## 17. Zasada końcowa
+
+POM ma chronić test przed przypadkowymi zmianami UI, ale nie może ukrywać sensu scenariusza. Czytelność testu jest ważniejsza niż elegancja wzorca.
