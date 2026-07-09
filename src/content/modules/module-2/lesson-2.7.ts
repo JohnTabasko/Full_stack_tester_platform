@@ -5,7 +5,7 @@ export const lesson2_7: Lesson = {
   "id": "2.7",
   "moduleId": 2,
   "title": "Akcje zaawansowane",
-  "description": "Checkboxy, radio, selecty, upload/download plików i kontrolki wymagające dodatkowej weryfikacji",
+  "description": "Akcje zaawansowane: selecty, upload plików, file chooser, download, weryfikacja zawartości, drag and drop i cleanup artefaktów.",
   "order": 7,
   "difficulty": "beginner",
   "tags": [
@@ -152,26 +152,21 @@ export const lesson2_7: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Dokumentacja obiektów Page, Browser i BrowserContext."
+            "title": "Input upload",
+            "url": "https://playwright.dev/docs/input#upload-files",
+            "description": "Upload plików w Playwright."
       },
       {
-        "title": "Playwright Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Oficjalny przewodnik po lokatorach i strategiach wyszukiwania elementów."
+            "title": "Downloads",
+            "url": "https://playwright.dev/docs/downloads",
+            "description": "Obsługa pobierania plików."
       },
       {
-        "title": "Playwright Auto-waiting",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Opis mechanizmu sprawdzanie gotowości elementu do akcji i automatycznego oczekiwania."
-      },
-      {
-        "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/screenshots",
-        "description": "Dokumentacja screenshotów i testów wizualnych."
+            "title": "Events",
+            "url": "https://playwright.dev/docs/events",
+            "description": "Event-first pattern dla downloadów i file chooser."
       }
-    ],
+],
     "tipsAndTricks": [
       "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
       "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",

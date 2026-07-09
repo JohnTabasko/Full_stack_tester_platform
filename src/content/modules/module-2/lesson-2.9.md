@@ -201,3 +201,43 @@ Przed screenshotem ustabilizuj:
 - dane zewnętrzne.
 
 Visual test ma wykrywać regresje layoutu, a nie naturalną zmienność danych.
+
+## 15. Konfiguracja snapshotów w projekcie
+
+W większym projekcie ustal standard:
+
+- gdzie są przechowywane snapshoty;
+- na jakim systemie są generowane baseline;
+- kto reviewuje zmiany;
+- jakie tolerancje są dopuszczalne;
+- które elementy maskujemy;
+- które testy visual działają w PR, a które nightly.
+
+Bez tego visual testing szybko stanie się źródłem fałszywych alarmów.
+
+## 16. Visual tests w CI
+
+Najlepiej generować i porównywać snapshoty w tym samym środowisku, np. Docker/Linux w CI. Jeśli developerzy na macOS aktualizują baseline, a CI działa na Linuxie, różnice fontów mogą generować niepotrzebne diffy.
+
+## 17. Kiedy nie używać visual testingu
+
+Nie używaj screenshotu tam, gdzie wystarczy prosta asercja:
+
+```typescript
+await expect(page.getByRole('status')).toHaveText('Zapisano');
+```
+
+Visual test jest dobry dla layoutu, wyglądu komponentu i regresji UI, ale nie powinien być jedynym dowodem logiki biznesowej.
+
+## 18. Checklista visual testingu
+
+- Czy snapshot chroni realne ryzyko UI?
+- Czy dane są stabilne?
+- Czy dynamiczne elementy są zamaskowane?
+- Czy baseline jest reviewowany?
+- Czy środowisko generowania snapshotów jest spójne?
+- Czy nie zastępujesz screenshotem prostszej asercji?
+
+## 19. Zasada końcowa
+
+Visual regression testing jest wartościowe wtedy, gdy ma mały, świadomy zakres i mocny proces review. Bez tego staje się kosztownym generatorem szumu.

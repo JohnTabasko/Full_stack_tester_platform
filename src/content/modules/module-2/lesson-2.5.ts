@@ -5,7 +5,7 @@ export const lesson2_5: Lesson = {
   "id": "2.5",
   "moduleId": 2,
   "title": "API lokatorów",
-  "description": "Tworzenie lokatorów, filtrowanie, kolekcje, nth, first, last, chaining i asercje na elementach",
+  "description": "API locatorów i kolekcje elementów: toHaveCount, count, all, filter, has, nth, evaluateAll, frameLocator, POM komponentów i antywzorce.",
   "order": 5,
   "difficulty": "beginner",
   "tags": [
@@ -152,26 +152,21 @@ export const lesson2_5: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Dokumentacja obiektów Page, Browser i BrowserContext."
+            "title": "Locators",
+            "url": "https://playwright.dev/docs/locators",
+            "description": "Praca z locatorami i filtrowaniem."
       },
       {
-        "title": "Playwright Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Oficjalny przewodnik po lokatorach i strategiach wyszukiwania elementów."
+            "title": "Locator API",
+            "url": "https://playwright.dev/docs/api/class-locator",
+            "description": "Metody Locator: count, all, filter, evaluateAll."
       },
       {
-        "title": "Playwright Auto-waiting",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Opis mechanizmu sprawdzanie gotowości elementu do akcji i automatycznego oczekiwania."
-      },
-      {
-        "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/screenshots",
-        "description": "Dokumentacja screenshotów i testów wizualnych."
+            "title": "Frames",
+            "url": "https://playwright.dev/docs/frames",
+            "description": "frameLocator i praca z iframe."
       }
-    ],
+],
     "tipsAndTricks": [
       "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
       "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",

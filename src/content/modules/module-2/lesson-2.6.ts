@@ -5,7 +5,7 @@ export const lesson2_6: Lesson = {
   "id": "2.6",
   "moduleId": 2,
   "title": "Akcje podstawowe",
-  "description": "Click, fill, type/press, clear, submit, klawiatura i poprawna weryfikacja skutków akcji",
+  "description": "Akcje podstawowe użytkownika: click, fill, pressSequentially, keyboard, checkbox/radio, select, hover, focus, skróty klawiaturowe i accessibility.",
   "order": 6,
   "difficulty": "beginner",
   "tags": [
@@ -152,26 +152,21 @@ export const lesson2_6: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Dokumentacja obiektów Page, Browser i BrowserContext."
+            "title": "Input",
+            "url": "https://playwright.dev/docs/input",
+            "description": "Oficjalne akcje wejścia w Playwright."
       },
       {
-        "title": "Playwright Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Oficjalny przewodnik po lokatorach i strategiach wyszukiwania elementów."
+            "title": "Actionability",
+            "url": "https://playwright.dev/docs/actionability",
+            "description": "Warunki gotowości elementu do akcji."
       },
       {
-        "title": "Playwright Auto-waiting",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Opis mechanizmu sprawdzanie gotowości elementu do akcji i automatycznego oczekiwania."
-      },
-      {
-        "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/screenshots",
-        "description": "Dokumentacja screenshotów i testów wizualnych."
+            "title": "Locators",
+            "url": "https://playwright.dev/docs/locators",
+            "description": "Stabilne znajdowanie elementów do interakcji."
       }
-    ],
+],
     "tipsAndTricks": [
       "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
       "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",

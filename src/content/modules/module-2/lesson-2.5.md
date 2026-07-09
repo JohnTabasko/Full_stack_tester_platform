@@ -184,3 +184,48 @@ await expect(row).toContainText('Opłacone');
 ```
 
 To daje lepszą informację diagnostyczną niż `toHaveCount(1)` na całej tabeli.
+
+## 14. Kolekcje w Page Object Model
+
+Jeżeli lista lub tabela pojawia się w wielu testach, warto opakować ją w komponent. Dzięki temu logika wyszukiwania wiersza po danych biznesowych nie jest duplikowana w specach:
+
+```typescript
+class OrdersTable {
+  constructor(private readonly root: Locator) {}
+
+  row(orderId: string) {
+    return this.root.getByRole('row').filter({ hasText: orderId });
+  }
+
+  async expectStatus(orderId: string, status: string) {
+    await expect(this.row(orderId)).toContainText(status);
+  }
+}
+```
+
+Test pozostaje czytelny:
+
+```typescript
+await ordersTable.expectStatus(order.id, 'Opłacone');
+```
+
+## 15. Kolekcje i wydajność
+
+Nie pobieraj tekstu z setek elementów, jeśli możesz zawęzić locator. `evaluateAll` jest przydatne, ale każda operacja na dużej kolekcji może spowolnić test. Najpierw zawęź po regionie, tabeli, filtrze lub danych testowych.
+
+```typescript
+const table = page.getByRole('table', { name: 'Zamówienia' });
+const rows = table.getByRole('row').filter({ hasText: runId });
+```
+
+## 16. Antywzorce pracy z kolekcjami
+
+- Iteracja po `all()` bez wcześniejszego `toHaveCount` lub innego oczekiwania.
+- Wybór elementu przez `nth()` bez uzasadnienia biznesowego.
+- Asercja tylko na liczbę elementów, bez sprawdzenia konkretnej treści.
+- Globalny locator tabeli, gdy na stronie są dwie podobne tabele.
+- Pobieranie `innerText()` z całej strony zamiast pracy na konkretnym komponencie.
+
+## 17. Zasada końcowa
+
+Praca z wieloma elementami powinna zaczynać się od pytania: który konkretnie element ma znaczenie biznesowe? Jeśli odpowiedzią jest „trzeci przycisk”, test prawdopodobnie jest zbyt kruchy.

@@ -167,3 +167,50 @@ await expect(page.getByLabel('Email')).toBeFocused();
 ```
 
 Jeśli formularz nie da się obsłużyć klawiaturą, to problem jakości produktu, nie tylko testu.
+
+## 13. Akcje myszy a testowanie canvasów i map
+
+Czasem zwykły locator nie wystarczy, np. przy canvasie, mapie albo edytorze graficznym. Wtedy kliknięcie po pozycji jest uzasadnione:
+
+```typescript
+await page.getByTestId('map').click({ position: { x: 120, y: 80 } });
+```
+
+Taki test powinien mieć bardzo czytelną nazwę i komentarz, bo kliknięcie w koordynaty jest mniej odporne na zmianę layoutu niż locator po roli.
+
+## 14. Akcje a walidacja formularzy
+
+Dla formularzy sprawdzaj nie tylko sukces, ale też walidację po interakcji użytkownika:
+
+```typescript
+await page.getByLabel('Email').fill('niepoprawny-email');
+await page.getByRole('button', { name: 'Zapisz' }).click();
+await expect(page.getByRole('alert')).toContainText('Niepoprawny adres e-mail');
+```
+
+To potwierdza, że akcje użytkownika uruchamiają właściwe reguły UI.
+
+## 15. Skróty klawiaturowe
+
+Aplikacje administracyjne często mają skróty: zapis, wyszukiwanie, zamykanie modala. Test może je sprawdzić:
+
+```typescript
+await page.keyboard.press('Control+K');
+await expect(page.getByRole('dialog', { name: 'Wyszukiwarka' })).toBeVisible();
+await page.keyboard.press('Escape');
+await expect(page.getByRole('dialog', { name: 'Wyszukiwarka' })).toBeHidden();
+```
+
+Na macOS może być potrzebny `Meta` zamiast `Control`, więc takie testy wymagają świadomego projektu.
+
+## 16. Antywzorce akcji podstawowych
+
+- Klikanie pierwszego lepszego `button`.
+- Brak asercji po akcji.
+- `force: true` bez wyjaśnienia.
+- Używanie `pressSequentially` wszędzie, mimo że `fill` wystarczy.
+- Testowanie ukrytych inputów zamiast widocznych kontrolek.
+
+## 17. Zasada końcowa
+
+Akcja w teście powinna przypominać zachowanie prawdziwego użytkownika. Jeśli test robi coś, czego użytkownik nie może zrobić, musisz mieć bardzo dobry powód i opisać go w kodzie.

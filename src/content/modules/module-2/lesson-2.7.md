@@ -155,3 +155,44 @@ Pobrane pliki zapisuj w katalogu test-results albo katalogu tymczasowym. Nie zap
 ## 12. Custom select i accessibility
 
 Jeśli custom select nie ma roli `combobox` i opcji `option`, test będzie trudniejszy, a komponent mniej dostępny. Dobrze zaprojektowany komponent UI jest jednocześnie łatwiejszy do testowania i bardziej dostępny.
+
+## 13. Walidacja uploadu po stronie UI i API
+
+Po uploadzie sprawdź więcej niż sam komunikat sukcesu. Dla krytycznych plików warto potwierdzić, że backend zapisał metadane:
+
+```typescript
+await page.getByLabel('Załącz fakturę').setInputFiles('tests/assets/invoice.pdf');
+await expect(page.getByText('invoice.pdf')).toBeVisible();
+
+const response = await request.get(`/api/orders/${orderId}/attachments`);
+const attachments = await response.json();
+expect(attachments).toEqual(expect.arrayContaining([
+  expect.objectContaining({ fileName: 'invoice.pdf' }),
+]));
+```
+
+To jest dobry przykład testu full stack: UI wykonuje akcję, API potwierdza stan.
+
+## 14. Pobieranie plików a nazwa i zawartość
+
+Dla faktur, raportów i eksportów CSV sama obecność pliku nie wystarcza. Sprawdź nazwę, typ i zawartość. Jeśli eksport CSV ma zawierać numer zamówienia, odczytaj plik i wykonaj asercję.
+
+```typescript
+expect(download.suggestedFilename()).toMatch(/orders.*\.csv/);
+```
+
+## 15. Praca z drag and drop
+
+Drag and drop bywa implementowany różnie. Dla prostych elementów użyj `dragTo`. Dla upload zones czasem potrzebne jest symulowanie DataTransfer albo dedykowane API komponentu. Zawsze sprawdzaj końcowy stan UI, np. że karta zmieniła kolumnę albo plik pojawił się na liście.
+
+## 16. Antywzorce akcji zaawansowanych
+
+- Ścieżki absolutne do plików z lokalnego komputera.
+- Brak event-first pattern dla downloadu lub file chooser.
+- Test custom selecta przez `selectOption` mimo że to nie jest `<select>`.
+- Sprawdzanie tylko komunikatu sukcesu bez potwierdzenia danych.
+- Brak cleanupu plików testowych.
+
+## 17. Zasada końcowa
+
+Zaawansowane akcje są asynchroniczne i często dotykają systemu plików albo backendu. Projektuj je z event-first pattern, deterministycznymi danymi i jasną asercją końcową.

@@ -5,7 +5,7 @@ export const lesson2_9: Lesson = {
   "id": "2.9",
   "moduleId": 2,
   "title": "Zrzuty ekranu i testy wizualne",
-  "description": "Screenshoty, visual regression testing, baseline, maskowanie dynamicznej treści i interpretacja różnic wizualnych",
+  "description": "Testy wizualne: screenshoty, toHaveScreenshot, maski, tolerancje, stabilizacja danych, ARIA snapshots, CI baseline i review snapshotów.",
   "order": 9,
   "difficulty": "beginner",
   "tags": [
@@ -152,26 +152,21 @@ export const lesson2_9: Lesson = {
     ],
     "references": [
       {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Dokumentacja obiektów Page, Browser i BrowserContext."
+            "title": "Screenshots",
+            "url": "https://playwright.dev/docs/screenshots",
+            "description": "Screenshoty stron i locatorów."
       },
       {
-        "title": "Playwright Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Oficjalny przewodnik po lokatorach i strategiach wyszukiwania elementów."
+            "title": "Visual comparisons",
+            "url": "https://playwright.dev/docs/test-snapshots",
+            "description": "Snapshot testing i toHaveScreenshot."
       },
       {
-        "title": "Playwright Auto-waiting",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Opis mechanizmu sprawdzanie gotowości elementu do akcji i automatycznego oczekiwania."
-      },
-      {
-        "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/screenshots",
-        "description": "Dokumentacja screenshotów i testów wizualnych."
+            "title": "ARIA snapshots",
+            "url": "https://playwright.dev/docs/aria-snapshots",
+            "description": "Snapshoty struktury dostępności."
       }
-    ],
+],
     "tipsAndTricks": [
       "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
       "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",
