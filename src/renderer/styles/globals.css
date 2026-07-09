@@ -1,0 +1,249 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 250 40% 98%;
+    --foreground: 240 18% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 18% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 18% 10%;
+    --primary: 263 84% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 250 35% 94%;
+    --secondary-foreground: 244 34% 20%;
+    --muted: 250 30% 94%;
+    --muted-foreground: 240 8% 43%;
+    --accent: 260 45% 92%;
+    --accent-foreground: 258 70% 32%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 250 24% 88%;
+    --input: 250 24% 88%;
+    --ring: 263 84% 58%;
+    --radius: 0.85rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 18% 18%;
+    --sidebar-accent: 260 45% 94%;
+    --sidebar-accent-foreground: 258 70% 32%;
+  }
+
+  .dark {
+    --background: 240 24% 7%;
+    --foreground: 240 24% 96%;
+    --card: 240 22% 10%;
+    --card-foreground: 240 24% 96%;
+    --popover: 240 24% 9%;
+    --popover-foreground: 240 24% 96%;
+    --primary: 263 88% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 242 22% 15%;
+    --secondary-foreground: 240 24% 96%;
+    --muted: 242 20% 16%;
+    --muted-foreground: 240 10% 70%;
+    --accent: 263 38% 19%;
+    --accent-foreground: 263 90% 82%;
+    --destructive: 0 62% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 242 18% 20%;
+    --input: 242 18% 20%;
+    --ring: 263 88% 66%;
+    --sidebar-background: 240 26% 9%;
+    --sidebar-foreground: 240 18% 94%;
+    --sidebar-accent: 263 35% 18%;
+    --sidebar-accent-foreground: 263 90% 82%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background:
+      radial-gradient(circle at 15% 10%, hsl(var(--primary) / 0.10), transparent 28rem),
+      radial-gradient(circle at 85% 0%, hsl(220 90% 60% / 0.08), transparent 24rem),
+      hsl(var(--background));
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+  }
+
+  button, a, input, textarea, select {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+/* Monaco Editor overrides */
+.monaco-editor {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
+
+/* Code block styling */
+pre {
+  @apply rounded-lg overflow-x-auto;
+}
+
+code {
+  @apply font-mono text-sm;
+}
+
+/* Markdown content styling */
+.markdown-content h1 {
+  @apply text-2xl font-bold mb-4 mt-6 text-foreground;
+}
+
+.markdown-content h2 {
+  @apply text-xl font-semibold mb-3 mt-5 text-foreground;
+}
+
+.markdown-content h3 {
+  @apply text-lg font-semibold mb-2 mt-4 text-foreground;
+}
+
+.markdown-content p {
+  @apply mb-3 leading-relaxed text-muted-foreground;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-3 ml-6 space-y-1;
+}
+
+.markdown-content li {
+  @apply text-muted-foreground;
+}
+
+.markdown-content a {
+  @apply text-primary underline decoration-primary/30 hover:decoration-primary transition-colors;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-primary/30 pl-4 italic text-muted-foreground my-4;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse mb-4;
+}
+
+.markdown-content th {
+  @apply border border-border px-4 py-2 text-left font-semibold bg-secondary;
+}
+
+.markdown-content td {
+  @apply border border-border px-4 py-2;
+}
+
+.markdown-content code {
+  @apply bg-secondary px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-content img {
+  @apply rounded-lg max-w-full my-4;
+}
+
+/* Animations */
+@keyframes checkmark {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.animate-checkmark {
+  animation: checkmark 0.4s ease-out;
+}
+
+@layer components {
+  .app-surface {
+    @apply bg-card/85 backdrop-blur-xl border border-border/80 shadow-xl shadow-black/5 dark:shadow-black/30;
+  }
+
+  .nav-tile {
+    @apply rounded-xl border border-transparent px-2 py-2 text-[10px] transition-all duration-200;
+  }
+
+  .nav-tile-active {
+    @apply border-primary/30 bg-primary/10 text-primary shadow-sm shadow-primary/10;
+  }
+
+  .nav-tile-idle {
+    @apply text-muted-foreground hover:border-border hover:bg-accent/60 hover:text-foreground;
+  }
+
+  .progress-gradient {
+    @apply bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400;
+  }
+}
+
+/* Reading experience */
+.reading-scroll {
+  scroll-padding-top: 1rem;
+}
+
+.markdown-content {
+  @apply text-[15px] sm:text-base;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  scroll-margin-top: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.markdown-content h1 {
+  @apply text-3xl sm:text-4xl mb-5 mt-2;
+}
+
+.markdown-content h2 {
+  @apply text-2xl mt-9 mb-4 pb-2 border-b border-border/70;
+}
+
+.markdown-content h3 {
+  @apply text-xl mt-7 mb-3;
+}
+
+.markdown-content p {
+  @apply leading-8 text-foreground/85;
+}
+
+.markdown-content li {
+  @apply leading-7 text-foreground/80;
+}
+
+.markdown-content strong {
+  @apply text-foreground font-semibold;
+}
