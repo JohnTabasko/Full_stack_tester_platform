@@ -20,139 +20,81 @@ export const lesson19_1: Lesson = {
     "objective": "Po ukończeniu lekcji potrafisz zaprojektować testy jednostkowe dla logiki domenowej, używać matcherów i setupu testowego, interpretować pokrycie kodu oraz odróżnić wartościowy test unit od testu kruchego i nadmiernie związanego z implementacją.",
     "theory": theory19_1,
     "codeExamples": [
-      "import { describe, expect, it } from 'vitest';\n\ntype CustomerType = 'regular' | 'premium';\n\nexport function calculateDiscount(total: number, customer: CustomerType, promoCode?: string): number {\n  const baseRate = customer === 'premium' ? 0.1 : 0;\n  const promoRate = promoCode === 'PROMO15' ? 0.15 : baseRate;\n  return Math.min(total * promoRate, 200);\n}\n\ndescribe('calculateDiscount', () => {\n  it.each([\n    { total: 100, customer: 'regular' as const, promoCode: undefined, expected: 0 },\n    { total: 100, customer: 'premium' as const, promoCode: undefined, expected: 10 },\n    { total: 1000, customer: 'premium' as const, promoCode: 'PROMO15', expected: 150 },\n    { total: 3000, customer: 'premium' as const, promoCode: 'PROMO15', expected: 200 },\n  ])('returns $expected for %#', ({ total, customer, promoCode, expected }) => {\n    expect(calculateDiscount(total, customer, promoCode)).toBe(expected);\n  });\n});",
-      "// Przykład asercji częściowej dla dużego obiektu.\nexpect(order).toMatchObject({\n  status: 'paid',\n  customer: {\n    type: 'premium',\n  },\n});\n\n// Test nie wiąże się z polami nieistotnymi dla scenariusza,\n// np. identyfikatorem technicznym albo datą aktualizacji.\n"
-    ],
+      "import { describe, expect, it } from 'vitest';\nimport { calculateDiscount } from './discounts';\n\ndescribe('calculateDiscount', () => {\n  it.each([\n    { total: 100, value: 10, expected: 90 },\n    { total: 50, value: 20, expected: 40 },\n  ])('applies percent discount', ({ total, value, expected }) => {\n    expect(calculateDiscount(total, { type: 'percent', value })).toBe(expected);\n  });\n});",
+      "import { expect, test, vi } from 'vitest';\n\ntest('expires promotion after configured time', () => {\n  vi.useFakeTimers();\n  vi.setSystemTime(new Date('2026-07-09T10:00:00Z'));\n\n  expect(isPromotionActive('2026-07-09T11:00:00Z')).toBe(true);\n\n  vi.setSystemTime(new Date('2026-07-09T12:00:00Z'));\n  expect(isPromotionActive('2026-07-09T11:00:00Z')).toBe(false);\n\n  vi.useRealTimers();\n});"
+],
     "exercises": [
       {
-        "id": "ex-19-1-1",
-        "title": "Reguła rabatu",
-        "description": "Napisz testy tabelaryczne dla funkcji naliczającej rabat z limitem maksymalnym."
+            "id": "ex-auto-1",
+            "title": "Zaprojektuj testy jednostkowe dla walidacji kuponu",
+            "description": "Zaprojektuj testy jednostkowe dla walidacji kuponu: aktywny, wygasły, przekroczony limit użyć i za mała wartość koszyka."
       },
       {
-        "id": "ex-19-1-2",
-        "title": "Dobór matcherów",
-        "description": "Dla pięciu asercji wybierz właściwy matcher i uzasadnij decyzję."
+            "id": "ex-auto-2",
+            "title": "Ćwiczenie 2",
+            "description": "Przepisz wolny test E2E walidacji rabatu na zestaw testów jednostkowych z `it.each`."
       },
       {
-        "id": "ex-19-1-3",
-        "title": "Granice i klasy",
-        "description": "Zaprojektuj testy jednostkowe dla walidacji wieku 18–99."
+            "id": "ex-auto-3",
+            "title": "Ćwiczenie 3",
+            "description": "Dodaj fake timers do funkcji zależnej od daty i usuń realne czekanie."
       },
       {
-        "id": "ex-19-1-4",
-        "title": "Coverage review",
-        "description": "Przeanalizuj raport pokrycie kodu i wskaż miejsca, gdzie brakuje sensownych asercji."
-      },
-      {
-        "id": "ex-19-1-5",
-        "title": "Refaktor testu",
-        "description": "Przepisz długi test z wieloma przypadkami na test tabelaryczny."
-      },
-      {
-        "id": "ex-19-1-6",
-        "title": "Unit czy E2E",
-        "description": "Wskaż, które elementy procesu checkout powinny być testowane jednostkowo, a które E2E."
+            "id": "ex-auto-4",
+            "title": "Ćwiczenie 4",
+            "description": "Zdefiniuj minimalny próg coverage oraz opisz, dlaczego sam coverage nie wystarcza."
       }
-    ],
+],
     "quiz": [
       {
-        "id": "q19-1-1",
-        "question": "Co jest główną zaletą testów jednostkowych?",
-        "options": [
-          "Realizm pełnego systemu",
-          "Szybkość i precyzyjna diagnoza logiki",
-          "Brak potrzeby asercji",
-          "Zastąpienie wszystkich innych testów"
-        ],
-        "correctAnswer": 1,
-        "explanation": "Testy unit szybko wskazują problem w małej jednostce zachowania."
+            "id": "q-auto-1",
+            "question": "Co najlepiej testować jednostkowo?",
+            "options": [
+                  "Deterministyczne reguły domenowe i walidacje",
+                  "Pełny checkout z płatnością",
+                  "Ręczne testy eksploracyjne",
+                  "Konfigurację DNS"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       },
       {
-        "id": "q19-1-2",
-        "question": "Co oznacza struktura Arrange–Act–Assert?",
-        "options": [
-          "Przygotowanie, wykonanie i sprawdzenie",
-          "Instalację, deploy i monitoring",
-          "Trzy typy commitów",
-          "Rodzaj pokrycie kodu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "AAA porządkuje narrację testu."
+            "id": "q-auto-2",
+            "question": "Dlaczego `toBeTruthy()` bywa słabą asercją?",
+            "options": [
+                  "Nie opisuje konkretnej oczekiwanej wartości",
+                  "Jest wolniejsze od E2E",
+                  "Nie działa w Vitest",
+                  "Zawsze rzuca wyjątek"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       },
       {
-        "id": "q19-1-3",
-        "question": "Dlaczego 100% pokrycie kodu nie gwarantuje jakości?",
-        "options": [
-          "Bo pokrycie kodu nie mówi, czy asercje sprawdzają sensowne zachowanie",
-          "Bo pokrycie kodu zawsze jest błędny",
-          "Bo działa tylko w E2E",
-          "Bo usuwa testy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Kod może być wykonany bez wartościowej weryfikacji."
+            "id": "q-auto-3",
+            "question": "Kiedy użyć fake timers?",
+            "options": [
+                  "Gdy kod zależy od czasu, timeoutów lub dat",
+                  "Do testowania CSS",
+                  "Do uruchomienia bazy",
+                  "Do publikacji raportu"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       },
       {
-        "id": "q19-1-4",
-        "question": "Kiedy użyć testów tabelarycznych?",
-        "options": [
-          "Gdy ta sama reguła ma wiele wariantów danych",
-          "Tylko przy screenshotach",
-          "Nigdy w TypeScript",
-          "Wyłącznie w testach manualnych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Testy tabelaryczne redukują duplikację i ujawniają przypadki."
-      },
-      {
-        "id": "q19-1-5",
-        "question": "Który element checkoutu najlepiej testować jednostkowo?",
-        "options": [
-          "Obliczanie rabatu",
-          "Pełną płatność przez interfejs użytkownika",
-          "Logowanie przez przeglądarkę",
-          "Renderowanie całego portalu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Reguła obliczeniowa jest deterministyczna i tania do sprawdzenia nisko."
-      },
-      {
-        "id": "q19-1-6",
-        "question": "Jaki jest częsty antywzorzec testu unit?",
-        "options": [
-          "Testowanie prywatnych szczegółów implementacji zamiast zachowania",
-          "Użycie danych brzegowych",
-          "Czytelna nazwa testu",
-          "Asercja wyniku"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Test związany z implementacją utrudnia refaktor bez zmiany zachowania."
-      },
-      {
-        "id": "q19-1-7",
-        "question": "Do czego służy toMatchObject?",
-        "options": [
-          "Do sprawdzenia istotnego fragmentu obiektu",
-          "Do kliknięcia przycisku",
-          "Do instalacji zależności",
-          "Do uruchomienia CI"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Matcher pozwala uniknąć wiązania testu z nieistotnymi polami."
-      },
-      {
-        "id": "q19-1-8",
-        "question": "Co powinien komunikować dobry test jednostkowy?",
-        "options": [
-          "Konkretną regułę i oczekiwany rezultat",
-          "Nazwę IDE autora",
-          "Kolor tła aplikacji",
-          "Losową wartość"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Nazwa i asercje powinny opisywać zachowanie domenowe."
+            "id": "q-auto-4",
+            "question": "Co oznacza test parametryzowany?",
+            "options": [
+                  "Ten sam test uruchomiony dla wielu zestawów danych",
+                  "Test bez asercji",
+                  "Test wyłącznie manualny",
+                  "Test z losowym wynikiem"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       }
-    ],
+],
     "references": [
       {
         "title": "Vitest Guide",
@@ -171,28 +113,24 @@ export const lesson19_1: Lesson = {
       }
     ],
     "tipsAndTricks": [
-      "Test jednostkowy powinien padać z powodu jednej reguły, nie całego systemu.",
-      "Jeżeli test unit wymaga bazy i przeglądarki, prawdopodobnie nie jest unit.",
-      "Coverage traktuj jako mapę pytań, nie jako medal jakości.",
-      "Testy tabelaryczne świetnie łączą się z technikami projektowania przypadków."
-    ],
+      "Unit test powinien być szybki, mały i jednoznaczny diagnostycznie.",
+      "Używaj `it.each` dla wartości brzegowych i klas równoważności.",
+      "Coverage traktuj jako wskaźnik pomocniczy, nie dowód jakości.",
+      "Jeśli unit test wymaga wielu mocków, sprawdź projekt funkcji."
+],
     "commonMistakes": [
       {
-        "mistake": "Testowanie implementacji",
-        "solution": "Sprawdzaj rezultat widoczny w API funkcji, nie prywatne kroki."
+            "mistake": "Testowanie prywatnej implementacji",
+            "solution": "Testuj publiczne zachowanie funkcji lub modułu."
       },
       {
-        "mistake": "Brak przypadków brzegowych",
-        "solution": "Dodaj dane wynikające z klas równoważności i wartości brzegowych."
+            "mistake": "Brak przypadków negatywnych",
+            "solution": "Dodaj błędy walidacji, wartości brzegowe i wyjątki."
       },
       {
-        "mistake": "Ślepa pogoń za pokrycie kodu",
-        "solution": "Oceniaj jakość asercji i pokrycie ryzyka."
-      },
-      {
-        "mistake": "Duplikacja testów",
-        "solution": "Użyj testów tabelarycznych lub helperów danych."
+            "mistake": "Realne czekanie w unit testach",
+            "solution": "Użyj fake timers zamiast sleepów."
       }
-    ]
+]
   }
 };

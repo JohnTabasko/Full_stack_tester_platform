@@ -20,139 +20,82 @@ export const lesson19_2: Lesson = {
     "objective": "Po ukończeniu lekcji rozumiesz różnice między typami dublerów testowych, potrafisz izolować zależności bez utraty sensu testu oraz wiesz, kiedy mock pomaga, a kiedy czyni test mniej wiarygodnym.",
     "theory": theory19_2,
     "codeExamples": [
-      "import { expect, it, vi } from 'vitest';\n\ninterface Mailer {\n  sendPaymentConfirmation(email: string, orderId: string): Promise<void>;\n}\n\nclass FakeOrderRepository {\n  private statuses = new Map<string, string>();\n  async markAsPaid(orderId: string) { this.statuses.set(orderId, 'paid'); }\n  async status(orderId: string) { return this.statuses.get(orderId); }\n}\n\nit('marks order as paid and sends confirmation', async () => {\n  const repo = new FakeOrderRepository();\n  const mailer: Mailer = { sendPaymentConfirmation: vi.fn().mockResolvedValue(undefined) };\n\n  await completePayment({ repo, mailer }, { orderId: 'ord-1', email: 'a@example.test' });\n\n  expect(await repo.status('ord-1')).toBe('paid');\n  expect(mailer.sendPaymentConfirmation).toHaveBeenCalledWith('a@example.test', 'ord-1');\n});\n",
-      "// Antywzorzec: test kruchej implementacji.\nexpect(repository.beginTransaction).toHaveBeenCalledBefore(repository.save);\n\n// Lepsze pytanie: czy rezultat domenowy jest poprawny?\nexpect(await repository.findOrder(orderId)).toMatchObject({ status: 'paid' });\n"
-    ],
+      "import { expect, test, vi } from 'vitest';\n\ntest('logs provider timeout', async () => {\n  const gateway = { charge: vi.fn().mockRejectedValue(new Error('timeout')) };\n  const logger = { error: vi.fn() };\n\n  await expect(payOrder(gateway, logger)).rejects.toThrow('timeout');\n  expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('timeout'));\n});",
+      "afterEach(() => {\n  vi.restoreAllMocks();\n  vi.clearAllMocks();\n});",
+      "class InMemoryOrdersRepository {\n  private orders = new Map<string, Order>();\n  save(order: Order) { this.orders.set(order.id, order); }\n  findById(id: string) { return this.orders.get(id) ?? null; }\n}"
+],
     "exercises": [
       {
-        "id": "ex-19-2-1",
-        "title": "Słownik dublerów",
-        "description": "Dla pięciu przykładów wskaż, czy użyć dummy, stub, fake, spy czy mock."
+            "id": "ex-auto-1",
+            "title": "Ćwiczenie 1",
+            "description": "Zastąp mock bazy prostym fake repository i porównaj czytelność testu."
       },
       {
-        "id": "ex-19-2-2",
-        "title": "Fake repozytorium",
-        "description": "Zaimplementuj fake repozytorium w pamięci dla zamówień i użyj go w teście serwisu."
+            "id": "ex-auto-2",
+            "title": "Ćwiczenie 2",
+            "description": "Zamockuj błąd dostawcy płatności i sprawdź fallback oraz log diagnostyczny."
       },
       {
-        "id": "ex-19-2-3",
-        "title": "Spy mailera",
-        "description": "Sprawdź, czy po zdarzeniu domenowym wysłano e-mail, nie uruchamiając prawdziwej poczty."
+            "id": "ex-auto-3",
+            "title": "Ćwiczenie 3",
+            "description": "Dodaj `afterEach` czyszczący mocki i wykaż, jaki błąd usuwa."
       },
       {
-        "id": "ex-19-2-4",
-        "title": "Granice mockowania",
-        "description": "Wskaż, które zależności w module płatności mockować, a które testować integracyjnie."
-      },
-      {
-        "id": "ex-19-2-5",
-        "title": "Refaktor kruchego testu",
-        "description": "Przepisz test sprawdzający prywatną kolejność wywołań na test rezultatu domenowego."
-      },
-      {
-        "id": "ex-19-2-6",
-        "title": "Kontrakt po mocku",
-        "description": "Zaprojektuj test kontraktowy, który uzupełni test jednostkowy z mockiem klienta API."
+            "id": "ex-auto-4",
+            "title": "Ćwiczenie 4",
+            "description": "Porównaj mock modułu z MSW dla tego samego API."
       }
-    ],
+],
     "quiz": [
       {
-        "id": "q19-2-1",
-        "question": "Czym jest stub?",
-        "options": [
-          "Dubler zwracający przygotowane odpowiedzi",
-          "Pełna baza produkcyjna",
-          "Raport pokrycie kodu",
-          "Test E2E"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Stub kontroluje odpowiedź zależności."
+            "id": "q-auto-1",
+            "question": "Czym różni się spy od stuba?",
+            "options": [
+                  "Spy obserwuje wywołania, stub zwraca zaprogramowaną odpowiedź",
+                  "To dokładnie to samo",
+                  "Spy wymaga przeglądarki",
+                  "Stub jest wyłącznie dla CSS"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       },
       {
-        "id": "q19-2-2",
-        "question": "Czym jest fake?",
-        "options": [
-          "Uproszczoną działającą implementacją",
-          "Losowym stringiem",
-          "Prawdziwą usługą produkcyjną",
-          "Typem CSS"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Fake działa, ale jest uproszczony, np. repozytorium w pamięci."
+            "id": "q-auto-2",
+            "question": "Co jest ryzykiem nadmiernego mockowania?",
+            "options": [
+                  "Test przechodzi mimo zepsutej realnej integracji",
+                  "Testy zawsze są wolniejsze",
+                  "Brak możliwości asercji",
+                  "Nie działa TypeScript"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       },
       {
-        "id": "q19-2-3",
-        "question": "Kiedy spy jest użyteczny?",
-        "options": [
-          "Gdy chcemy sprawdzić istotną interakcję",
-          "Do pomiaru p95",
-          "Do migracji bazy",
-          "Do generowania PDF"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Spy rejestruje wywołania zależności."
+            "id": "q-auto-3",
+            "question": "Kiedy MSW bywa lepsze od mockowania modułów?",
+            "options": [
+                  "Gdy chcesz mockować granicę HTTP zamiast implementacji",
+                  "Gdy testujesz prywatną metodę",
+                  "Gdy nie ma requestów",
+                  "Gdy chcesz pominąć kontrakt"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       },
       {
-        "id": "q19-2-4",
-        "question": "Jakie ryzyko niesie nadmierne mockowanie?",
-        "options": [
-          "Testujemy wyobrażenie zależności zamiast realnej integracji",
-          "Testy zawsze stają się wolniejsze",
-          "Nie da się pisać asercji",
-          "TypeScript przestaje działać"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Mock może rozminąć się z prawdziwym kontraktem."
-      },
-      {
-        "id": "q19-2-5",
-        "question": "Którą zależność najczęściej warto mockować w unit testach?",
-        "options": [
-          "Zewnętrzną bramkę płatności",
-          "Prostą funkcję sumującą",
-          "Stałą matematyczną",
-          "Typ TypeScript"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zależności zewnętrzne są wolne, kosztowne i niedeterministyczne."
-      },
-      {
-        "id": "q19-2-6",
-        "question": "Co powinno uzupełniać testy z mockami API?",
-        "options": [
-          "Testy kontraktowe lub integracyjne",
-          "Więcej waitForTimeout",
-          "Usunięcie asercji",
-          "Wyłącznie screenshoty"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Trzeba gdzieś sprawdzić prawdziwy kontrakt komunikacji."
-      },
-      {
-        "id": "q19-2-7",
-        "question": "Co jest lepsze niż asercja na prywatną kolejność wywołań?",
-        "options": [
-          "Asercja na rezultat domenowy",
-          "Brak testu",
-          "Losowy sleep",
-          "Zmiana nazwy pliku"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Rezultat jest stabilniejszym kontraktem niż szczegóły implementacji."
-      },
-      {
-        "id": "q19-2-8",
-        "question": "Jaki jest cel dublera testowego?",
-        "options": [
-          "Kontrolowana zamiana zależności w teście",
-          "Zastąpienie całej strategii testów",
-          "Ukrywanie błędów",
-          "Usunięcie TypeScriptu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Dubler pozwala izolować jednostkę i kontrolować warunki testu."
+            "id": "q-auto-4",
+            "question": "Po co resetować mocki?",
+            "options": [
+                  "Aby testy nie dziedziczyły stanu i wywołań",
+                  "Aby wyłączyć lint",
+                  "Aby przyspieszyć build",
+                  "Aby usunąć coverage"
+            ],
+            "correctAnswer": 0,
+            "explanation": "To sprawdza zrozumienie praktycznego zastosowania lekcji."
       }
-    ],
+],
     "references": [
       {
         "title": "Vitest Mocking",
@@ -171,28 +114,24 @@ export const lesson19_2: Lesson = {
       }
     ],
     "tipsAndTricks": [
-      "Mockuj granice systemu, nie każdy wewnętrzny detal.",
-      "Fake jest często czytelniejszy niż rozbudowany mock z wieloma oczekiwaniami.",
-      "Każdy mock zewnętrznego API powinien mieć parę w postaci testu kontraktowego lub integracyjnego.",
-      "Nie asercjonuj interakcji, jeżeli nie jest częścią zachowania biznesowego."
-    ],
+      "Mockuj granice, nie logikę, którą testujesz.",
+      "Dane mocka powinny być zgodne z kontraktem API.",
+      "Fake bywa lepszy niż mock, gdy potrzebujesz prostego, działającego stanu.",
+      "Po każdym teście przywracaj spies i mocki."
+],
     "commonMistakes": [
       {
-        "mistake": "Mockowanie wszystkiego",
-        "solution": "Zostaw prawdziwą logikę tam, gdzie jest szybka i deterministyczna."
+            "mistake": "Mock niezgodny z kontraktem",
+            "solution": "Waliduj mocki typami, schema albo OpenAPI."
       },
       {
-        "mistake": "Brak testu prawdziwej integracji",
-        "solution": "Dodaj test kontraktowy lub integracyjny dla adaptera."
+            "mistake": "Asercja tylko na wywołanie metody",
+            "solution": "Sprawdź także efekt domenowy."
       },
       {
-        "mistake": "Asercje na szczegóły implementacji",
-        "solution": "Preferuj asercje na rezultat domenowy."
-      },
-      {
-        "mistake": "Złożone mocki trudniejsze niż kod produkcyjny",
-        "solution": "Rozważ fake albo uproszczenie testowanej jednostki."
+            "mistake": "Brak resetu mocków",
+            "solution": "Użyj `restoreAllMocks` i `clearAllMocks` w teardownie."
       }
-    ]
+]
   }
 };
