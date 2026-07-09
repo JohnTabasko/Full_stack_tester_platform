@@ -549,3 +549,35 @@ Zrozumienie asynchroniczności to nie jest "opcjonalna wiedza" — to fundament 
 - [Playwright — API Class Page](https://playwright.dev/docs/api/class-page)
 - [TypeScript — Async Functions](https://www.typescriptlang.org/docs/handbook/functions.html#writing-async-functions)
 - [Common Async/Await Mistakes — Robin Pokorny](https://javascript.plainenglish.io/common-javascript-async-await-mistakes-you-should-avoid-96f920d4df75)
+---
+
+## `Promise.all` i event-first pattern
+
+W testach często musisz zacząć czekać na zdarzenie przed akcją:
+
+```typescript
+const responsePromise = page.waitForResponse('**/api/orders');
+await page.getByRole('button', { name: 'Odśwież' }).click();
+const response = await responsePromise;
+```
+
+Dla kilku niezależnych operacji użyj `Promise.all`, ale tylko wtedy, gdy naprawdę mogą działać równolegle.
+
+```typescript
+const [user, product] = await Promise.all([
+  usersClient.createUser(buildUser()),
+  productsClient.createProduct(buildProduct()),
+]);
+```
+
+Nie używaj `Promise.all` dla kroków zależnych od siebie, np. utworzenie zamówienia przed płatnością.
+
+## Obsługa błędów async
+
+Dla obietnic używaj `rejects`:
+
+```typescript
+await expect(service.createOrder({ items: [] })).rejects.toThrow(/validation/i);
+```
+
+Nie pisz `expect(async () => ...).toThrow()`, bo to nie sprawdza odrzuconej obietnicy w oczekiwany sposób.

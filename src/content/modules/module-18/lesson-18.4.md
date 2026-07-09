@@ -702,3 +702,40 @@ Git to narzędzie, które zamienia Cię z „pisarza testów" w „inżyniera ja
 - **[Writing Good Commit Messages — FreeCodeCamp](https://www.freecodecamp.org/news/writing-good-commit-messages-a-practical-guide/)** — praktyczny przewodnik
 - **[Husky — Git Hooks](https://typicode.github.io/husky/)** — automatyzacja lintowania commitów
 - **[Git Extras — CLI Tools](https://github.com/tj/git-extras)** — dodatkowe polecenia Git
+---
+
+## Rebase, merge, revert i reset
+
+Tester pracujący z kodem musi rozumieć podstawowe operacje Git:
+
+- `merge` zachowuje historię gałęzi;
+- `rebase` przepisuje historię lokalnej gałęzi na nowszą bazę;
+- `revert` tworzy commit odwracający zmianę;
+- `reset` przesuwa wskaźnik branch — ostrożnie, szczególnie na gałęziach współdzielonych.
+
+W pracy zespołowej bezpieczniej odwrócić zmianę przez `git revert` niż przepisywać historię main.
+
+## `git bisect` jako narzędzie testera
+
+Jeśli nie wiadomo, który commit wprowadził regresję, `git bisect` pozwala znaleźć winny commit przez binarne przeszukiwanie historii.
+
+```bash
+git bisect start
+git bisect bad
+git bisect good <known-good-commit>
+# uruchamiaj test i oznaczaj good/bad
+```
+
+To bardzo praktyczne przy regresjach E2E i performance.
+
+## Conventional Commits i czytelna historia
+
+Komunikaty commitów pomagają w release notes i analizie zmian:
+
+```text
+feat(auth): add storage state setup
+fix(checkout): preserve coupon after refresh
+test(api): add contract tests for orders
+```
+
+Historia Git jest narzędziem diagnostycznym, nie tylko archiwum kodu.

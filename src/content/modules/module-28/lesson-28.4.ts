@@ -5,7 +5,7 @@ export const lesson28_4: Lesson = {
   "id": "28.4",
   "moduleId": 28,
   "title": "GitHub, CV i prezentacja portfolio",
-  "description": "README, decyzje architektoniczne, demo, raporty, CV, LinkedIn, opis projektów i checklisty publikacji portfolio QA Automation.",
+  "description": "Zadania rekrutacyjne, live coding, trade-offy testowe, TEST_STRATEGY.md, security/privacy checklist i prezentacja decyzji.",
   "order": 4,
   "difficulty": "expert",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson28_4: Lesson = {
     ],
     "references": [
       {
-        "title": "GitHub Docs - About READMEs",
-        "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes",
-        "description": "Jak pisać czytelne README dla projektu publikowanego na GitHubie."
+        "title": "GitHub Docs",
+        "url": "https://docs.github.com/",
+        "description": "Przygotowanie publicznego repozytorium."
       },
       {
-        "title": "GitHub Skills",
-        "url": "https://skills.github.com/",
-        "description": "Praktyczne materiały GitHuba pomagające przygotować repozytorium i workflow."
+        "title": "Conventional Commits",
+        "url": "https://www.conventionalcommits.org/",
+        "description": "Czytelna historia commitów."
       },
       {
-        "title": "The STAR Method",
-        "url": "https://www.themuse.com/advice/star-interview-method",
-        "description": "Popularna metoda opowiadania o doświadczeniu podczas rozmowy rekrutacyjnej."
-      },
-      {
-        "title": "Playwright Best Practices",
-        "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalne dobre praktyki Playwright przydatne w projekcie portfolio."
+        "title": "OWASP Top 10",
+        "url": "https://owasp.org/www-project-top-ten/",
+        "description": "Security checklist dla projektów web."
       }
     ],
     "tipsAndTricks": [

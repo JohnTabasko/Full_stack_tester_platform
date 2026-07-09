@@ -5,7 +5,7 @@ export const lesson18_4: Lesson = {
   "id": "18.4",
   "moduleId": 18,
   "title": "Przepływ pracy testera w Git",
-  "description": "Branching, pull request, rebase kontra merge, konflikty, git bisect, revert, cherry-pick, Conventional Commits i przegląd kodu testów.",
+  "description": "Git workflow dla testera: branch, commit, rebase, merge, revert, reset, bisect, conventional commits i historia jako diagnostyka.",
   "order": 4,
   "difficulty": "beginner",
   "tags": [
@@ -156,24 +156,19 @@ export const lesson18_4: Lesson = {
     ],
     "references": [
       {
-        "title": "TypeScript Handbook",
-        "url": "https://www.typescriptlang.org/docs/",
-        "description": "Oficjalny podręcznik języka TypeScript."
+        "title": "Git Docs",
+        "url": "https://git-scm.com/docs",
+        "description": "Oficjalna dokumentacja Git."
       },
       {
-        "title": "Node.js Documentation",
-        "url": "https://nodejs.org/docs/latest/api/",
-        "description": "Dokumentacja środowisko uruchomieniowe’u Node.js i jego standardowych modułów."
-      },
-      {
-        "title": "Git Documentation",
-        "url": "https://git-scm.com/doc",
-        "description": "Oficjalna dokumentacja systemu kontroli wersji Git."
+        "title": "Git Workflows",
+        "url": "https://git-scm.com/docs/gitworkflows",
+        "description": "Przepływy pracy w Git."
       },
       {
         "title": "Conventional Commits",
         "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania zmian w historii repozytorium."
+        "description": "Standard komunikatów commitów."
       }
     ],
     "tipsAndTricks": [

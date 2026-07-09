@@ -888,3 +888,51 @@ Pamiętaj: najlepszy test to taki, który wykrywa błąd **zanim dotrze on do u�
 - **[Type-Fest](https://github.com/sindresorhus/type-fest)** — kolekcja utility types dla TypeScript
 - **[Effective TypeScript — Dan Vanderkam](https://effectivetypescript.com/)** — best practices TypeScript
 - **[TypeScript Playground](https://www.typescriptlang.org/play)** — eksperymentuj z TypeScript online
+---
+
+## `unknown` zamiast `any`
+
+W testach automatycznych często parsujesz JSON z API, pliki konfiguracyjne albo dane z bazy. Pokusa użycia `any` jest duża, ale `any` wyłącza ochronę TypeScript. Bezpieczniejszym typem jest `unknown`.
+
+```typescript
+const body: unknown = await response.json();
+
+if (isOrder(body)) {
+  expect(body.status).toBe('PAID');
+}
+```
+
+`unknown` wymusza narrowing, czyli sprawdzenie kształtu danych przed użyciem. To szczególnie ważne w testach API i kontraktowych.
+
+## `satisfies` w danych testowych
+
+Operator `satisfies` pozwala upewnić się, że obiekt spełnia kontrakt, ale zachowuje dokładniejsze typy literałów:
+
+```typescript
+const paidOrder = {
+  status: 'PAID',
+  currency: 'PLN',
+  total: 120,
+} satisfies Order;
+```
+
+To dobry wzorzec dla builderów danych, payloadów API i konfiguracji testów.
+
+## Generics dla fixtures i API clients
+
+TypeScript pozwala typować fixtures:
+
+```typescript
+type Fixtures = {
+  ordersClient: OrdersClient;
+  testUser: User;
+};
+
+export const test = base.extend<Fixtures>({
+  ordersClient: async ({ request }, use) => {
+    await use(new OrdersClient(request));
+  },
+});
+```
+
+Dzięki temu test ma autouzupełnianie i błędy kompilacji, jeśli użyje nieistniejącej fixture.

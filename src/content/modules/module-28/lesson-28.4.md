@@ -603,3 +603,28 @@ Rozmowa rekrutacyjna to dwukierunkowa rozmowa: rekruter ocenia Ciebie, Ty ocenia
 - [API Testing Best Practices — Restful Booker](https://restful-booker.herokuapp.com/) — otwarta aplikacja do ćwiczenia testów API
 - [SQL Exercises — SQLZoo](https://sqlzoo.io/) — interaktywne ćwiczenia SQL, przydatne do przygotowania zadań bazodanowych
 - [Code Interview Practice — Excalidraw](https://excalidraw.com/) — narzędzie do wspólnego rysowania diagramów podczas rozmowy (przydatne do wyjaśniania architektury)
+---
+
+## Zadania rekrutacyjne — jak pokazać trade-offy
+
+W zadaniu rekrutacyjnym nie chodzi o napisanie maksymalnej liczby testów. Rekruter chce zobaczyć decyzje:
+
+- co testujesz przez UI;
+- co przez API;
+- co zostawiasz jako unit/contract;
+- jakie ryzyka pomijasz świadomie;
+- jak debugujesz awarię;
+- jak przygotowujesz dane.
+
+Dobrą praktyką jest dodanie krótkiego pliku `TEST_STRATEGY.md`, nawet jeśli zadanie tego nie wymaga.
+
+## Security/privacy checklist dla publicznego repo
+
+Przed publikacją portfolio sprawdź:
+
+- brak tokenów i sekretów;
+- brak prawdziwych danych osobowych;
+- `.env.example` zamiast `.env`;
+- storageState nie jest w repo;
+- screenshoty nie pokazują prywatnych danych;
+- historia Git nie zawiera przypadkowo sekretów.

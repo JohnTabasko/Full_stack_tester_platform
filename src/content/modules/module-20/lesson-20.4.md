@@ -947,3 +947,20 @@ Profesjonalne zarządzanie danymi testowymi to kompetencja, która odróżnia do
 - **[Test Data Management — Datical](https://www.datical.com/)** — zarządzanie danymi testowymi w przedsiębiorstwach
 - **[Database Schema Migration Strategies — Redgate](https://www.red-gate.com/)** — strategie migracji schematu
 - **[Anonymizing Production Data for Testing — Wikipedia](https://en.wikipedia.org/wiki/Data_anonymization)** — techniki anonimizacji danych
+---
+
+## Migracje forward-only i rollback
+
+W wielu zespołach migracje są forward-only: zamiast cofać migrację, tworzy się kolejną, która naprawia stan. Tester powinien wiedzieć, jaki model obowiązuje w projekcie.
+
+Dobre testy migracji sprawdzają:
+
+- migrację na pustej bazie;
+- migrację na bazie z danymi;
+- zachowanie aplikacji po migracji;
+- kompatybilność starej i nowej wersji podczas rolling deploy;
+- brak utraty danych.
+
+## Maskowanie danych
+
+Jeśli używasz snapshotu produkcyjnego do testów, dane muszą być zanonimizowane lub syntetyzowane. Maskowanie powinno zachować właściwości danych ważne dla testów: długości, rozkłady, relacje i wartości brzegowe, ale usunąć PII i sekrety.

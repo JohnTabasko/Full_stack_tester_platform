@@ -818,3 +818,20 @@ Pamiętaj: baza danych jest ostatnią linią obrony. Jeśli ograniczenia tam dzi
 - **[Database Testing Guide — DevTestClub](https://www.devtestclub.com/)** — praktyczne podejście do testowania baz danych
 - **[SQL Indexes and Performance — Use The Index, Luke](https://use-the-index-luke.com/)** — doskonały kurs optymalizacji zapytań przez indeksy
 - **[Data Integrity Testing Patterns — ThoughtWorks](https://www.thoughtworks.com/developer-tools)** — wzorce testowania integralności danych
+---
+
+## Indeksy a testy regresji wydajności
+
+Indeks nie jest tylko optymalizacją. Brak indeksu może spowodować timeout testów i awarię produkcyjną. Dla krytycznych zapytań warto mieć testy lub monitoring, które wykrywają wzrost czasu wykonania.
+
+Przykład ryzyka:
+
+```sql
+SELECT * FROM orders WHERE external_id = ?;
+```
+
+Jeśli `external_id` nie ma indeksu, mała baza testowa może działać szybko, a produkcyjna wolno. Dane testowe powinny mieć realistyczną skalę dla testów wydajnościowych.
+
+## Ograniczenia jako oracle
+
+Foreign keys, unique constraints i check constraints mogą być oracle jakości danych. Test może sprawdzić, że baza odrzuca niespójny stan, a aplikacja obsługuje taki błąd w kontrolowany sposób.

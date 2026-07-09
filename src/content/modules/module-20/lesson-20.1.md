@@ -905,3 +905,26 @@ Pamiętaj: baza danych nie kłamie. Jeśli dane są poprawne w bazie, masz pewno
 - **[Learn SQL with Mode](https://mode.com/sql-tutorial/)** — zaawansowany kurs SQL, w tym JOIN-y i agregacje
 - **[SQL Injection Prevention Cheat Sheet (OWASP)](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)** — jak chronić zapytania przed injection
 - **[Practice SQL on LeetCode](https://leetcode.com/problemset/database/)** — zadania algorytmiczne z SQL
+---
+
+## Różnice dialektów SQL
+
+SQL nie jest identyczny w każdej bazie. PostgreSQL, MySQL i SQLite różnią się typami, funkcjami dat, składnią upsert, zachowaniem transakcji i ograniczeniami.
+
+Przykłady różnic:
+
+- PostgreSQL: `SERIAL`, `JSONB`, `RETURNING`, `ILIKE`;
+- MySQL: `AUTO_INCREMENT`, różne tryby SQL mode;
+- SQLite: luźniejsze typowanie i ograniczenia współbieżności.
+
+Tester powinien wiedzieć, na jakiej bazie działa produkcja i testy. Test przechodzący na SQLite in-memory może nie wykryć problemu PostgreSQL.
+
+## EXPLAIN jako narzędzie testera
+
+Dla wolnych zapytań użyj:
+
+```sql
+EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 'u1';
+```
+
+Nie musisz być DBA, ale powinieneś umieć zauważyć pełny skan dużej tabeli, brak indeksu lub kosztowny join.

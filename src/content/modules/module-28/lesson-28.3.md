@@ -440,3 +440,34 @@ Matryca kompetencji to nie jednorazowe ćwiczenie — to żywy dokument. Co kwar
 - [99% Test Pass Rate — How to Get There](https://www.wearecaqa.com/post/achieving-99-test-pass-rate-playwright) — praktyczny poradnik o metrykach i stabilności testów
 - [Software Testing Cupcake — Anti-Patterns](https://www.ministryoftesting.com/) — typowe błędy w architekturze testów, które pokazują poziom junior vs. senior
 - [Career Ladders for Software Engineers — Sarah Drasner](https://career-ladders.dev/engineering/) — career laddering jako wzór dla matrycy kompetencji
+---
+
+## Rubryka końcowa powiązana z kursem
+
+Matryca kompetencji powinna mapować całe curriculum:
+
+| Obszar | Dowód w portfolio |
+|---|---|
+| Playwright UI | testy E2E z raportem i trace |
+| API | testy kontraktowe i negatywne |
+| Dane | buildery, factory, cleanup po runId |
+| SQL | zapytania weryfikujące stan i migracje |
+| CI/CD | workflow z artifacts i quality gate |
+| Observability | correlation ID, logi, metryki, trace |
+| Performance | k6/JMeter smoke lub raport analizy |
+| Mobile | Appium/mobile web matrix lub opis strategii |
+| AI | bezpieczne użycie AI, prompt review, privacy checklist |
+
+## Artefakty końcowe
+
+Portfolio powinno zawierać:
+
+- README z quick start;
+- strategię testów;
+- architekturę testów;
+- raport HTML;
+- przykład trace;
+- screenshot CI;
+- opis ograniczeń;
+- ADR dla ważnych decyzji;
+- checklistę bezpieczeństwa danych.

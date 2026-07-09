@@ -5,7 +5,7 @@ export const lesson20_2: Lesson = {
   "id": "20.2",
   "moduleId": 20,
   "title": "Relacje, ograniczenia i indeksy",
-  "description": "klucz główny, klucz obcy, unique, not null, ograniczenia check, indeksy i testowanie integralności danych.",
+  "description": "Relacje, constraints i indeksy: FK, unique/check constraints, indeksy jako oracle danych i regresje wydajności zapytań.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson20_2: Lesson = {
     ],
     "references": [
       {
-        "title": "PostgreSQL Documentation",
-        "url": "https://www.postgresql.org/docs/",
-        "description": "Dokumentacja jednej z najpopularniejszych relacyjnych baz danych."
+        "title": "PostgreSQL Constraints",
+        "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+        "description": "Ograniczenia integralności."
       },
       {
-        "title": "SQLite Documentation",
-        "url": "https://www.sqlite.org/docs.html",
-        "description": "Przystępne źródło wiedzy o SQL, transakcjach i działaniu lekkiej bazy relacyjnej."
+        "title": "PostgreSQL Indexes",
+        "url": "https://www.postgresql.org/docs/current/indexes.html",
+        "description": "Indeksy i ich zastosowanie."
       },
       {
-        "title": "Use The Index, Luke",
-        "url": "https://use-the-index-luke.com/",
-        "description": "Praktyczny przewodnik po indeksach i wydajności zapytań SQL."
-      },
-      {
-        "title": "Martin Fowler - Evolutionary Database Design",
-        "url": "https://martinfowler.com/articles/evodb.html",
-        "description": "Klasyczny tekst o migracjach i ewolucji schematu bazy danych."
+        "title": "PostgreSQL EXPLAIN",
+        "url": "https://www.postgresql.org/docs/current/using-explain.html",
+        "description": "Analiza wpływu indeksów."
       }
     ],
     "tipsAndTricks": [

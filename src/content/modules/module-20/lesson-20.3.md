@@ -1165,3 +1165,19 @@ Pamiętaj: najlepszy sposób na wykrycie problemów współbieżności to system
 - **[Optimistic vs Pessimistic Locking — Martin Fowler](https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html)** — wzorce blokowania
 - **[Deadlock Detection in Database Systems — IEEE](https://ieeexplore.ieee.org/)** — techniczny artykuł o wykrywaniu deadlock
 - **[Concurrency Testing Patterns — ThoughtWorks](https://www.thoughtworks.com/developer-tools)** — wzorce testowania współbieżności
+---
+
+## Anomalie izolacji transakcji
+
+W testach współbieżności warto znać klasyczne anomalie:
+
+- dirty read — odczyt niezatwierdzonych danych;
+- non-repeatable read — ten sam odczyt zwraca inny wynik w tej samej transakcji;
+- phantom read — pojawiają się nowe wiersze spełniające warunek;
+- lost update — dwie transakcje nadpisują sobie zmiany.
+
+Testy nie muszą odtwarzać każdej anomalii w UI. Często lepszy jest test integracyjny na poziomie bazy i serwisu.
+
+## Deadlocki
+
+Deadlock pojawia się, gdy transakcje czekają na siebie wzajemnie. W systemach zamówień i płatności może wystąpić przy aktualizacji zasobów w różnej kolejności. Testy współbieżne powinny sprawdzać, czy aplikacja obsługuje retry i nie zostawia częściowego stanu.

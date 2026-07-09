@@ -5,7 +5,7 @@ export const lesson18_2: Lesson = {
   "id": "18.2",
   "moduleId": 18,
   "title": "Async/await, obietnice i obsługa błędów",
-  "description": "Asynchroniczność w testach, Promise, await, warunki wyścigu, timeouty, ponowienia, równoległość i poprawne raportowanie błędów.",
+  "description": "Async/await, Promise, Promise.all, event-first pattern, obsługa błędów async, rejects i stabilność asynchronicznych testów.",
   "order": 2,
   "difficulty": "beginner",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson18_2: Lesson = {
     ],
     "references": [
       {
+        "title": "Node.js Learn",
+        "url": "https://nodejs.org/en/learn",
+        "description": "Asynchroniczność i runtime Node.js."
+      },
+      {
         "title": "TypeScript Handbook",
         "url": "https://www.typescriptlang.org/docs/",
-        "description": "Oficjalny podręcznik języka TypeScript."
+        "description": "Typowanie funkcji asynchronicznych."
       },
       {
-        "title": "Node.js Documentation",
-        "url": "https://nodejs.org/docs/latest/api/",
-        "description": "Dokumentacja środowisko uruchomieniowe’u Node.js i jego standardowych modułów."
-      },
-      {
-        "title": "Git Documentation",
-        "url": "https://git-scm.com/doc",
-        "description": "Oficjalna dokumentacja systemu kontroli wersji Git."
-      },
-      {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania zmian w historii repozytorium."
+        "title": "Playwright Events",
+        "url": "https://playwright.dev/docs/events",
+        "description": "Event-first pattern w testach."
       }
     ],
     "tipsAndTricks": [

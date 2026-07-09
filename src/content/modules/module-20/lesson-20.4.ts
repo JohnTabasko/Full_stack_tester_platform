@@ -5,7 +5,7 @@ export const lesson20_4: Lesson = {
   "id": "20.4",
   "moduleId": 20,
   "title": "Migracje, seedowanie i sprzątanie danych",
-  "description": "Strategie migracji schematu, seed danych, rollback, fikstury bazy danych, czyszczenie środowiska i testowanie zmian struktury bazy.",
+  "description": "Migracje, seed i cleanup: forward-only migrations, rollback, rolling deploy compatibility, maskowanie danych i snapshoty testowe.",
   "order": 4,
   "difficulty": "intermediate",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson20_4: Lesson = {
     ],
     "references": [
       {
-        "title": "PostgreSQL Documentation",
-        "url": "https://www.postgresql.org/docs/",
-        "description": "Dokumentacja jednej z najpopularniejszych relacyjnych baz danych."
+        "title": "PostgreSQL Docs",
+        "url": "https://www.postgresql.org/docs/current/",
+        "description": "Dokumentacja PostgreSQL."
       },
       {
-        "title": "SQLite Documentation",
-        "url": "https://www.sqlite.org/docs.html",
-        "description": "Przystępne źródło wiedzy o SQL, transakcjach i działaniu lekkiej bazy relacyjnej."
+        "title": "Flyway Docs",
+        "url": "https://documentation.red-gate.com/fd",
+        "description": "Migracje baz danych."
       },
       {
-        "title": "Use The Index, Luke",
-        "url": "https://use-the-index-luke.com/",
-        "description": "Praktyczny przewodnik po indeksach i wydajności zapytań SQL."
-      },
-      {
-        "title": "Martin Fowler - Evolutionary Database Design",
-        "url": "https://martinfowler.com/articles/evodb.html",
-        "description": "Klasyczny tekst o migracjach i ewolucji schematu bazy danych."
+        "title": "Liquibase Docs",
+        "url": "https://docs.liquibase.com/",
+        "description": "Zarządzanie zmianami schematu."
       }
     ],
     "tipsAndTricks": [

@@ -5,7 +5,7 @@ export const lesson26_4: Lesson = {
   "id": "26.4",
   "moduleId": 26,
   "title": "Uprawnienia, linki głębokie i tryb offline",
-  "description": "Testowanie uprawnień systemowych, powiadomienia push, deep linków, utraty sieci, cache lokalnego i synchronizacji po powrocie online.",
+  "description": "Mobile permissions, deep links, offline, app lifecycle, background/foreground, push notifications, restore state i testowanie fallbacków.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson26_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Appium Documentation",
+        "title": "Appium Docs",
         "url": "https://appium.io/docs/en/latest/",
-        "description": "Dokumentacja Appium, standardu automatyzacji aplikacji mobilnych."
+        "description": "Automatyzacja aplikacji mobilnych."
       },
       {
-        "title": "Android Developers - Test apps on Android",
+        "title": "Android Testing",
         "url": "https://developer.android.com/training/testing",
-        "description": "Oficjalne materiały Google o testowaniu aplikacji Android."
+        "description": "Testowanie Android."
       },
       {
-        "title": "Apple Developer - Testing",
-        "url": "https://developer.apple.com/testing/",
-        "description": "Materiały Apple o testowaniu aplikacji iOS i ekosystemu Apple."
-      },
-      {
-        "title": "BrowserStack App Automate",
-        "url": "https://www.browserstack.com/docs/app-automate",
-        "description": "Dokumentacja testowania aplikacji mobilnych na device farm."
+        "title": "XCTest",
+        "url": "https://developer.apple.com/documentation/xctest",
+        "description": "Testowanie iOS."
       }
     ],
     "tipsAndTricks": [

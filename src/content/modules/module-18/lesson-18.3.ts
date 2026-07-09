@@ -5,7 +5,7 @@ export const lesson18_3: Lesson = {
   "id": "18.3",
   "moduleId": 18,
   "title": "Node.js, npm i struktura projektu testowego",
-  "description": "package.json, skrypty, zmienne środowiskowe, konfiguracja, system plików, procesy, struktura katalogów i uruchamianie narzędzi testowych.",
+  "description": "Node.js, npm i struktura projektu: npm ci, lockfile, ESM/CJS, env vars, package scripts, exit codes i reprodukowalne środowisko.",
   "order": 3,
   "difficulty": "beginner",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson18_3: Lesson = {
     ],
     "references": [
       {
-        "title": "TypeScript Handbook",
-        "url": "https://www.typescriptlang.org/docs/",
-        "description": "Oficjalny podręcznik języka TypeScript."
+        "title": "Node.js Learn",
+        "url": "https://nodejs.org/en/learn",
+        "description": "Oficjalne materiały Node.js."
       },
       {
-        "title": "Node.js Documentation",
-        "url": "https://nodejs.org/docs/latest/api/",
-        "description": "Dokumentacja środowisko uruchomieniowe’u Node.js i jego standardowych modułów."
+        "title": "npm Docs",
+        "url": "https://docs.npmjs.com/",
+        "description": "npm, package.json, npm ci i lockfile."
       },
       {
-        "title": "Git Documentation",
-        "url": "https://git-scm.com/doc",
-        "description": "Oficjalna dokumentacja systemu kontroli wersji Git."
-      },
-      {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania zmian w historii repozytorium."
+        "title": "Playwright Configuration",
+        "url": "https://playwright.dev/docs/test-configuration",
+        "description": "Konfiguracja projektu testowego."
       }
     ],
     "tipsAndTricks": [

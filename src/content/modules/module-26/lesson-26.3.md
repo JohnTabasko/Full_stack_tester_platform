@@ -397,7 +397,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - run: npm ci
       - name: Start Appium server
         run: docker run -d -p 4723:4723 appium/appium
@@ -738,7 +738,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test tests/mobile/smoke.spec.ts
@@ -757,7 +757,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - run: npm ci
       - run: npm run appium:smoke
         env:
@@ -774,7 +774,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - run: npm ci
       - name: Run Appium tests on BrowserStack
         run: npx wdio wdio.bs.conf.ts --device=${{ matrix.device }}
@@ -814,7 +814,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - run: npm ci
       - name: Full matrix on BrowserStack
         run: npx wdio wdio.bs.conf.ts --device=${{ matrix.device }}
@@ -922,3 +922,22 @@ Zarządzanie macierzą urządzeń i device farmami to umiejętność, która odr
 - [Firebase Test Lab — Pricing](https://firebase.google.com/docs/test-lab/android/model-based-testing#pricing) — cennik Firebase Test Lab z free tier
 - [STF — Open Source Device Farm](https://github.com/DeviceFarmer/stf) — Self-hosted alternative do BrowserStack
 - [Mobile Testing Strategy — Angie Jones](https://www.angiejones.tech/) — praktyczne podejście do strategii mobile testing
+---
+
+## Artefakty z farm urządzeń
+
+Test na realnym urządzeniu powinien zostawiać artefakty:
+
+- video;
+- screenshot;
+- Appium server log;
+- device logs / logcat;
+- network logs, jeśli dostępne;
+- capabilities sesji;
+- nazwa urządzenia i wersja OS.
+
+Bez tych danych awaria na farmie jest trudna do odtworzenia lokalnie.
+
+## Dane testowe na device farm
+
+Device farm współdzieli urządzenia między testami i zespołami. Test powinien zakładać brudny stan urządzenia i sam przygotować aplikację: install/reset/login/cleanup. Nie polegaj na stanie pozostawionym przez poprzedni test.

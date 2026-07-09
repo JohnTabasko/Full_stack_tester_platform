@@ -5,7 +5,7 @@ export const lesson18_1: Lesson = {
   "id": "18.1",
   "moduleId": 18,
   "title": "Podstawy TypeScript dla automatyzacji",
-  "description": "Typy, interfejsy, typy unii, typy generyczne, typy narzędziowe i modelowanie danych testowych w kodzie automatyzacji.",
+  "description": "TypeScript dla testów: strict typing, unknown vs any, narrowing, satisfies, generics dla fixtures/API clients i bezpieczne dane testowe.",
   "order": 1,
   "difficulty": "beginner",
   "tags": [
@@ -157,22 +157,17 @@ export const lesson18_1: Lesson = {
       {
         "title": "TypeScript Handbook",
         "url": "https://www.typescriptlang.org/docs/",
-        "description": "Oficjalny podręcznik języka TypeScript."
+        "description": "Oficjalny handbook TypeScript."
       },
       {
-        "title": "Node.js Documentation",
-        "url": "https://nodejs.org/docs/latest/api/",
-        "description": "Dokumentacja środowisko uruchomieniowe’u Node.js i jego standardowych modułów."
+        "title": "TSConfig Reference",
+        "url": "https://www.typescriptlang.org/tsconfig/",
+        "description": "Opcje kompilatora i strict mode."
       },
       {
-        "title": "Git Documentation",
-        "url": "https://git-scm.com/doc",
-        "description": "Oficjalna dokumentacja systemu kontroli wersji Git."
-      },
-      {
-        "title": "Conventional Commits",
-        "url": "https://www.conventionalcommits.org/",
-        "description": "Standard opisywania zmian w historii repozytorium."
+        "title": "Utility Types",
+        "url": "https://www.typescriptlang.org/docs/handbook/utility-types.html",
+        "description": "Typy pomocnicze TypeScript."
       }
     ],
     "tipsAndTricks": [

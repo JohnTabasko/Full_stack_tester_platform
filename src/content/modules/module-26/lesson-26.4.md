@@ -881,3 +881,21 @@ Testowanie uprawnień, deep linków i trybu offline to nie „dodatkowe testy" �
 - [Background Sync API — Google](https://developers.google.com/web/updates/2015/12/backward-is-coming) — Background Sync dla PWA offline-first
 - [IndexedDB — MDN](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) — local storage dla offline-first apps
 - [Firebase Test Lab — Push Testing](https://firebase.google.com/docs/test-lab/android/push-notification-testing) — jak testować push notifications w Firebase
+---
+
+## App lifecycle
+
+Testy mobilne powinny pokrywać cykl życia aplikacji:
+
+- start świeżej aplikacji;
+- background/foreground;
+- przerwanie przez system dialog;
+- utrata sieci;
+- odtworzenie stanu po ubiciu procesu;
+- aktualizacja aplikacji z zachowaniem danych.
+
+To są scenariusze, których zwykle nie pokryje zwykły test happy path.
+
+## Push notifications
+
+Powiadomienia push wymagają środowiska testowego i diagnostyki. Testuj nie tylko, że push przyszedł, ale że tapnięcie otwiera właściwy ekran, deep link ma poprawne dane, a brak uprawnień pokazuje sensowny fallback.

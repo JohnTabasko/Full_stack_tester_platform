@@ -5,7 +5,7 @@ export const lesson20_3: Lesson = {
   "id": "20.3",
   "moduleId": 20,
   "title": "Transakcje, izolacja i warunki wyścigu",
-  "description": "ACID, poziomy izolacji, rollback, deadlocki, równoległe aktualizacje, utracona aktualizacja i testowanie spójności procesów równoległych.",
+  "description": "Transakcje i współbieżność: isolation levels, dirty/non-repeatable/phantom reads, lost update, deadlocki i retry.",
   "order": 3,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson20_3: Lesson = {
     ],
     "references": [
       {
-        "title": "PostgreSQL Documentation",
-        "url": "https://www.postgresql.org/docs/",
-        "description": "Dokumentacja jednej z najpopularniejszych relacyjnych baz danych."
+        "title": "PostgreSQL Transactions",
+        "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+        "description": "Transakcje w PostgreSQL."
       },
       {
-        "title": "SQLite Documentation",
-        "url": "https://www.sqlite.org/docs.html",
-        "description": "Przystępne źródło wiedzy o SQL, transakcjach i działaniu lekkiej bazy relacyjnej."
+        "title": "PostgreSQL Isolation",
+        "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+        "description": "Poziomy izolacji i anomalie."
       },
       {
-        "title": "Use The Index, Luke",
-        "url": "https://use-the-index-luke.com/",
-        "description": "Praktyczny przewodnik po indeksach i wydajności zapytań SQL."
-      },
-      {
-        "title": "Martin Fowler - Evolutionary Database Design",
-        "url": "https://martinfowler.com/articles/evodb.html",
-        "description": "Klasyczny tekst o migracjach i ewolucji schematu bazy danych."
+        "title": "PostgreSQL Explicit Locking",
+        "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+        "description": "Locki i deadlocki."
       }
     ],
     "tipsAndTricks": [

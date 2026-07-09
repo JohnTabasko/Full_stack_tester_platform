@@ -5,7 +5,7 @@ export const lesson20_1: Lesson = {
   "id": "20.1",
   "moduleId": 20,
   "title": "Podstawy SQL",
-  "description": "SELECT, JOIN, GROUP BY, agregacje, filtry, sortowanie i czytanie danych testowych w relacyjnej bazie danych.",
+  "description": "SQL dla testerów: SELECT/JOIN/agregacje, dialekty PostgreSQL/MySQL/SQLite, EXPLAIN ANALYZE i weryfikacja danych po UI/API.",
   "order": 1,
   "difficulty": "intermediate",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson20_1: Lesson = {
     ],
     "references": [
       {
-        "title": "PostgreSQL Documentation",
-        "url": "https://www.postgresql.org/docs/",
-        "description": "Dokumentacja jednej z najpopularniejszych relacyjnych baz danych."
+        "title": "PostgreSQL Tutorial",
+        "url": "https://www.postgresql.org/docs/current/tutorial.html",
+        "description": "SQL i relacyjne podstawy PostgreSQL."
       },
       {
-        "title": "SQLite Documentation",
+        "title": "PostgreSQL EXPLAIN",
+        "url": "https://www.postgresql.org/docs/current/using-explain.html",
+        "description": "Analiza planów zapytań."
+      },
+      {
+        "title": "SQLite Docs",
         "url": "https://www.sqlite.org/docs.html",
-        "description": "Przystępne źródło wiedzy o SQL, transakcjach i działaniu lekkiej bazy relacyjnej."
-      },
-      {
-        "title": "Use The Index, Luke",
-        "url": "https://use-the-index-luke.com/",
-        "description": "Praktyczny przewodnik po indeksach i wydajności zapytań SQL."
-      },
-      {
-        "title": "Martin Fowler - Evolutionary Database Design",
-        "url": "https://martinfowler.com/articles/evodb.html",
-        "description": "Klasyczny tekst o migracjach i ewolucji schematu bazy danych."
+        "description": "Różnice lekkich baz i SQLite."
       }
     ],
     "tipsAndTricks": [

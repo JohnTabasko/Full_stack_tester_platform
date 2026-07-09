@@ -62,7 +62,7 @@ To najważniejsza sekcja README. Jeśli odbiorca nie może uruchomić projektu w
 ## Jak uruchomić
 
 ### Wymagania
-- Node.js 20+
+- Node.js 22+
 - Docker (dla bazy danych)
 
 ### Instalacja

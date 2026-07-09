@@ -5,7 +5,7 @@ export const lesson28_3: Lesson = {
   "id": "28.3",
   "moduleId": 28,
   "title": "Zadania rekrutacyjne i programowanie na żywo",
-  "description": "Typowe zadania QA automation, debugowanie niestabilnego testu, zadanie API, zadanie SQL, programowanie na żywo i rozmowa techniczna z użyciem metody STAR.",
+  "description": "Matryca kompetencji full stack testera, rubryka końcowa kursu, dowody portfolio, self-assessment i plan rozwoju.",
   "order": 3,
   "difficulty": "expert",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson28_3: Lesson = {
     ],
     "references": [
       {
-        "title": "GitHub Docs - About READMEs",
-        "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes",
-        "description": "Jak pisać czytelne README dla projektu publikowanego na GitHubie."
-      },
-      {
-        "title": "GitHub Skills",
-        "url": "https://skills.github.com/",
-        "description": "Praktyczne materiały GitHuba pomagające przygotować repozytorium i workflow."
-      },
-      {
-        "title": "The STAR Method",
-        "url": "https://www.themuse.com/advice/star-interview-method",
-        "description": "Popularna metoda opowiadania o doświadczeniu podczas rozmowy rekrutacyjnej."
+        "title": "GitHub Docs",
+        "url": "https://docs.github.com/",
+        "description": "Portfolio i repozytoria GitHub."
       },
       {
         "title": "Playwright Best Practices",
         "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalne dobre praktyki Playwright przydatne w projekcie portfolio."
+        "description": "Dowody kompetencji Playwright."
+      },
+      {
+        "title": "ADR",
+        "url": "https://adr.github.io/",
+        "description": "Dokumentowanie decyzji architektonicznych."
       }
     ],
     "tipsAndTricks": [

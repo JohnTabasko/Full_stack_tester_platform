@@ -1,3 +1,4 @@
+# Node.js, npm i struktura projektu testowego
 
 > **Perspektywa Full Stack Testera**
 > Nowa osoba w zespole klonuje repozytorium i chce uruchomić testy. W profesjonalnym projekcie powinna wykonać dokładnie trzy kroki: `npm install`, `npx playwright install` i `npm test`. Jeśli potrzebuje czegoś więcej — dokumentacji, SSH kluczy, ręcznej konfiguracji — coś jest nie tak ze strukturą projektu. W tej lekcji zbudujesz od podstaw profesjonalny projekt Playwright, który jest gotowy do pracy zespołowej, CI/CD i skalowania do setek testów. Nauczysz się zarządzać zależnościami, konfigurować środowisko i tworzyć strukturę katalogów, która sprawi, że każdy członek zespołu — nawet ten, który nigdy nie pisał testów Playwright — będzie wiedział, gdzie co znaleźć i jak uruchomić testy.
@@ -58,7 +59,7 @@ node --version
 npm --version
 # 10.8.1 (przykład)
 
-# Rekomendowana wersja dla Playwright: >=20.x
+# Rekomendowana wersja dla Playwright: >=22.x
 ```
 
 ### 1.3 Sprawdzenie wersji w projekcie
@@ -67,7 +68,7 @@ npm --version
 // package.json
 {
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "npm": ">=10"
   }
 }
@@ -104,7 +105,7 @@ console.log('HOME:', process.env.HOME);               // Katalog domowy
   "description": "E2E test suite for MyApp",
   "private": true,
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "npm": ">=10"
   },
   "scripts": {
@@ -822,3 +823,30 @@ Pamiętaj: jako Full Stack Tester jesteś nie tylko wykonawcą testów, ale też
 - **[direnv — Environment Variables](https://direnv.net/)** — automatyczne ładowanie .env
 - **[Effective Playwright Config — GitHub](https://github.com/microsoft/playwright/blob/main/packages/playwright/src/common/playwrightSettings.ts)** — rekomendacje Microsoftu
 - **[TypeScript + Playwright Best Practices](https://github.com/playwright-community/best-practices)** — społecznościowe best practices
+---
+
+## `npm ci` vs `npm install`
+
+W CI używaj `npm ci`, bo instaluje dokładnie wersje z lockfile i kończy się błędem, jeśli `package-lock.json` nie pasuje do `package.json`.
+
+```bash
+npm ci
+npm test
+```
+
+`npm install` jest dobre lokalnie do aktualizacji zależności, ale w pipeline powinien działać deterministyczny install.
+
+## ESM vs CommonJS
+
+Node.js obsługuje dwa światy modułów: CommonJS (`require`) i ESM (`import`). Mieszanie ich bywa źródłem problemów w konfiguracji testów, CLI i narzędziach.
+
+Sprawdzaj:
+
+- pole `type` w `package.json`;
+- rozszerzenia `.cjs`, `.mjs`, `.ts`;
+- sposób eksportu konfiguracji;
+- kompatybilność bibliotek.
+
+## Exit codes w CI
+
+Skrypty testowe powinny zwracać poprawny kod wyjścia. Jeśli testy padają, proces musi zakończyć się kodem różnym od zera. Nie ukrywaj błędów przez `|| true`, chyba że świadomie zbierasz raport w osobnym kroku i później failujesz pipeline.

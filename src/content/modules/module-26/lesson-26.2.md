@@ -953,3 +953,26 @@ Appium to narzędzie, które wymaga od testera pełnego zrozumienia warstwy syst
 - [Appium Inspector](https://github.com/appium/appium-inspector) — graficzny inspektor elementów mobile
 - [Appium Desktop](https://github.com/appium/appium-desktop) — desktop Appium server z inspektorem
 - [BrowserStack — App Automate](https://www.browserstack.com/docs/app-automate) — jak połączyć BrowserStack z Appium
+---
+
+## Appium 2/3: drivers i plugins
+
+Nowoczesne Appium opiera się na modularnej architekturze. Drivery i pluginy instaluje się osobno. Tester powinien wiedzieć, jaki driver obsługuje daną platformę:
+
+- UiAutomator2 — Android;
+- XCUITest — iOS;
+- Espresso — wybrane scenariusze Android;
+- Mac/Windows drivers — desktop.
+
+Komenda diagnostyczna:
+
+```bash
+appium driver list --installed
+appium plugin list --installed
+```
+
+Brak właściwego drivera jest częstą przyczyną problemów z sesją.
+
+## Capabilities jako kontrakt sesji
+
+Capabilities powinny być wersjonowane i reviewowane. Zmiana `noReset`, `fullReset`, `autoGrantPermissions` albo `appActivity` może całkowicie zmienić wynik testu. Traktuj capabilities jak konfigurację testową, nie przypadkowy JSON.
