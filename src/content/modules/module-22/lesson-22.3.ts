@@ -5,7 +5,7 @@ export const lesson22_3: Lesson = {
   "id": "22.3",
   "moduleId": 22,
   "title": "Webhooki, ponowienia i idempotencja",
-  "description": "Testowanie callbacków HTTP, podpisów, ponowień, timeoutów, klucze idempotencji i odporności integracji zewnętrznych.",
+  "description": "Webhooki: podpisy, timestamp, retry, idempotency key, duplicate delivery, DLQ i bezpieczne callbacki HTTP.",
   "order": 3,
   "difficulty": "advanced",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson22_3: Lesson = {
     ],
     "references": [
       {
-        "title": "Martin Fowler - Microservices",
-        "url": "https://martinfowler.com/articles/microservices.html",
-        "description": "Klasyczne omówienie architektury mikroserwisowej i jej konsekwencji organizacyjnych."
+        "title": "CloudEvents",
+        "url": "https://cloudevents.io/",
+        "description": "Standaryzacja eventów."
       },
       {
-        "title": "Enterprise Integration Patterns",
-        "url": "https://www.enterpriseintegrationpatterns.com/",
-        "description": "Katalog wzorców integracji systemów, kolejek, routerów i transformacji komunikatów."
+        "title": "OWASP API Security",
+        "url": "https://owasp.org/www-project-api-security/",
+        "description": "Bezpieczeństwo API i webhooków."
       },
       {
-        "title": "Kafka Documentation",
-        "url": "https://kafka.apache.org/documentation/",
-        "description": "Dokumentacja platformy zdarzeniowej Apache Kafka."
-      },
-      {
-        "title": "Webhook Bezpieczeństwo Guidelines",
-        "url": "https://owasp.org/www-project-web-security-testing-guide/",
-        "description": "Praktyki bezpieczeństwa przy komunikacji HTTP i integracjach zewnętrznych."
+        "title": "AsyncAPI",
+        "url": "https://www.asyncapi.com/docs",
+        "description": "Opis eventów i message contracts."
       }
     ],
     "tipsAndTricks": [

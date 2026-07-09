@@ -575,3 +575,43 @@ Pamiętaj: w systemie rozproszonym test UI to dopiero początek. Prawdziwa weryf
 - **[Testing Event-Driven Systems — Confluent](https://www.confluent.io/blog/testing-event-driven-systems/)** — best practices
 - **[Dead Letter Queues — AWS](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)** — DLQ w SQS
 - **[Idempotency — Stripe](https://stripe.com/blog/idempotent-requests)** — jak Stripe implementuje idempotencję
+---
+
+## Kafka — pojęcia, które tester musi znać
+
+W Kafka komunikaty trafiają do topiców. Topic może mieć partycje. Konsumenci w consumer group dzielą między siebie partycje. Offset mówi, do którego miejsca konsument przeczytał strumień.
+
+Pojęcia:
+
+- **topic** — logiczny strumień komunikatów;
+- **partition** — fragment topicu z własną kolejnością;
+- **offset** — pozycja wiadomości w partycji;
+- **consumer group** — grupa konsumentów współdzieląca przetwarzanie;
+- **retention** — jak długo wiadomości są przechowywane.
+
+Ważne: Kafka gwarantuje kolejność w partycji, nie globalnie w całym topicu.
+
+## RabbitMQ — podstawy testowania
+
+RabbitMQ opiera się na exchange, queue i binding:
+
+- **exchange** odbiera wiadomości;
+- **binding** określa routing;
+- **queue** przechowuje wiadomości;
+- **routing key** pomaga zdecydować, gdzie wiadomość trafi;
+- **ack/nack** potwierdza lub odrzuca przetwarzanie;
+- **DLQ/DLX** obsługuje błędy i wiadomości nieprzetworzone.
+
+Testując RabbitMQ, sprawdzaj routing, retry, dead-letter queue i idempotencję konsumenta.
+
+## CloudEvents i format eventów
+
+CloudEvents standaryzuje metadane eventu, np. `id`, `source`, `type`, `time`, `subject`, `datacontenttype`. Dzięki temu eventy są łatwiejsze do routingu, logowania i kontraktowania.
+
+Checklista eventu:
+
+- czy ma unikalne `id`?
+- czy ma typ i źródło?
+- czy payload ma schema?
+- czy można go powiązać z correlation ID?
+- czy konsument obsługuje duplikat?

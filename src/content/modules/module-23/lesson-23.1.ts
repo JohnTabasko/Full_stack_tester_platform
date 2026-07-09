@@ -5,7 +5,7 @@ export const lesson23_1: Lesson = {
   "id": "23.1",
   "moduleId": 23,
   "title": "Logi, metryki i ślady wykonania",
-  "description": "Trzy filary obserwowalności, logi strukturalne, metryki RED/USE, ślady rozproszone i ich zastosowanie w diagnostyce testów.",
+  "description": "Logi, metryki i traces: OpenTelemetry Collector, receivers/processors/exporters, semantic conventions i trzy filary obserwowalności.",
   "order": 1,
   "difficulty": "advanced",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson23_1: Lesson = {
     ],
     "references": [
       {
-        "title": "OpenTelemetry Documentation",
+        "title": "OpenTelemetry Docs",
         "url": "https://opentelemetry.io/docs/",
-        "description": "Standard zbierania metryk, logów i śladów rozproszonych."
+        "description": "Oficjalna dokumentacja OpenTelemetry."
       },
       {
-        "title": "Prometheus Documentation",
+        "title": "OpenTelemetry Collector",
+        "url": "https://opentelemetry.io/docs/collector/",
+        "description": "Collector pipelines."
+      },
+      {
+        "title": "Prometheus Overview",
         "url": "https://prometheus.io/docs/introduction/overview/",
-        "description": "System metryk i alertowania powszechnie używany w środowiskach cloud native."
-      },
-      {
-        "title": "Grafana Documentation",
-        "url": "https://grafana.com/docs/",
-        "description": "Platforma wizualizacji metryk, logów i śladów."
-      },
-      {
-        "title": "Google SRE Book",
-        "url": "https://sre.google/sre-book/table-of-contents/",
-        "description": "Klasyczne źródło wiedzy o SLI, SLO, error budget i niezawodności."
+        "description": "Metryki i monitoring."
       }
     ],
     "tipsAndTricks": [

@@ -680,3 +680,27 @@ Pamiętaj: test E2E wykrywa, że coś nie działa. Obserwowalność mówi dlacze
 - **[USE Method — Brendan Gregg](http://www.brendangregg.com/usemethod.html)** — metodologia metryk infrastruktury
 - **[RED Method — Tom Wilkie](https://www.weave.works/blog/the-red-method-three-metrics-you-need/)** — metodologia metryk usług
 - **[Distributed Tracing — OpenCensus](https://opencensus.io/)** — alternatywa dla OpenTelemetry
+---
+
+## OpenTelemetry Collector
+
+OpenTelemetry Collector jest pośrednikiem telemetrycznym. Może odbierać, przetwarzać i eksportować dane telemetryczne bez wiązania aplikacji z jednym vendorem.
+
+Podstawowe elementy:
+
+- **receivers** — odbierają dane, np. OTLP;
+- **processors** — modyfikują dane, np. batch, memory limiter, attributes;
+- **exporters** — wysyłają dane, np. do Prometheus, Jaeger, Tempo, Loki;
+- **pipelines** — łączą receivers, processors i exporters.
+
+Dla testera oznacza to, że brak trace w Grafanie może wynikać nie z aplikacji, ale z konfiguracji Collectora.
+
+## Semantic conventions
+
+Semantic conventions standaryzują nazwy atrybutów, np. HTTP method, route, status code, database system, messaging destination. Dzięki nim dashboardy i zapytania są spójne między usługami.
+
+Przykład pytań testera:
+
+- czy span HTTP ma route i status code?
+- czy span DB ma nazwę systemu i statement bez sekretów?
+- czy messaging span ma topic/queue i message id?

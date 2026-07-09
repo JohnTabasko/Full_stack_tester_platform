@@ -5,7 +5,7 @@ export const lesson21_1: Lesson = {
   "id": "21.1",
   "moduleId": 21,
   "title": "OpenAPI jako kontrakt",
-  "description": "Specyfikacja OpenAPI jako wykonywalna umowa API: schematy, przykłady, walidacja, lintowanie i dokumentowanie scenariuszy błędów.",
+  "description": "OpenAPI jako wykonywalna specyfikacja API, contract drift, mock server, walidacja odpowiedzi i AsyncAPI jako uzupełnienie eventów.",
   "order": 1,
   "difficulty": "advanced",
   "tags": [
@@ -159,19 +159,14 @@ export const lesson21_1: Lesson = {
         "description": "Oficjalna specyfikacja OpenAPI."
       },
       {
-        "title": "Pact Documentation",
-        "url": "https://docs.pact.io/",
-        "description": "Dokumentacja narzędzia do testy kontraktowe sterowane przez konsumenta."
+        "title": "AsyncAPI",
+        "url": "https://www.asyncapi.com/docs",
+        "description": "Kontrakty dla systemów asynchronicznych i event-driven."
       },
       {
-        "title": "OWASP API Bezpieczeństwo Top 10",
-        "url": "https://owasp.org/www-project-api-security/",
-        "description": "Lista najważniejszych ryzyk bezpieczeństwa API."
-      },
-      {
-        "title": "Google API Improvement Proposals",
-        "url": "https://google.aip.dev/",
-        "description": "Praktyczne zalecenia projektowania i ewolucji API."
+        "title": "JSON Schema",
+        "url": "https://json-schema.org/",
+        "description": "Walidacja schematów danych."
       }
     ],
     "tipsAndTricks": [

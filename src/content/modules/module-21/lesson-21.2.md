@@ -737,3 +737,42 @@ Pamiętaj: kontrakt jest tak silny, jak najsłabszy konsument. Jeśli masz konsu
 - **[can-i-deploy](https://docs.pact.io/pact_broker/can_i_deploy)** — dokumentacja can-i-deploy
 - **[Provider States](https://docs.pact.io/implementation_and_architecture/provider_states)** — konfiguracja stanów dostawcy
 - **[Consumer Contract Tests Best Practices](https://smartbear.com/blog/consumer-driven-contract-testing/)** — best practices Pact
+---
+
+## Consumer-driven vs provider-driven contracts
+
+Pact jest narzędziem consumer-driven contract testing. Konsument opisuje, jakiego requestu i response potrzebuje, a provider weryfikuje, czy nadal spełnia ten kontrakt.
+
+To różni się od podejścia provider-driven, gdzie provider publikuje OpenAPI i konsumenci dopasowują się do specyfikacji. Oba podejścia są wartościowe:
+
+| Podejście | Zaleta | Ryzyko |
+|---|---|---|
+| OpenAPI/provider-driven | pełny opis API | nie zawsze pokazuje realne użycie konsumentów |
+| Pact/consumer-driven | chroni realne potrzeby klientów | wymaga dyscypliny publikacji i weryfikacji kontraktów |
+
+## Pact Broker i can-i-deploy
+
+Pact Broker przechowuje kontrakty i wyniki weryfikacji. Dzięki temu pipeline może odpowiedzieć na pytanie: czy ta wersja providera może zostać wdrożona bez zepsucia znanych konsumentów?
+
+W praktyce proces wygląda tak:
+
+1. Konsument uruchamia testy i publikuje pact.
+2. Provider pobiera pact i weryfikuje go przeciw swojej implementacji.
+3. Wynik trafia do brokera.
+4. `can-i-deploy` decyduje, czy wersja może iść dalej.
+
+## Typowe błędy Pact
+
+- kontrakty opisują zbyt dużo pól nieużywanych przez konsumenta;
+- mock providera w teście konsumenta nie odpowiada realnej semantyce;
+- provider nie uruchamia weryfikacji w CI;
+- brak danych testowych do provider verification;
+- pacty są publikowane, ale nikt nie używa `can-i-deploy`.
+
+## Checklista Pact
+
+- Czy kontrakt opisuje realne użycie konsumenta?
+- Czy provider verification działa w CI?
+- Czy dane providera są deterministyczne?
+- Czy kontrakty są wersjonowane?
+- Czy deployment używa informacji z brokera?

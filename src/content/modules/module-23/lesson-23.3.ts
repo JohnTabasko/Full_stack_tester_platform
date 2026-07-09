@@ -5,7 +5,7 @@ export const lesson23_3: Lesson = {
   "id": "23.3",
   "moduleId": 23,
   "title": "Grafana, Prometheus, Loki i Kibana",
-  "description": "Czytanie dashboardów, PromQL, analiza logów, Loki/Kibana, alerty i badanie regresji jakości w środowiskach testowych.",
+  "description": "Grafana, Prometheus, Loki i Kibana: PromQL basics, histogram_quantile, RED/USE metrics, dashboardy, alert fatigue i analiza regresji.",
   "order": 3,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson23_3: Lesson = {
     ],
     "references": [
       {
-        "title": "OpenTelemetry Documentation",
-        "url": "https://opentelemetry.io/docs/",
-        "description": "Standard zbierania metryk, logów i śladów rozproszonych."
-      },
-      {
-        "title": "Prometheus Documentation",
+        "title": "Prometheus Overview",
         "url": "https://prometheus.io/docs/introduction/overview/",
-        "description": "System metryk i alertowania powszechnie używany w środowiskach cloud native."
+        "description": "Prometheus i PromQL."
       },
       {
-        "title": "Grafana Documentation",
-        "url": "https://grafana.com/docs/",
-        "description": "Platforma wizualizacji metryk, logów i śladów."
+        "title": "Grafana Docs",
+        "url": "https://grafana.com/docs/grafana/latest/",
+        "description": "Dashboardy, alerting, eksploracja danych."
       },
       {
-        "title": "Google SRE Book",
-        "url": "https://sre.google/sre-book/table-of-contents/",
-        "description": "Klasyczne źródło wiedzy o SLI, SLO, error budget i niezawodności."
+        "title": "Loki Docs",
+        "url": "https://grafana.com/docs/loki/latest/",
+        "description": "Logi w ekosystemie Grafana."
       }
     ],
     "tipsAndTricks": [

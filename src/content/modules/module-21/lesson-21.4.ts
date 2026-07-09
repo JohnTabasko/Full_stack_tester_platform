@@ -5,7 +5,7 @@ export const lesson21_4: Lesson = {
   "id": "21.4",
   "moduleId": 21,
   "title": "Testy kontraktowe w CI/CD",
-  "description": "Publikacja kontraktów, weryfikacja dostawcy, can-i-deploy, blokowanie zmian niekompatybilnych i raportowanie dryfu kontraktów.",
+  "description": "Kontrakty w CI/CD: lint OpenAPI, openapi-diff, Pact provider verification, can-i-deploy, raportowanie breaking changes i ownership.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson21_4: Lesson = {
     ],
     "references": [
       {
+        "title": "Pact CI/CD",
+        "url": "https://docs.pact.io/",
+        "description": "Workflow kontraktów w CI/CD."
+      },
+      {
         "title": "OpenAPI Specification",
         "url": "https://spec.openapis.org/oas/latest.html",
-        "description": "Oficjalna specyfikacja OpenAPI."
+        "description": "Specyfikacja jako wejście do walidacji CI."
       },
       {
-        "title": "Pact Documentation",
-        "url": "https://docs.pact.io/",
-        "description": "Dokumentacja narzędzia do testy kontraktowe sterowane przez konsumenta."
-      },
-      {
-        "title": "OWASP API Bezpieczeństwo Top 10",
-        "url": "https://owasp.org/www-project-api-security/",
-        "description": "Lista najważniejszych ryzyk bezpieczeństwa API."
-      },
-      {
-        "title": "Google API Improvement Proposals",
-        "url": "https://google.aip.dev/",
-        "description": "Praktyczne zalecenia projektowania i ewolucji API."
+        "title": "AsyncAPI",
+        "url": "https://www.asyncapi.com/docs",
+        "description": "Kontrakty eventów w pipeline."
       }
     ],
     "tipsAndTricks": [

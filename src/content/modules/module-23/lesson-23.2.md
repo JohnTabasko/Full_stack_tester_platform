@@ -459,3 +459,23 @@ Umiejętność używania Correlation ID to moment, w którym przekraczasz granic
 - [W3C Trace Context Specification](https://www.w3.org/TR/trace-context/)
 - [Elasticsearch / Kibana — Getting Started](https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html)
 - [Grafana Loki — LogQL](https://grafana.com/docs/loki/latest/logql/)
+---
+
+## W3C Trace Context
+
+Standard W3C Trace Context definiuje nagłówki `traceparent` i `tracestate`, które pozwalają propagować trace przez usługi. Jeśli test E2E ustawia correlation ID, a system używa OpenTelemetry, warto sprawdzić, czy trace przechodzi przez frontend, API, worker i bazę.
+
+Przykładowe pytania:
+
+- czy request z UI ma `traceparent`?
+- czy backend tworzy child span?
+- czy event do kolejki zachowuje kontekst?
+- czy logi zawierają trace id?
+
+## Baggage
+
+Baggage pozwala przenosić dodatkowe metadane. Trzeba używać go ostrożnie, bo może zwiększać payload i ujawniać dane. Nigdy nie wkładaj do baggage sekretów ani danych osobowych.
+
+## Correlation ID vs trace ID
+
+Correlation ID jest często domenowym identyfikatorem diagnostycznym. Trace ID pochodzi z systemu tracingu. Mogą współistnieć. Najlepszy raport testu zawiera oba, jeśli są dostępne.

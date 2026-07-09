@@ -5,7 +5,7 @@ export const lesson23_4: Lesson = {
   "id": "23.4",
   "moduleId": 23,
   "title": "SLO, SLA, SLI i testowanie odporności",
-  "description": "Budżet błędów, zmęczenie alertami, progi jakości, niezawodność, odporność usług i testy oparte na sygnałach produkcyjnych.",
+  "description": "SLO/SLA/SLI, error budget, dobre i złe SLI, testowanie odporności, chaos experiments i decyzje release oparte na niezawodności.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson23_4: Lesson = {
     ],
     "references": [
       {
-        "title": "OpenTelemetry Documentation",
-        "url": "https://opentelemetry.io/docs/",
-        "description": "Standard zbierania metryk, logów i śladów rozproszonych."
-      },
-      {
-        "title": "Prometheus Documentation",
-        "url": "https://prometheus.io/docs/introduction/overview/",
-        "description": "System metryk i alertowania powszechnie używany w środowiskach cloud native."
-      },
-      {
-        "title": "Grafana Documentation",
-        "url": "https://grafana.com/docs/",
-        "description": "Platforma wizualizacji metryk, logów i śladów."
-      },
-      {
         "title": "Google SRE Book",
         "url": "https://sre.google/sre-book/table-of-contents/",
-        "description": "Klasyczne źródło wiedzy o SLI, SLO, error budget i niezawodności."
+        "description": "SLO, error budget i praktyki SRE."
+      },
+      {
+        "title": "Prometheus Alerting",
+        "url": "https://prometheus.io/docs/alerting/latest/overview/",
+        "description": "Alerting i reguły."
+      },
+      {
+        "title": "OpenTelemetry Docs",
+        "url": "https://opentelemetry.io/docs/",
+        "description": "Obserwowalność odporności systemu."
       }
     ],
     "tipsAndTricks": [

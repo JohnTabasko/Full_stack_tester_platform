@@ -653,3 +653,33 @@ Pamiętaj: test, który weryfikuje SLO, ma większą wartość niż test, który
 - **[Resilience Testing — ThoughtWorks](https://www.thoughtworks.com/developer-tools)** — testowanie odporności w praktyce
 - **[Circuit Breaker Pattern — Martin Fowler](https://martinfowler.com/articles/patterns-of-distributed-systems/)** — wzorzec circuit breaker
 - **[Chaos Engineering — Principle](https://principlesofchaos.org/)** — zasady chaos engineering
+---
+
+## Error budget
+
+Error budget wynika z SLO. Jeśli SLO mówi 99.9% dostępności, to 0.1% czasu lub żądań może być błędne. Error budget pomaga podejmować decyzje: czy zespół może wdrażać szybciej, czy powinien skupić się na stabilizacji.
+
+Dla testera oznacza to, że pojedynczy błąd nie zawsze blokuje release, ale trend spalania error budgetu może blokować.
+
+## SLI dobre i złe
+
+Dobry SLI jest blisko doświadczenia użytkownika:
+
+- odsetek udanych checkoutów;
+- p95 czasu logowania;
+- odsetek poprawnie przetworzonych webhooków;
+- czas dostarczenia emaila aktywacyjnego.
+
+Słaby SLI jest techniczny, ale nie mówi o użytkowniku, np. sam CPU bez kontekstu.
+
+## Testowanie odporności
+
+Odporność testuj przez kontrolowane eksperymenty:
+
+- timeout zewnętrznego API;
+- restart jednej repliki;
+- opóźnienie kolejki;
+- błąd bazy read replica;
+- brak dostępu do cache.
+
+Każdy eksperyment powinien mieć hipotezę i kryterium zakończenia. Nie rób chaos testingu bez zgody zespołu i obserwowalności.

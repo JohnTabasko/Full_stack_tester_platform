@@ -606,3 +606,53 @@ Pamiętaj: breaking change kosztuje organizację znacznie więcej niż tydzień 
 - **[IETF Deprecation Header](https://tools.ietf.org/html/rfc8594)** — standard nagłówka Deprecation
 - **[Sunset Header — IETF](https://tools.ietf.org/html/rfc8594)** — standard nagłówka Sunset
 - **[ Pact Broker — can-i-deploy](https://docs.pact.io/pact_broker/can_i_deploy)** — weryfikacja kontraktów przed wdrożeniem
+---
+
+## SemVer i API
+
+SemVer pomaga komunikować zmianę, ale samo zwiększenie numeru wersji nie chroni konsumentów. Dla API najważniejsze jest pytanie: czy istniejący klient nadal działa bez zmiany kodu?
+
+Zmiany zwykle kompatybilne:
+
+- dodanie opcjonalnego pola;
+- dodanie endpointu;
+- dodanie nowej wartości tylko wtedy, gdy konsumenci obsługują unknown values;
+- rozszerzenie dokumentacji.
+
+Zmiany zwykle breaking:
+
+- usunięcie pola;
+- zmiana typu;
+- zmiana wymagalności;
+- zmiana kodu błędu;
+- zmiana domyślnego sortowania;
+- zmiana semantyki pola.
+
+## Polityka deprecacji
+
+Bezpieczna deprecacja powinna mieć:
+
+- datę ogłoszenia;
+- datę usunięcia;
+- alternatywę;
+- telemetrykę użycia starego endpointu;
+- komunikację do konsumentów;
+- testy sprawdzające oba warianty w okresie przejściowym.
+
+## Wersjonowanie eventów
+
+Eventy są trudniejsze niż HTTP, bo stare komunikaty mogą istnieć w kolejce lub logu. Zasady:
+
+- dodawaj pola kompatybilnie;
+- nie zmieniaj znaczenia istniejących pól;
+- konsumenci powinni ignorować nieznane pola;
+- rozważ wersję schema w payloadzie lub nagłówku;
+- utrzymuj testy konsumentów eventów.
+
+## Checklista kompatybilności
+
+- Czy zmiana wymaga aktualizacji konsumenta?
+- Czy telemetryka pokazuje użycie starego kontraktu?
+- Czy CI wykrywa breaking change?
+- Czy istnieje plan migracji?
+- Czy eventy są kompatybilne z istniejącymi konsumentami?

@@ -7,25 +7,21 @@ Gałąź: `arena/workspace-changes`
 
 Poprawki są prowadzone zgodnie z audytem `docs/audit/fullstack-modules-17-28-official-coverage-audit.md`.
 
-### Moduł 17 — Fundamenty testowania
+### Moduły 17 i 19
 
-Rozbudowano lekcje `17.2`, `17.3`, `17.4` oraz metadane `.ts`. Dodano rodzaje testów, piramidę jako model ekonomii informacji, techniki ISTQB, session-based testing i profesjonalne raportowanie defektów.
+Rozbudowano fundamenty testowania oraz testy jednostkowe, komponentowe i integracyjne. Dodano metadane `.ts` dla zmienionych lekcji.
 
-### Moduł 19 — Unit, integration, component testing
+### Moduły 24, 25 i 27
 
-Rozbudowano lekcje `19.1`–`19.4` oraz metadane `.ts`. Dodano Vitest/Jest, mocki/spies/fakes, React Testing Library, MSW, Testcontainers, testy integracyjne backendu, migracje, kolejki i granice z E2E.
+Rozbudowano k6/JMeter, podstawy sieci/Docker Compose/Kubernetes oraz AI/LLM w testowaniu. Dodano metadane `.ts` dla zmienionych lekcji.
 
-### Moduł 24 — k6 i JMeter
+### Moduły 21, 22 i 23
 
-Rozbudowano lekcje `24.2`, `24.3`, `24.4` oraz metadane `.ts`. Dodano lifecycle k6, VUs, scenarios, thresholds, custom metrics, JMeter Test Plan, Thread Groups, Samplers, non-GUI mode, analizę bottlenecków, percentyle, saturation i budżety wydajności.
+Rozszerzono dobre już moduły o brakujące elementy oficjalnych dokumentacji:
 
-### Moduł 25 — DevOps i środowiska
-
-Rozbudowano lekcje `25.2`, `25.3`, `25.4` oraz metadane `.ts`. Dodano DNS, HTTP, TLS, CORS, cookies, Docker Compose services/networks/volumes/healthcheck/profiles, Kubernetes Pod/Deployment/Service/Ingress/ConfigMap/Secret/probes/kubectl diagnostics i feature flags.
-
-### Moduł 27 — AI/LLM w testowaniu
-
-Rozbudowano lekcje `27.2`, `27.3`, `27.4` oraz metadane `.ts`. Dodano prompt patterns, traceability, review AI-generated tests, synthetic data, AI-assisted debugging, log redaction, OWASP LLM Top 10, NIST AI RMF, prompt injection, excessive agency, overreliance, governance i guardrails.
+- `21`: AsyncAPI, contract drift, mock server z OpenAPI, Pact Broker, can-i-deploy, SemVer, deprecacje, wersjonowanie eventów, openapi-diff i raportowanie kontraktów w CI;
+- `22`: Kafka topic/partition/offset/consumer group/retention, RabbitMQ exchange/queue/binding/ack/DLQ, CloudEvents, modele komunikacji, outbox pattern, podpisy webhooków, idempotency key, DLQ, exactly-once i diagnostyka procesów rozproszonych;
+- `23`: OpenTelemetry Collector, receivers/processors/exporters/pipelines, semantic conventions, W3C Trace Context, baggage, trace ID vs correlation ID, PromQL basics, RED/USE metrics, alert fatigue, error budget, dobre SLI i testowanie odporności.
 
 ## Metryki modułów 17–28
 
@@ -47,18 +43,18 @@ Rozbudowano lekcje `27.2`, `27.3`, `27.4` oraz metadane `.ts`. Dodano prompt pat
 | 20 | 20.2 | Relacje, Ograniczenia i Indeksy — Architektura Integralności Danych | 3194 |
 | 20 | 20.3 | Transakcje, Izolacja i Warunki Wyścigu — Testowanie Spójności Współbieżnej | 4295 |
 | 20 | 20.4 | Migracje, Seedowanie i Sprzątanie Danych — Higiena Środowiska Testowego | 3379 |
-| 21 | 21.1 | OpenAPI jako Kontrakt — Wykonywalna Specyfikacja API | 2590 |
-| 21 | 21.2 | Testy Kontraktowe Sterowane przez Konsumenta z Pact — Ochrona Granic Między Usługami | 2429 |
-| 21 | 21.3 | Wersjonowanie API i Kompatybilność Wsteczna — Bezpieczna Ewolucja Kontraktów | 2299 |
-| 21 | 21.4 | Testy Kontraktowe w CI/CD — Automatyczna Ochrona przed Breaking Changes | 2829 |
-| 22 | 22.1 | Testowanie Kolejek i Zdarzeń — Integracyjna Weryfikacja Systemów Rozproszonych | 1935 |
-| 22 | 22.2 | Architektura Mikroserwisowa dla Testerów — Mapowanie, Kontrakty i Strategia Testów | 1615 |
-| 22 | 22.3 | Webhooki, Ponowienia i Idempotencja — Bezpieczna Obsługa Zdarzeń Zewnętrznych | 1288 |
-| 22 | 22.4 | Spójność Ostateczna i Procesy Biznesowe — Testowanie Stanów Rozproszonych | 1695 |
-| 23 | 23.1 | Logi, Metryki i Ślady Wykonania — Trzy Filary Obserwowalności Systemów | 2387 |
-| 23 | 23.2 | Identyfikatory korelacji (Full Stack Debugging) | 2093 |
-| 23 | 23.3 | Grafana, Prometheus, Loki i Kibana — Praktyczna Analiza Diagnostyczna | 2361 |
-| 23 | 23.4 | SLO, SLA, SLI i Testowanie Odporności — Mierzalna Jakość i Niezawodność | 2458 |
+| 21 | 21.1 | OpenAPI jako Kontrakt — Wykonywalna Specyfikacja API | 2802 |
+| 21 | 21.2 | Testy Kontraktowe Sterowane przez Konsumenta z Pact — Ochrona Granic Między Usługami | 2645 |
+| 21 | 21.3 | Wersjonowanie API i Kompatybilność Wsteczna — Bezpieczna Ewolucja Kontraktów | 2460 |
+| 21 | 21.4 | Testy Kontraktowe w CI/CD — Automatyczna Ochrona przed Breaking Changes | 2966 |
+| 22 | 22.1 | Testowanie Kolejek i Zdarzeń — Integracyjna Weryfikacja Systemów Rozproszonych | 2108 |
+| 22 | 22.2 | Architektura Mikroserwisowa dla Testerów — Mapowanie, Kontrakty i Strategia Testów | 1750 |
+| 22 | 22.3 | Webhooki, Ponowienia i Idempotencja — Bezpieczna Obsługa Zdarzeń Zewnętrznych | 1408 |
+| 22 | 22.4 | Spójność Ostateczna i Procesy Biznesowe — Testowanie Stanów Rozproszonych | 1830 |
+| 23 | 23.1 | Logi, Metryki i Ślady Wykonania — Trzy Filary Obserwowalności Systemów | 2511 |
+| 23 | 23.2 | Identyfikatory korelacji (Full Stack Debugging) | 2210 |
+| 23 | 23.3 | Grafana, Prometheus, Loki i Kibana — Praktyczna Analiza Diagnostyczna | 2478 |
+| 23 | 23.4 | SLO, SLA, SLI i Testowanie Odporności — Mierzalna Jakość i Niezawodność | 2592 |
 | 24 | 24.1 | Testy wydajnościowe i obciążeniowe — kompletny przewodnik | 1890 |
 | 24 | 24.2 | Podstawy k6 | 756 |
 | 24 | 24.3 | JMeter i testy protokołów | 819 |
@@ -86,4 +82,4 @@ Ostatnio uruchamiane walidacje: `git diff --check`, `npm run lint`, `npm run bui
 
 ## Następny krok
 
-Kolejne rekomendowane obszary: `21` AsyncAPI/contract drift, `22` Kafka/RabbitMQ/NATS/CloudEvents, `23` OpenTelemetry Collector/PromQL/semantic conventions, a następnie doprecyzowanie `18`, `20`, `26`, `28`.
+Kolejne rekomendowane obszary: doprecyzowanie `18` TypeScript/Node/Git, `20` SQL, `26` Appium/mobile i `28` portfolio, a następnie pełny przegląd metadanych `.ts` i push zmian.

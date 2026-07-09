@@ -735,3 +735,41 @@ Pamiętaj: test wykrywa problem. Ty używasz narzędzi obserwowalności, żeby w
 - **[Alerting Best Practices](https://grafana.com/docs/grafana/latest/alerting/best-practices/)** — jak tworzyć sensowne alerty
 - **[Prometheus Histograms](https://prometheus.io/docs/practices/histograms/)** — używanie histogramów efektywnie
 - **[SLO Monitoring with Prometheus](https://prometheus.io/docs/practices/consoles/)** — przykładowe dashboardy konsoli
+---
+
+## PromQL basics dla testera
+
+PromQL pozwala pytać o metryki. Tester nie musi być ekspertem, ale powinien rozumieć podstawowe wzorce:
+
+```promql
+rate(http_requests_total[5m])
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+sum by (status) (rate(http_requests_total[5m]))
+```
+
+Przydatne pytania:
+
+- czy error rate wzrósł po deployu?
+- czy p95 latency przekroczyło SLO?
+- która usługa ma najwięcej 5xx?
+- czy queue lag rośnie?
+
+## RED i USE metrics
+
+RED dla usług request/response:
+
+- Rate;
+- Errors;
+- Duration.
+
+USE dla zasobów:
+
+- Utilization;
+- Saturation;
+- Errors.
+
+Te dwa modele pomagają uporządkować diagnostykę. Jeśli API jest wolne, sprawdź RED usługi i USE zasobów.
+
+## Alert fatigue
+
+Alert powinien wymagać działania. Jeśli każdy drobny spike generuje alarm, zespół przestaje reagować. Tester analizujący jakość powinien odróżniać alert diagnostyczny od alertu blokującego release.

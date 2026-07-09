@@ -866,3 +866,45 @@ Pamiętaj: kontrakt, który nie jest walidowany, to tylko dokument. Dokument, kt
 - **[OpenAPI Diff](https://github.com/OpenAPITools/openapi-diff)** — wykrywanie breaking changes
 - **[openapi-generator](https://github.com/OpenAPITools/openapi-generator)** — generowanie klientów i mocków
 - **[Stoplight Elements](https://stoplight.io/open-source/elements)** — interaktywna dokumentacja OpenAPI
+---
+
+## AsyncAPI jako uzupełnienie OpenAPI
+
+OpenAPI opisuje głównie HTTP API. W systemach event-driven potrzebujesz także kontraktu dla komunikatów, topiców, kolejek i eventów. Do tego służy AsyncAPI.
+
+Przykład zakresu AsyncAPI:
+
+- nazwa kanału lub topicu;
+- typ komunikatu;
+- schema payloadu;
+- nagłówki;
+- przykładowe wiadomości;
+- producent i konsument;
+- wersjonowanie eventu.
+
+Jeśli moduł API opisuje `POST /orders`, a system później publikuje event `OrderCreated`, oba kontrakty są ważne. Testy powinny chronić zarówno request/response, jak i eventy.
+
+## Contract drift
+
+Contract drift oznacza rozjazd między dokumentacją a rzeczywistym zachowaniem systemu. Przykład: OpenAPI mówi, że `total` jest number, a backend zaczyna zwracać string. Taki błąd może nie zostać wykryty przez test UI, dopóki frontend nie zacznie dziwnie formatować kwoty.
+
+Mitygacje:
+
+- walidacja odpowiedzi względem OpenAPI w CI;
+- openapi-diff dla zmian breaking;
+- review zmian kontraktu;
+- generowanie typów z kontraktu;
+- testy konsumenckie dla krytycznych klientów.
+
+## Mock server z kontraktu
+
+OpenAPI może służyć do wygenerowania mock servera. To pomaga frontendowi pracować przed gotowym backendem, ale mock musi być zgodny z kontraktem i aktualizowany razem z nim. Mock nie zastępuje testu provider implementation.
+
+## Checklista OpenAPI jako kontraktu
+
+- Czy specyfikacja jest wersjonowana razem z kodem?
+- Czy CI wykrywa breaking changes?
+- Czy przykłady są realistyczne?
+- Czy błędy 4xx/5xx mają opisany schema?
+- Czy nagłówki i autoryzacja są częścią kontraktu?
+- Czy eventy asynchroniczne mają osobny kontrakt, np. AsyncAPI?

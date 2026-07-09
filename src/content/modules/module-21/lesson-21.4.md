@@ -847,3 +847,43 @@ Pamiętaj: kontrakt, który nie jest w CI, jest martwym kontraktem. Dopóki nie 
 - **[OpenAPI Diff](https://github.com/OpenAPITools/openapi-diff)** — wykrywanie breaking changes w OpenAPI
 - **[Contract Testing — Martin Fowler](https://martinfowler.com/articles/consumer-driven-contracts.html)** — artykuł Martina Fowlera o CDCT
 - **[Pactflow — CI/CD Best Practices](https://pactflow.io/blog/contract-testing-in-ci-cd/)** — best practices dla contract testing w CI/CD
+---
+
+## OpenAPI diff w pipeline
+
+W CI warto porównywać specyfikację z poprzednią wersją:
+
+```bash
+openapi-diff old.yaml new.yaml
+```
+
+Celem jest wykrycie zmian łamiących przed merge. Nie każda zmiana specyfikacji jest błędem, ale każda breaking change powinna być świadoma i opisana.
+
+## Contract tests jako quality gate
+
+Dobry pipeline kontraktów ma kilka bramek:
+
+- lint OpenAPI;
+- walidacja przykładów;
+- testy API względem schema;
+- publikacja Pact przez konsumenta;
+- provider verification;
+- `can-i-deploy` przed deployem.
+
+## Raportowanie kontraktów
+
+Raport powinien mówić:
+
+- który konsument jest zagrożony;
+- który endpoint lub message się zmienił;
+- czy zmiana jest breaking;
+- jaka wersja providera i konsumenta brała udział;
+- kto jest właścicielem kontraktu.
+
+## Checklista CI kontraktów
+
+- Czy kontrakty są walidowane w PR?
+- Czy provider verification działa na aktualnym kodzie providera?
+- Czy deployment blokuje znane breaking changes?
+- Czy kontrakty eventów są sprawdzane tak jak HTTP?
+- Czy raport wskazuje właściciela problemu?

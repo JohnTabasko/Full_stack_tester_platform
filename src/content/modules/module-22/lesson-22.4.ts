@@ -5,7 +5,7 @@ export const lesson22_4: Lesson = {
   "id": "22.4",
   "moduleId": 22,
   "title": "Spójność ostateczna i procesy biznesowe",
-  "description": "Sagi, polling, correlation ID, rozproszone workflow, asercje na stan końcowy i testowanie procesów rozłożonych w czasie.",
+  "description": "Spójność ostateczna: sagi, polling, stan końcowy, idempotencja, exactly-once jako ryzyko, correlation ID i diagnostyka procesu rozproszonego.",
   "order": 4,
   "difficulty": "advanced",
   "tags": [
@@ -154,24 +154,19 @@ export const lesson22_4: Lesson = {
     ],
     "references": [
       {
-        "title": "Martin Fowler - Microservices",
-        "url": "https://martinfowler.com/articles/microservices.html",
-        "description": "Klasyczne omówienie architektury mikroserwisowej i jej konsekwencji organizacyjnych."
-      },
-      {
-        "title": "Enterprise Integration Patterns",
-        "url": "https://www.enterpriseintegrationpatterns.com/",
-        "description": "Katalog wzorców integracji systemów, kolejek, routerów i transformacji komunikatów."
+        "title": "OpenTelemetry",
+        "url": "https://opentelemetry.io/docs/",
+        "description": "Trace i diagnostyka procesów rozproszonych."
       },
       {
         "title": "Kafka Documentation",
         "url": "https://kafka.apache.org/documentation/",
-        "description": "Dokumentacja platformy zdarzeniowej Apache Kafka."
+        "description": "Semantyka przetwarzania komunikatów."
       },
       {
-        "title": "Webhook Bezpieczeństwo Guidelines",
-        "url": "https://owasp.org/www-project-web-security-testing-guide/",
-        "description": "Praktyki bezpieczeństwa przy komunikacji HTTP i integracjach zewnętrznych."
+        "title": "Enterprise Integration Patterns",
+        "url": "https://www.enterpriseintegrationpatterns.com/",
+        "description": "Wzorce procesów integracyjnych."
       }
     ],
     "tipsAndTricks": [

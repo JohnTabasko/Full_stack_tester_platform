@@ -396,3 +396,34 @@ Pamiętaj: webhook bez walidacji podpisu = otwarte drzwi dla atakującego. Idemp
 - **[Webhook Security Best Practices](https://docs.stripe.com/webhooks/best-practices)** — podpisy i walidacja
 - **[Idempotency — Stripe](https://stripe.com/docs/idempotency)** — jak Stripe implementuje idempotencję
 - **[Webhook Reliability — Twilio](https://www.twilio.com/docs/usage/webhooks/replay-webhooks)** — strategie ponowień
+---
+
+## Podpisy webhooków
+
+Webhook powinien być podpisany, aby odbiorca mógł sprawdzić autentyczność. Testuj:
+
+- poprawny podpis;
+- błędny podpis;
+- brak podpisu;
+- stary timestamp;
+- ponowne użycie tego samego event id.
+
+Przykład asercji:
+
+```text
+POST /webhooks/payment bez poprawnego podpisu zwraca 401/403 i nie zmienia statusu zamówienia.
+```
+
+## Idempotency key
+
+Idempotency key pozwala bezpiecznie powtórzyć request. Dla płatności i webhooków to krytyczne.
+
+Test:
+
+1. Wyślij webhook `payment.succeeded` z `eventId=evt-1`.
+2. Wyślij ten sam webhook ponownie.
+3. Sprawdź, że zamówienie jest opłacone raz, bez podwójnej faktury i podwójnego eventu.
+
+## Retry i DLQ
+
+Webhooki mogą być ponawiane. Jeśli konsument stale zawodzi, komunikat powinien trafić do DLQ albo zostać oznaczony do ręcznej obsługi. Testuj zarówno sukces po retry, jak i kontrolowaną awarię po przekroczeniu limitu.

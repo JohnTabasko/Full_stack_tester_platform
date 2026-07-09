@@ -5,7 +5,7 @@ export const lesson22_1: Lesson = {
   "id": "22.1",
   "moduleId": 22,
   "title": "Architektura mikroserwisowa dla testerów",
-  "description": "Granice usług, zależności, kontrakty, dublerzy testowi, środowiska integracyjne i strategia testów w systemie rozproszonym.",
+  "description": "Testowanie kolejek i zdarzeń: Kafka topics/partitions/offsets, RabbitMQ exchanges/queues/ack/DLQ, CloudEvents i kontrakty eventów.",
   "order": 1,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson22_1: Lesson = {
     ],
     "references": [
       {
-        "title": "Martin Fowler - Microservices",
-        "url": "https://martinfowler.com/articles/microservices.html",
-        "description": "Klasyczne omówienie architektury mikroserwisowej i jej konsekwencji organizacyjnych."
-      },
-      {
-        "title": "Enterprise Integration Patterns",
-        "url": "https://www.enterpriseintegrationpatterns.com/",
-        "description": "Katalog wzorców integracji systemów, kolejek, routerów i transformacji komunikatów."
-      },
-      {
         "title": "Kafka Documentation",
         "url": "https://kafka.apache.org/documentation/",
-        "description": "Dokumentacja platformy zdarzeniowej Apache Kafka."
+        "description": "Topic, partition, offset i consumer groups."
       },
       {
-        "title": "Webhook Bezpieczeństwo Guidelines",
-        "url": "https://owasp.org/www-project-web-security-testing-guide/",
-        "description": "Praktyki bezpieczeństwa przy komunikacji HTTP i integracjach zewnętrznych."
+        "title": "RabbitMQ Docs",
+        "url": "https://www.rabbitmq.com/docs",
+        "description": "Exchange, queue, binding, ack/nack i DLQ."
+      },
+      {
+        "title": "CloudEvents",
+        "url": "https://cloudevents.io/",
+        "description": "Standard metadanych zdarzeń."
       }
     ],
     "tipsAndTricks": [

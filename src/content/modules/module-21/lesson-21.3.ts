@@ -5,7 +5,7 @@ export const lesson21_3: Lesson = {
   "id": "21.3",
   "moduleId": 21,
   "title": "Wersjonowanie API i kompatybilność wsteczna",
-  "description": "Zmiany niekompatybilne, kompatybilność wsteczna, polityka deprecacji, wersjonowanie endpointów i bezpieczna ewolucja kontraktów.",
+  "description": "Wersjonowanie API i eventów, kompatybilność wsteczna, SemVer, polityka deprecacji, breaking changes i telemetryka użycia kontraktu.",
   "order": 3,
   "difficulty": "advanced",
   "tags": [
@@ -155,22 +155,17 @@ export const lesson21_3: Lesson = {
       {
         "title": "OpenAPI Specification",
         "url": "https://spec.openapis.org/oas/latest.html",
-        "description": "Oficjalna specyfikacja OpenAPI."
+        "description": "Wersjonowanie i deprecacje w OpenAPI."
       },
       {
-        "title": "Pact Documentation",
-        "url": "https://docs.pact.io/",
-        "description": "Dokumentacja narzędzia do testy kontraktowe sterowane przez konsumenta."
+        "title": "SemVer",
+        "url": "https://semver.org/",
+        "description": "Semantic Versioning."
       },
       {
-        "title": "OWASP API Bezpieczeństwo Top 10",
-        "url": "https://owasp.org/www-project-api-security/",
-        "description": "Lista najważniejszych ryzyk bezpieczeństwa API."
-      },
-      {
-        "title": "Google API Improvement Proposals",
-        "url": "https://google.aip.dev/",
-        "description": "Praktyczne zalecenia projektowania i ewolucji API."
+        "title": "AsyncAPI",
+        "url": "https://www.asyncapi.com/docs",
+        "description": "Wersjonowanie komunikatów asynchronicznych."
       }
     ],
     "tipsAndTricks": [

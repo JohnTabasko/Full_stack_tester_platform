@@ -5,7 +5,7 @@ export const lesson21_2: Lesson = {
   "id": "21.2",
   "moduleId": 21,
   "title": "Testy kontraktowe sterowane przez konsumenta z Pact",
-  "description": "Konsument, dostawca, Pact Broker, publikacja kontraktów, weryfikacja dostawcy i workflow kontraktów między zespołami.",
+  "description": "Pact i consumer-driven contracts: konsument, provider, Pact Broker, provider verification, can-i-deploy i typowe błędy kontraktów.",
   "order": 2,
   "difficulty": "advanced",
   "tags": [
@@ -153,24 +153,19 @@ export const lesson21_2: Lesson = {
     ],
     "references": [
       {
-        "title": "OpenAPI Specification",
-        "url": "https://spec.openapis.org/oas/latest.html",
-        "description": "Oficjalna specyfikacja OpenAPI."
-      },
-      {
-        "title": "Pact Documentation",
+        "title": "Pact Docs",
         "url": "https://docs.pact.io/",
-        "description": "Dokumentacja narzędzia do testy kontraktowe sterowane przez konsumenta."
+        "description": "Oficjalna dokumentacja Pact."
       },
       {
-        "title": "OWASP API Bezpieczeństwo Top 10",
-        "url": "https://owasp.org/www-project-api-security/",
-        "description": "Lista najważniejszych ryzyk bezpieczeństwa API."
+        "title": "Pact Broker",
+        "url": "https://docs.pact.io/pact_broker",
+        "description": "Broker kontraktów i workflow can-i-deploy."
       },
       {
-        "title": "Google API Improvement Proposals",
-        "url": "https://google.aip.dev/",
-        "description": "Praktyczne zalecenia projektowania i ewolucji API."
+        "title": "OpenAPI",
+        "url": "https://spec.openapis.org/oas/latest.html",
+        "description": "Porównanie provider-driven i schema-based contracts."
       }
     ],
     "tipsAndTricks": [

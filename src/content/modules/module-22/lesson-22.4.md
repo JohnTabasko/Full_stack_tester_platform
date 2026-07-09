@@ -439,3 +439,40 @@ Pamiętaj: test, który sprawdza tylko odpowiedź HTTP, testuje tylko powierzchn
 - **[Choreography vs Orchestration](https://event driven.io/en/choreography_vs_orchestration/)** — dwa podejścia do koordynacji
 - **[Testing Distributed Systems](https://github.com/apyc/awesome-testing/blob/main/distributed-systems.md)** — zbiór zasobów o testowaniu systemów rozproszonych
 - **[Polling vs Webhooks](https://event driven.io/en/polling_or_webhooks/)** — kiedy polling, kiedy webhooki
+---
+
+## Exactly-once — ostrożnie z obietnicami
+
+W systemach rozproszonych „exactly once” jest trudne i często oznacza kombinację idempotencji, transakcji, deduplikacji i gwarancji brokera. Tester nie powinien ufać hasłu marketingowemu. Powinien sprawdzić skutki:
+
+- czy duplikat eventu nie zmienia stanu dwa razy;
+- czy brak eventu jest wykrywalny;
+- czy retry nie tworzy podwójnej płatności;
+- czy outbox nie publikuje eventu bez zmiany domenowej.
+
+## Asercje na stan końcowy
+
+Przy eventual consistency test zwykle powinien czekać na stan końcowy:
+
+```typescript
+await expect.poll(async () => {
+  const order = await ordersClient.get(orderId);
+  return order.status;
+}).toBe('PAID');
+```
+
+Nie czekaj stałym sleep. Polling z timeoutem daje szybszy i czytelniejszy test.
+
+## Diagnostyka procesu rozproszonego
+
+Dla procesu przez kilka usług zapisuj:
+
+- correlation ID;
+- event id;
+- order id;
+- topic/queue;
+- timestamp publikacji;
+- status konsumenta;
+- trace OpenTelemetry.
+
+Bez tych danych test E2E w mikroserwisach jest bardzo trudny do debugowania.

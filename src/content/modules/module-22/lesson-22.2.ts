@@ -5,7 +5,7 @@ export const lesson22_2: Lesson = {
   "id": "22.2",
   "moduleId": 22,
   "title": "Testowanie kolejek i zdarzeń",
-  "description": "Kafka, RabbitMQ/SQS, publikacja i konsumpcja komunikatów, kolejność, duplikaty, ponowienia i dead-letter queues.",
+  "description": "Mikroserwisy: modele komunikacji, granice usług, outbox pattern, test strategy, kontrakty i ograniczanie dużych E2E.",
   "order": 2,
   "difficulty": "advanced",
   "tags": [
@@ -155,24 +155,19 @@ export const lesson22_2: Lesson = {
     ],
     "references": [
       {
-        "title": "Martin Fowler - Microservices",
+        "title": "Microservices",
         "url": "https://martinfowler.com/articles/microservices.html",
-        "description": "Klasyczne omówienie architektury mikroserwisowej i jej konsekwencji organizacyjnych."
+        "description": "Klasyczny opis architektury mikroserwisowej."
       },
       {
         "title": "Enterprise Integration Patterns",
         "url": "https://www.enterpriseintegrationpatterns.com/",
-        "description": "Katalog wzorców integracji systemów, kolejek, routerów i transformacji komunikatów."
+        "description": "Wzorce integracyjne."
       },
       {
-        "title": "Kafka Documentation",
-        "url": "https://kafka.apache.org/documentation/",
-        "description": "Dokumentacja platformy zdarzeniowej Apache Kafka."
-      },
-      {
-        "title": "Webhook Bezpieczeństwo Guidelines",
-        "url": "https://owasp.org/www-project-web-security-testing-guide/",
-        "description": "Praktyki bezpieczeństwa przy komunikacji HTTP i integracjach zewnętrznych."
+        "title": "AsyncAPI",
+        "url": "https://www.asyncapi.com/docs",
+        "description": "Kontrakty dla komunikacji asynchronicznej."
       }
     ],
     "tipsAndTricks": [

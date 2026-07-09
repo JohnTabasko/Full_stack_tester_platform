@@ -500,3 +500,38 @@ Pamiętaj: w systemie mikroserwisowym test jednostkowy pojedynczej usługi to do
 - **[Service Virtualization — WireMock](https://wiremock.org/)** — mockowanie usług zewnętrznych
 - **[Testcontainers](https://testcontainers.com/)** — konteneryzowane środowiska testowe
 - **[Architecture of a Databaseless Integration Test Environment](https://github.com/testcontainers)** — użycie Testcontainers w CI
+---
+
+## Modele komunikacji mikroserwisów
+
+Tester powinien rozróżniać modele:
+
+- request/response HTTP;
+- queue command;
+- pub/sub event;
+- stream;
+- event sourcing;
+- request/reply przez broker.
+
+Każdy model ma inne ryzyka. HTTP łatwiej debugować, ale silnie wiąże dostępność usług. Eventy zmniejszają sprzężenie, ale wprowadzają eventual consistency, duplikaty i trudniejsze śledzenie.
+
+## Outbox pattern
+
+Outbox pattern pomaga zapewnić, że zmiana w bazie i publikacja eventu są spójne. Aplikacja zapisuje event do tabeli outbox w tej samej transakcji co zmianę domenową, a osobny proces publikuje go do brokera.
+
+Testy powinny sprawdzać:
+
+- rekord outbox powstaje;
+- publisher publikuje event;
+- event nie ginie przy awarii;
+- duplikaty są obsługiwane idempotentnie.
+
+## Strategia testów mikroserwisów
+
+Nie testuj wszystkiego przez jeden wielki E2E. Lepszy zestaw:
+
+- unit dla reguł domenowych;
+- integration dla adapterów;
+- contract tests dla HTTP i eventów;
+- component/service tests dla pojedynczej usługi;
+- kilka E2E dla krytycznych procesów.
