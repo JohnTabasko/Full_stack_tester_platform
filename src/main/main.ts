@@ -89,11 +89,9 @@ function getPlaywrightCliPath(): string {
   try {
     // In development this resolves from the project node_modules directory.
     // In a packaged build it resolves from the bundled application dependencies.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require.resolve('@playwright/test/cli');
   } catch {
     // Fallback for installations where the package entry layout differs.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const packageJson = require.resolve('@playwright/test/package.json');
     return path.join(path.dirname(packageJson), 'cli.js');
   }
