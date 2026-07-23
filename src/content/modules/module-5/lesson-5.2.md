@@ -2,353 +2,146 @@
 
 Fikstury są jednym z najważniejszych mechanizmów Playwright Test. To one sprawiają, że test nie musi ręcznie tworzyć przeglądarki, kontekstu, strony, klienta API, użytkownika testowego albo Page Objectów. Test deklaruje, czego potrzebuje, a runner przygotowuje zasoby, przekazuje je do testu i sprząta po zakończeniu.
 
-Dla Full Stack Testera fikstury są czymś więcej niż „ładniejszym `beforeEach`”. To sposób projektowania architektury testów: izolacji danych, logowania, klientów API, połączeń z bazą, obiektów stron, mocków oraz artefaktów diagnostycznych.
+Dla Full Stack Testera fikstury są czymś więcej niż „ładniejszym `beforeEach`”. To sposób projektowania architektury testów: izolacji danych, logowania, klientów API, połączeń z bazą, obiektów stron, mocków oraz instancji diagnostycznych.
 
-## 1. Problem, który rozwiązują fikstury
+---
 
-Bez fikstur testy szybko zaczynają wyglądać tak:
+## 1. Wyższość Fixture-ów nad Klasycznymi Hookami
 
-```typescript
-import { test, expect, chromium } from '@playwright/test';
+W tradycyjnych frameworkach (jak Jest, Vitest czy Mocha) stan początkowy oraz sprzątanie organizuje się w blokach `beforeEach` i `afterEach`. W skali korporacyjnej podejście to prowadzi do poważnych problemów:
+*   **Brak modularności**: Hooki są trwale związane z blokiem `describe`. Nie można ich łatwo współdzielić między plikami bez kopiowania kodu.
+*   **Brak leniwego ładowania (Lazy Loading)**: Wszystkie hooki w bloku `describe` uruchamiają się dla każdego testu, nawet jeśli dany test nie potrzebuje danej bazy danych czy zalogowanego użytkownika.
+*   **Skomplikowane zarządzanie zmiennymi globalnymi**: Dane przygotowane w `beforeEach` muszą być przekazywane do testów przez mutowalne zmienne o zasięgu pliku (`let user: User;`), co stwarza ryzyko wycieku stanu między testami.
 
-test('użytkownik może zmienić adres dostawy', async () => {
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+System fixture-ów w Playwright, opisany w książce *"Practical Playwright Test" (2026)*, całkowicie eliminuje te wady:
+*   Inicjalizacja jest **leniwa** (lazy-evaluated) – fixture uruchamia się wyłącznie wtedy, gdy test jawnie zażąda go w sygnaturze (np. `async ({ loginPage }) => { ... }`).
+*   Wszystkie zależności są przekazywane jako silnie otypowane parametry wejściowe, eliminując mutowalne zmienne o zasięgu pliku.
+*   Cykl życia fixture-a (setup i teardown) jest zamknięty w jednej funkcji za pomocą słowa kluczowego `use()`.
 
-  await page.goto('/login');
-  await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('secret');
-  await page.getByRole('button', { name: 'Zaloguj' }).click();
+---
 
-  await page.goto('/account/address');
-  await page.getByLabel('Miasto').fill('Warszawa');
-  await page.getByRole('button', { name: 'Zapisz' }).click();
+## 2. Fixtury Powiązane i Ich Cykl Życia (Fixtures Dependency)
 
-  await expect(page.getByText('Adres zapisany')).toBeVisible();
+Fixtury mogą bez przeszkód zależeć od siebie nawzajem. Playwright analizuje graf zależności i uruchamia je w optymalnej kolejności.
 
-  await context.close();
-  await browser.close();
-});
-```
-
-Ten kod miesza wiele odpowiedzialności: uruchomienie przeglądarki, logowanie, nawigację, scenariusz biznesowy i sprzątanie. Jeżeli taki setup powtórzy się w kilkudziesięciu testach, projekt będzie trudny w utrzymaniu.
-
-Playwright rozwiązuje to przez fixtures:
+Wyobraźmy sobie proces, w którym chcemy przetestować panel administratora. Test wymaga w pełni zalogowanej strony (`loggedInAdminPage`). Zamiast pisać kod logowania w każdym teście, fixtura ta może polegać na innej fixturze – `loginPage`:
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test as base, Page } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
 
-test('użytkownik może zmienić adres dostawy', async ({ page }) => {
-  await page.goto('/account/address');
-  await page.getByLabel('Miasto').fill('Warszawa');
-  await page.getByRole('button', { name: 'Zapisz' }).click();
-  await expect(page.getByText('Adres zapisany')).toBeVisible();
-});
-```
-
-Fikstura `page` jest wbudowana. Playwright sam tworzy izolowany kontekst przeglądarki i stronę dla testu.
-
-## 2. Wbudowane fikstury Playwright
-
-Najczęściej używane wbudowane fikstury:
-
-| Fikstura | Scope | Zastosowanie |
-|---|---|---|
-| `page` | test | Nowa strona w izolowanym kontekście dla pojedynczego testu. |
-| `context` | test | BrowserContext, czyli izolowana sesja: cookies, localStorage, permissions. |
-| `browser` | worker | Instancja przeglądarki współdzielona w workerze. |
-| `browserName` | worker | Nazwa przeglądarki: `chromium`, `firefox`, `webkit`. |
-| `request` | test | Izolowany `APIRequestContext` do testów API i setupu danych. |
-| `baseURL` | worker/test option | Bazowy URL z konfiguracji. |
-| `isMobile` | option | Informacja z konfiguracji projektu. |
-
-Przykład użycia kilku fikstur naraz:
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test('koszyk jest pusty dla nowej sesji', async ({ page, context, browserName, request }) => {
-  console.log(`Test działa w: ${browserName}`);
-
-  const health = await request.get('/api/health');
-  expect(health.ok()).toBeTruthy();
-
-  await context.addCookies([
-    { name: 'currency', value: 'PLN', domain: 'localhost', path: '/' },
-  ]);
-
-  await page.goto('/cart');
-  await expect(page.getByText('Twój koszyk jest pusty')).toBeVisible();
-});
-```
-
-## 3. Custom fixture — własna zależność testu
-
-Własne fikstury tworzymy przez `base.extend()`.
-
-```typescript
-// tests/fixtures/base-test.ts
-import { test as base, expect, type Page } from '@playwright/test';
-
-class LoginPage {
-  constructor(private page: Page) {}
-
-  async login(email: string, password: string) {
-    await this.page.goto('/login');
-    await this.page.getByLabel('Email').fill(email);
-    await this.page.getByLabel('Password').fill(password);
-    await this.page.getByRole('button', { name: 'Zaloguj' }).click();
-  }
-}
-
-type Fixtures = {
+type MyFixtures = {
   loginPage: LoginPage;
+  loggedInAdminPage: Page;
 };
 
-export const test = base.extend<Fixtures>({
+export const test = base.extend<MyFixtures>({
+  // Inicjalizacja LoginPage przy użyciu wbudowanej fixtury page
   loginPage: async ({ page }, use) => {
     const loginPage = new LoginPage(page);
     await use(loginPage);
   },
-});
 
-export { expect };
+  // Fixtura loggedInAdminPage zależy od loginPage oraz page
+  loggedInAdminPage: async ({ page, loginPage }, use) => {
+    // 1. SETUP: Wykonaj logowanie przed testem
+    await loginPage.navigate('/');
+    await loginPage.login('admin@example.com', 'secret_pass');
+    
+    // Przekaż zalogowaną stronę do testu
+    await use(page);
+    
+    // 2. TEARDOWN: Opcjonalne wylogowanie po teście
+    await page.evaluate(() => localStorage.clear());
+  },
+});
 ```
 
-Test importuje już nie `test` z `@playwright/test`, ale naszą wersję:
+---
+
+## 3. Fixtury Automatyczne (Auto Fixtures) z Załącznikami Diagnostycznymi
+
+Fixtury automatyczne (`auto: true`) to potężne narzędzie diagnostyczne opisywane w książce *"Hands-On Automated Testing with Playwright" (2026)*. Uruchamiają się one automatycznie dla każdego testu w danym projekcie, bez konieczności deklarowania ich w parametrach funkcji testowej.
+
+Są one idealne do:
+1.  **Monitorowania błędów konsoli** przeglądarki (Console Error Collector).
+2.  **Mierzenia czasu wykonania testu** lub zapytań API.
+3.  **Automatycznego czyszczenia bazy danych** po każdym teście na podstawie identyfikatora testu.
+
+Oto kompletny przykład automatycznej fixtury zbierającej błędy z konsoli przeglądarki i dołączającej je bezpośrednio do raportu HTML za pomocą `testInfo.attach()` w przypadku niepowodzenia:
 
 ```typescript
-import { test, expect } from './fixtures/base-test';
+export const testWithDiagnostics = test.extend<{ consoleLogs: string[] }>({
+  consoleLogs: [async ({ page }, use, testInfo) => {
+    const logs: string[] = [];
 
-test('logowanie poprawnym hasłem', async ({ loginPage, page }) => {
-  await loginPage.login('user@example.com', 'secret');
-  await expect(page.getByRole('heading', { name: 'Panel użytkownika' })).toBeVisible();
-});
-```
-
-## 4. `use()` i cykl życia fikstury
-
-Najważniejszy element fikstury to `await use(value)`:
-
-```typescript
-export const test = base.extend<{ temporaryUser: { email: string } }>({
-  temporaryUser: async ({ request }, use) => {
-    // setup
-    const email = `user-${Date.now()}@example.com`;
-    const response = await request.post('/api/users', {
-      data: { email, password: 'Secret123!' },
+    // Rejestracja błędów konsoli przeglądarki
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        logs.push(`[Console Error] ${msg.text()} (URL: ${page.url()})`);
+      }
     });
-    expect(response.ok()).toBeTruthy();
 
-    // przekazanie zasobu do testu
-    await use({ email });
+    // Uruchomienie testu
+    await use(logs);
 
-    // teardown — wykona się również, gdy test się wywali
-    await request.delete(`/api/users/${email}`);
-  },
+    // Teardown: Jeśli test nie przeszedł pomyślnie i zebrano błędy, dołącz je jako plik tekstowy
+    if (testInfo.status !== testInfo.expectedStatus && logs.length > 0) {
+      await testInfo.attach('browser-console-errors', {
+        body: JSON.stringify(logs, null, 2),
+        contentType: 'application/json',
+      });
+    }
+  }, { auto: true }], // auto: true oznacza, że fixture uruchomi się dla każdego testu automatycznie
 });
 ```
 
-Kod przed `use()` to setup. Kod po `use()` to teardown. Dzięki temu sprzątanie jest powiązane z zasobem, a nie porozrzucane po testach.
+---
 
-## 5. Test zakres vs worker zakres
+## 4. Wybór Zakresu Fixture-a (Scope: Test vs Worker)
 
-Fikstury mogą działać w dwóch głównych zakresach.
+W Playwright wyróżniamy dwa główne zakresy fixture-ów:
+1.  **Scope: test** (Domyślny) – fixture jest niszczony i tworzony od nowa dla każdego pojedynczego testu. Gwarantuje to 100% izolację środowiskową.
+2.  **Scope: worker** – fixture jest tworzony raz na proces roboczy (worker thread) i współdzielony przez wiele testów uruchamianych w tym procesie. Jest idealny do ciężkich, kosztownych operacji (np. nawiązanie połączenia z bazą danych, uruchomienie kontenera Docker za pomocą Docker Compose).
 
-### Test zakres
-
-Domyślny zakres. Fikstura jest tworzona osobno dla każdego testu. To najbezpieczniejszy wybór dla danych, stron, użytkowników i zasobów, które nie mogą przeciekać między testami.
-
-```typescript
-export const test = base.extend<{ cartId: string }>({
-  cartId: async ({ request }, use) => {
-    const response = await request.post('/api/carts');
-    const cart = await response.json();
-    await use(cart.id);
-    await request.delete(`/api/carts/${cart.id}`);
-  },
-});
-```
-
-### Worker zakres
-
-Fikstura jest tworzona raz dla procesu workera i współdzielona przez testy uruchamiane w tym workerze. Przydaje się dla kosztownych zasobów: kontenerów, klientów bazodanowych, dużych seedów albo kont testowych przypisanych do workera.
+Przykład współdzielonej fixtury bazodanowej o zakresie worker:
 
 ```typescript
 import { test as base } from '@playwright/test';
+import { DatabasePool } from '../utils/db';
 
 type WorkerFixtures = {
-  workerAccount: { email: string; password: string };
+  dbPool: DatabasePool;
 };
 
 export const test = base.extend<{}, WorkerFixtures>({
-  workerAccount: [async ({}, use, workerInfo) => {
-    const email = `worker-${workerInfo.workerIndex}@example.com`;
-    await use({ email, password: 'Secret123!' });
-  }, { zakres: 'worker' }],
+  // Definiujemy fixture o zakresie worker
+  dbPool: [async ({}, use) => {
+    // SETUP: Uruchomienie połączenia raz na worker
+    const pool = new DatabasePool();
+    await pool.connect();
+    
+    await use(pool);
+    
+    // TEARDOWN: Zamknięcie połączenia po zakończeniu pracy workera
+    await pool.disconnect();
+  }, { scope: 'worker' }],
 });
 ```
 
-Uwaga: worker zakres wymaga dyscypliny. Jeżeli testy modyfikują współdzielony zasób, mogą wpływać na siebie nawzajem.
+---
 
-## 6. Auto fixtures
+## 5. Checklista Zaawansowanego Projektowania Fixture-ów
 
-Fikstura może uruchamiać się automatycznie, nawet jeśli test nie wymienia jej w argumentach. To dobre miejsce na diagnostykę lub globalny setup per test, ale trzeba używać tego ostrożnie.
+Podczas projektowania wstrzykiwania zależności za pomocą fixture-ów, zawsze zadaj sobie następujące pytania:
+- [ ] Czy dany setup jest unikalny dla tego testu, czy powtarza się w wielu plikach? (Jeśli się powtarza -> przenieś go do fixture).
+- [ ] Czy poprawnie obsłużyłeś fazę sprzątania (kod po słowie kluczowym `use()`)?
+- [ ] Czy dobrałeś odpowiedni zakres (scope: 'test' dla izolacji sesji, scope: 'worker' dla ciężkich baz danych)?
+- [ ] Czy w przypadku błędów dołączasz logi lub diagnostykę do raportu za pomocą `testInfo.attach()`?
 
-```typescript
-export const test = base.extend<{ saveLogs: void }>({
-  saveLogs: [async ({ page }, use, testInfo) => {
-    const logs: string[] = [];
-    page.on('console', message => logs.push(`${message.type()}: ${message.text()}`));
+---
 
-    await use();
-
-    if (testInfo.status !== testInfo.expectedStatus) {
-      await testInfo.attach('console.log', {
-        body: logs.join('\n'),
-        contentType: 'text/plain',
-      });
-    }
-  }, { auto: true }],
-});
-```
-
-Nie twórz automatycznych fikstur, które wykonują duże flow biznesowe. Test powinien pozostać czytelny.
-
-## 7. Option fixtures — konfiguracja jako fixture
-
-Fikstury mogą reprezentować opcje, które da się nadpisywać w `test.use()` albo w projekcie.
-
-```typescript
-import { test as base } from '@playwright/test';
-
-type Options = {
-  defaultCurrency: 'PLN' | 'EUR';
-};
-
-export const test = base.extend<{}, {}, Options>({
-  defaultCurrency: ['PLN', { option: true }],
-});
-
-test.use({ defaultCurrency: 'EUR' });
-```
-
-To przydatne, gdy ta sama logika testowa ma działać dla różnych wariantów konfiguracji: roli użytkownika, regionu, waluty, feature flagi albo kanału sprzedaży.
-
-## 8. Łączenie fikstur i architektura projektu
-
-W większym projekcie nie warto mieć jednego ogromnego pliku `base-test.ts`. Lepiej dzielić fikstury według odpowiedzialności:
-
-```text
-tests/
-  fixtures/
-    base-test.ts
-    auth.fixture.ts
-    api.fixture.ts
-    pages.fixture.ts
-    database.fixture.ts
-  pages/
-    LoginPage.ts
-    CheckoutPage.ts
-  specs/
-    checkout.spec.ts
-```
-
-Przykład eksportu wspólnego `test`:
-
-```typescript
-// fixtures/base-test.ts
-import { test as base, expect } from '@playwright/test';
-import { authFixtures } from './auth.fixture';
-import { pageFixtures } from './pages.fixture';
-
-export const test = base
-  .extend(authFixtures)
-  .extend(pageFixtures);
-
-export { expect };
-```
-
-Jeżeli projekt używa kilku zestawów fikstur, można stosować `mergeTests` z Playwright.
-
-## 9. Fikstury a Page Object Model
-
-Bardzo dobry wzorzec to dostarczanie Page Objectów jako fixtures:
-
-```typescript
-export const test = base.extend<{
-  checkoutPage: CheckoutPage;
-}>({
-  checkoutPage: async ({ page }, use) => {
-    await use(new CheckoutPage(page));
-  },
-});
-```
-
-Test jest wtedy czytelny:
-
-```typescript
-test('gość może złożyć zamówienie', async ({ checkoutPage }) => {
-  await checkoutPage.open();
-  await checkoutPage.addProduct('Laptop');
-  await checkoutPage.submitOrder();
-  await checkoutPage.expectOrderConfirmation();
-});
-```
-
-Pamiętaj jednak: fixture nie powinien ukrywać krytycznych kroków biznesowych, jeśli ich brak utrudni zrozumienie scenariusza.
-
-## 10. Typowe błędy
-
-### Błąd 1: fixture robi zbyt wiele
-
-Jeśli fixture loguje, tworzy dane, przechodzi przez checkout i ustawia flagi, test przestaje mówić, co naprawdę sprawdza. Rozbij ją na mniejsze fikstury.
-
-### Błąd 2: stan współdzielony między testami
-
-Worker fixture jest szybka, ale ryzykowna. Dla danych modyfikowanych używaj izolacji per test albo unikalnych identyfikatorów.
-
-### Błąd 3: fixture ukrywa asercje
-
-Asercje biznesowe zwykle powinny być widoczne w teście. W fixture można sprawdzić techniczny warunek setupu, ale nie główny oczekiwany rezultat scenariusza.
-
-### Błąd 4: importowanie złego `test`
-
-Jeżeli projekt ma własny `test`, specyfikacje powinny importować go z pliku fixtures:
-
-```typescript
-import { test, expect } from '../fixtures/base-test';
-```
-
-Nie mieszaj w jednym pliku `test` z `@playwright/test` i własnego rozszerzonego `test`.
-
-## 11. Checklista review fikstur
-
-- Czy fixture ma jedną odpowiedzialność?
-- Czy nazwa mówi, jaki zasób dostarcza?
-- Czy teardown jest blisko setupu?
-- Czy fixture jest test-zakresd, jeśli modyfikuje dane?
-- Czy worker-zakresd fixture nie powoduje zależności między testami?
-- Czy testy importują właściwy `test`?
-- Czy typy TypeScript jasno opisują dostępne fixtures?
-- Czy fixture nie ukrywa głównego sensu scenariusza?
-- Czy diagnostyka awarii trafia do `testInfo.attach`?
-
-## 12. Ćwiczenie praktyczne
-
-Zaprojektuj zestaw fixtures dla modułu e-commerce:
-
-1. `temporaryUser` — tworzy użytkownika przez API i usuwa go po teście.
-2. `authenticatedPage` — otwiera stronę jako zalogowany użytkownik.
-3. `checkoutPage` — dostarcza Page Object koszyka i checkoutu.
-4. `consoleLogs` — automatycznie zapisuje logi konsoli przy awarii.
-
-Następnie napisz test „zalogowany użytkownik kupuje produkt” tak, aby w samym teście zostały tylko kroki biznesowe i asercje.
-
-## Linki
-
-- [Playwright Fixtures](https://playwright.dev/docs/test-fixtures)
-- [Playwright Authentication](https://playwright.dev/docs/auth)
-- [Playwright API testing](https://playwright.dev/docs/api-testing)
-- [Playwright Page Object Models](https://playwright.dev/docs/pom)
+## Bibliografia i Linki
+*   *Jean-François Greffier, Practical Playwright Test (2026), Chapter 7: Fixtures Deep Dive*
+*   *Faraz K. Kelhini & Butch Mayhew, Hands-On Automated Testing with Playwright (2026), Chapter 5: Crafting Scalable Tests with the Fixture System*
+*   [Oficjalna Dokumentacja Playwright Test Fixtures](https://playwright.dev/docs/test-fixtures)

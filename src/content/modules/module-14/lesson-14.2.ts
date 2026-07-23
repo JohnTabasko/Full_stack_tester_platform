@@ -1,200 +1,92 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory14_2 from './lesson-14.2.md?raw';
 
 export const lesson14_2: Lesson = {
   "id": "14.2",
   "moduleId": 14,
-  "title": "Kompletne testowanie dostępności",
-  "description": "WCAG 2.2, axe-core, nawigacja klawiaturą, ARIA, kontrast kolorów, semantyczny HTML i czytniki ekranu.",
+  "title": "Testowanie dostępności (WCAG & Axe)",
+  "description": "Zrozum standardy WCAG 2.1/2.2. Opanuj integrację @axe-core/playwright, precyzyjne ograniczanie zakresu skanowania (include/exclude), konfigurację reguł oraz dołączanie raportów violations do raportu HTML.",
   "order": 2,
-  "difficulty": "advanced",
+  "difficulty": "intermediate",
   "tags": [
-    "security",
     "accessibility",
-    "visual",
-    "compliance"
+    "A11y",
+    "WCAG",
+    "AxeBuilder",
+    "diagnostics"
   ],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować testy dla obszaru „Kompletne testowanie dostępności”, łącząc automatyzację z analizą ryzyka, dowodami audytowymi i świadomą interpretacją wyników.",
+    "objective": "Po ukończeniu tej lekcji potrafisz zaprojektować i zaimplementować automatyczny audyt dostępności (A11y) w Playwright z użyciem AxeBuilder, zarządzać regułami, ograniczać zakres skanowania i dołączać raporty o błędach do raportu HTML.",
     "theory": theory14_2,
     "codeExamples": [
-      "// Przykład z @axe-core/playwright — koncepcyjnie\nconst accessibilityScanResults = await new AxeBuilder({ page }).analyze();\nexpect(accessibilityScanResults.violations).toEqual([]);\n",
-      "await page.keyboard.press('Tab');\nawait expect(page.getByRole('button', { name: 'Zapisz' })).toBeFocused();\n"
+      `// Ograniczanie zakresu skanowania Axe (Książka 1 - Kelhini)
+const results = await new AxeBuilder({ page })
+  .include('.main-content')
+  .exclude('.social-share-widget')
+  .analyze();
+expect(results.violations).toEqual([]);`,
+      `// Wybór zestawu reguł WCAG 2.1 AA
+const results = await new AxeBuilder({ page })
+  .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+  .analyze();`
     ],
     "exercises": [
       {
         "id": "ex-14-2-1",
-        "title": "Mapa ryzyk",
-        "description": "Dla tematu „Kompletne testowanie dostępności” wypisz ryzyka, dane testowe i oczekiwane dowody."
+        "title": "Wdrożenie zlokalizowanego skanowania komponentu",
+        "description": "Napisz test dla formularza kontaktowego, w którym ograniczysz skanowanie Axe wyłącznie do kontenera formularza (używając selektora \`.contact-form-wrapper\`), wykluczając przycisk zgody RODO, który jest dostarczany przez zewnętrzną domenę."
       },
       {
         "id": "ex-14-2-2",
-        "title": "Scenariusz negatywny",
-        "description": "Dodaj test odmowy dostępu, braku zgody, błędnego inputu albo naruszenia reguły."
-      },
-      {
-        "id": "ex-14-2-3",
-        "title": "Automatyzacja i manual review",
-        "description": "Rozdziel, co może sprawdzić automat, a co wymaga oceny człowieka."
-      },
-      {
-        "id": "ex-14-2-4",
-        "title": "Artefakty audytu",
-        "description": "Wskaż raporty, screenshoty, logi lub trace potrzebne jako dowód testu."
-      },
-      {
-        "id": "ex-14-2-5",
-        "title": "CI gate",
-        "description": "Zaprojektuj bramkę jakości dla security/accessibility/visual/compliance."
-      },
-      {
-        "id": "ex-14-2-6",
-        "title": "Plan naprawy",
-        "description": "Opisz, jak sklasyfikujesz i priorytetyzujesz znalezione naruszenie."
+        "title": "Customowy Helper do raportowania błędów Axe",
+        "description": "Napisz helper, który po uruchomieniu Axe analizuje tablicę \`violations\` i jeśli zawiera ona błędy o wpływie 'critical' lub 'serious', formatuje je w czytelny tekst i załącza do raportu za pomocą \`testInfo.attach()\`."
       }
     ],
     "quiz": [
       {
         "id": "q14-2-1",
-        "question": "Dlaczego testy security/accessibility powinny być częścią CI?",
+        "question": "W jaki sposób możemy wykluczyć kłopotliwe elementy zewnętrzne (np. chatboty) ze skanowania Axe w Playwright?",
         "options": [
-          "Wcześnie wykrywają regresje jakości i ryzyka użytkownika",
-          "Bo zastępują wszystkie testy",
-          "Bo są tylko formalnością",
-          "Nie powinny być w CI"
+          "Używając metody `.exclude()` klasy AxeBuilder z odpowiednim selektorem CSS",
+          "Nie da się wykluczyć elementów ze skanowania całej strony",
+          "Należy przed skanowaniem usunąć te elementy z DOM przy użyciu CSS display:none",
+          "Wyłączając przeglądarce obsługę skryptów JavaScript"
         ],
         "correctAnswer": 0,
-        "explanation": "Wczesna informacja zwrotna ogranicza koszt naprawy i ryzyko release."
+        "explanation": "Metoda .exclude() pozwala wykluczyć konkretne regiony, komponenty lub selektory, co zapobiega fałszywym alertom (false positives) generowanym przez komponenty zewnętrzne, których nie możemy edytować."
       },
       {
         "id": "q14-2-2",
-        "question": "Co jest ograniczeniem automatycznego skanera?",
+        "question": "Ile procent rzeczywistych błędów dostępności (A11y) są w stanie wykryć narzędzia automatyczne, takie jak Axe?",
         "options": [
-          "Nie rozumie w pełni kontekstu biznesowego i intencji użytkownika",
-          "Zawsze znajduje wszystkie błędy",
-          "Nie wymaga interpretacji",
-          "Zastępuje review"
+          "Około 30-40% - automatyka wykrywa błędy techniczne (kontrast, alt), lecz nie zastąpi ręcznego testu klawiaturą i czytnikiem",
+          "Dokładnie 100% - automatyczne testy całkowicie zastępują człowieka",
+          "Poniżej 5%",
+          "Axe nie służy do automatycznego wykrywania błędów"
         ],
         "correctAnswer": 0,
-        "explanation": "Skaner pomaga, ale nie zastępuje analizy ryzyka i testów scenariuszowych."
-      },
-      {
-        "id": "q14-2-3",
-        "question": "Co jest ważne w testach autoryzacji?",
-        "options": [
-          "Sprawdzenie dostępu użytkownika do cudzych lub zabronionych zasobów",
-          "Tylko status 200",
-          "Kolor przycisku",
-          "Brak tokena w logach"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Authorization bugs, np. IDOR, są jednymi z najpoważniejszych ryzyk API."
-      },
-      {
-        "id": "q14-2-4",
-        "question": "Co powinien obejmować test dostępności modala?",
-        "options": [
-          "Focus trap, role, nazwę dostępną i obsługę klawiatury",
-          "Tylko screenshot",
-          "Wyłącznie kolor tła",
-          "Brak asercji"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Modal musi być używalny klawiaturą i czytelny dla technologii wspomagających."
-      },
-      {
-        "id": "q14-2-5",
-        "question": "Kiedy test wizualny daje fałszywe alarmy?",
-        "options": [
-          "Gdy porównuje dynamiczne elementy bez maskowania",
-          "Gdy ma baseline review",
-          "Gdy viewport jest stały",
-          "Gdy dane są deterministyczne"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Dane losowe, daty i animacje powodują niestabilne diffy."
-      },
-      {
-        "id": "q14-2-6",
-        "question": "Co jest istotne w GDPR/RODO testing?",
-        "options": [
-          "Zgody, prawo do usunięcia, minimalizacja danych, audyt i retencja",
-          "Tylko interfejs użytkownika banneru",
-          "Wyłącznie kolor cookies",
-          "Brak logów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zgodność obejmuje procesy, dane i dowody, nie tylko ekran zgody."
-      },
-      {
-        "id": "q14-2-7",
-        "question": "Co oznacza HttpOnly cookie?",
-        "options": [
-          "Cookie niedostępne z poziomu JavaScriptu w przeglądarce",
-          "Cookie bez TLS",
-          "Cookie publiczne",
-          "Cookie tylko do CSS"
-        ],
-        "correctAnswer": 0,
-        "explanation": "HttpOnly ogranicza ryzyko kradzieży cookie przez XSS."
-      },
-      {
-        "id": "q14-2-8",
-        "question": "Najważniejsza zasada lekcji „Kompletne testowanie dostępności” to:",
-        "options": [
-          "Testuj ryzyko i dowody, nie tylko narzędzie",
-          "Zaufaj jednemu skanerowi",
-          "Pomiń scenariusze negatywne",
-          "Nie dokumentuj wyników"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Profesjonalne testowanie tych obszarów wymaga kontekstu i interpretacji."
+        "explanation": "Testy automatyczne pokrywają jedynie część kryteriów WCAG (np. brak atrybutów alt, nieodpowiedni kontrast, brak etykiet formularzy). Pozostałe błędy (np. logika odczytu przez czytnik, pułapki klawiaturowe) must be checked manually."
       }
     ],
     "references": [
       {
-        "title": "OWASP Web Bezpieczeństwo Testing Guide",
-        "url": "https://owasp.org/www-project-web-security-testing-guide/",
-        "description": "Przewodnik po testowaniu bezpieczeństwa aplikacji webowych."
-      },
-      {
-        "title": "OWASP Top 10",
-        "url": "https://owasp.org/www-project-top-ten/",
-        "description": "Najważniejsze klasy ryzyk bezpieczeństwa aplikacji webowych."
-      },
-      {
-        "title": "WCAG 2.2",
-        "url": "https://www.w3.org/TR/WCAG22/",
-        "description": "Standard dostępności treści internetowych."
-      },
-      {
-        "title": "Playwright Visual Comparisons",
-        "url": "https://playwright.dev/docs/test-snapshots",
-        "description": "Dokumentacja porównań wizualnych i screenshotów w Playwright."
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Chapter 9: Accessibility Testing with Playwright and axe-core."
       }
     ],
     "tipsAndTricks": [
-      "Testy bezpieczeństwa i dostępności są częścią jakości, nie dodatkiem wykonywanym po zakończeniu funkcji.",
-      "Automatyczne skanery znajdują część problemów; najważniejsze scenariusze wymagają świadomego modelowania ryzyka.",
-      "Dostępność najlepiej testować od początku przez semantyczny HTML i obsługę klawiatury.",
-      "Compliance wymaga dowodów: logów audytu, zgód, ścieżek usunięcia danych i raportów z testów."
+      "Zawsze staraj się dołączać raporty violations do HTML raportu przy użyciu testInfo.attach(), dzięki czemu programiści od razu widzą, który element HTML (node) i jaka reguła zostały naruszone.",
+      "Skonfiguruj baseline dostępności w swoim projekcie, aby nowo dodawane testy nie zawodziły z powodu starych, znanych błędów, które zespół planuje naprawić w późniejszym terminie."
     ],
     "commonMistakes": [
       {
-        "mistake": "Bezpieczeństwo testing ograniczony do npm audit",
-        "solution": "Łącz dependency audit z testami auth, authorization, headers, cookies, CORS, XSS i rate limiting."
+        "mistake": "Skanowanie całej strony łącznie z zewnętrznymi reklamami i iframe-ami",
+        "solution": "Używaj precyzyjnych filtrów .include() oraz .exclude(), aby skupić się tylko na kodzie dostarczanym przez Twój zespół."
       },
       {
-        "mistake": "Dostępność testowana wyłącznie axe-core",
-        "solution": "Dodaj testy klawiatury, focus management, semantyki i screen-reader friendly labels."
-      },
-      {
-        "mistake": "Visual testing bez stabilizacji danych",
-        "solution": "Maskuj dynamiczne treści i utrzymuj baseline przez review."
-      },
-      {
-        "mistake": "Compliance bez ścieżki dowodowej",
-        "solution": "Dokumentuj testy zgód, retencji, audytu i prawa do usunięcia danych."
+        "mistake": "Brak asercji na poziomy zgodności (wcag2a/wcag2aa)",
+        "solution": "Wykorzystaj .withTags(), aby upewnić się, że weryfikujesz aplikację pod kątem właściwego poziomu zgodności WCAG wymaganej przez prawo."
       }
     ]
   }

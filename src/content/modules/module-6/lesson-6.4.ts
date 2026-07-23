@@ -5,196 +5,115 @@ export const lesson6_4: Lesson = {
   "id": "6.4",
   "moduleId": 6,
   "title": "Zaawansowane wzorce obiektu strony",
-  "description": "Fabryka stron, płynne API, wzorzec podróży, fasada, strategia, builder i wstrzykiwanie zależności.",
+  "description": "Zasady SOLID w testach UI: Page Object Factory (Fabryka), wzorzec metody szablonowej w BasePage, wzorzec Strategii, Journey, Fasada oraz wykorzystanie Service Objects do przygotowania danych.",
   "order": 4,
-  "difficulty": "intermediate",
+  "difficulty": "advanced",
   "tags": [
-    "pom",
-    "page-object",
-    "architecture",
-    "playwright"
+    "best-practices",
+    "patterns",
+    "SOLID",
+    "factory",
+    "strategy-pattern",
+    "page-objects"
   ],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zastosować temat „Zaawansowane wzorce obiektu strony” w architekturze testów Playwright, rozumiesz jego zalety, ograniczenia i typowe antywzorce.",
+    "objective": "Po ukończeniu lekcji potrafisz zaprojektować zaawansowany framework testowy UI z użyciem PageFactory, BasePage z metodą szablonową, wdrożyć wzorzec Strategii dla wariantów biznesowych oraz efektywnie separować interakcję UI od przygotowywania danych przez API.",
     "theory": theory6_4,
     "codeExamples": [
-      "export class PurchaseJourney {\n  constructor(private readonly pages: { product: ProductPage; cart: CartPage; checkout: CheckoutPage }) {}\n\n  async buyProduct(name: string) {\n    await this.pages.product.open(name);\n    await this.pages.product.addToCart();\n    await this.pages.cart.proceedToCheckout();\n    await this.pages.checkout.payByCard();\n  }\n}\n",
-      "class UserBuilder {\n  private user = { role: 'customer', active: true };\n  withRole(role: string) { this.user.role = role; return this; }\n  inactive() { this.user.active = false; return this; }\n  build() { return { ...this.user, email: `qa-${Date.now()}@example.test` }; }\n}\n"
+      `// Przykład Page Object Factory (Książka 3 - Uppadhyay)
+export class PageFactory {
+  public static getPage<T extends BasePage>(pageName: string, page: Page): T {
+    if (pageName === 'LoginPage') return new LoginPage(page) as unknown as T;
+    if (pageName === 'InventoryPage') return new InventoryPage(page) as unknown as T;
+    throw new Error('Niedozwolony typ strony');
+  }
+}`,
+      `// Przykład wzorca Strategii dla metod płatności (Książka 3)
+export interface PaymentStrategy { pay(amount: number): Promise<void>; }
+export class CardPayment implements PaymentStrategy { 
+  constructor(private page: Page) {} 
+  async pay(amount: number) { await this.page.getByLabel('Card').fill('4111...'); }
+}`
     ],
     "exercises": [
       {
         "id": "ex-6-4-1",
-        "title": "Projekt klasy",
-        "description": "Zaprojektuj Page Object lub komponent dla tematu „Zaawansowane wzorce obiektu strony”, wskazując odpowiedzialności publiczne i prywatne."
+        "title": "Zaprojektowanie PageFactory",
+        "description": "Zbuduj silnie otypowaną klasę \`PageFactory\` w TypeScript obsługującą dynamiczną kreację co najmniej trzech różnych stron aplikacji, izolując ich szczegóły konstrukcyjne od testów."
       },
       {
         "id": "ex-6-4-2",
-        "title": "Refaktor testu",
-        "description": "Przepisz test używający surowych lokatorów na test korzystający z wzorzec obiektu strony/komponentów."
+        "title": "Zaimplementowanie strategii dostawy produktów",
+        "description": "Zaprojektuj interfejs \`DeliveryStrategy\` oraz dwie klasy ją implementujące: \`CourierDelivery\` i \`ParcelLockerDelivery\`. Zintegruj je z Page Objectem kasy \`CheckoutPage\` bez modyfikowania jego wnętrza (zgodnie z zasadą OCP)."
       },
       {
         "id": "ex-6-4-3",
-        "title": "Granice asercji",
-        "description": "Zdecyduj, które oczekiwania zostają w teście, a które mogą trafić do metody domenowej."
-      },
-      {
-        "id": "ex-6-4-4",
-        "title": "Kompozycja",
-        "description": "Wydziel powtarzalny fragment interfejs użytkownika do komponentu i użyj go w dwóch stronach."
-      },
-      {
-        "id": "ex-6-4-5",
-        "title": "Fixture",
-        "description": "Dostarcz Page Object przez fikstura Playwright i usuń ręczne `new` z testu."
-      },
-      {
-        "id": "ex-6-4-6",
-        "title": "Audyt antywzorców",
-        "description": "Wskaż trzy symptomy obiekt-bóg, silne sprzężenie albo kruche selektory i zaproponuj poprawki."
+        "title": "Przyspieszenie testu za pomocą Service Object",
+        "description": "Przepisz test, który przeklikuje UI w celu dodania 5 produktów do koszyka. Użyj klienta API (Service Object) do błyskawicznego przygotowania koszyka, a w UI przetestuj jedynie końcowy krok kasy."
       }
     ],
     "quiz": [
       {
         "id": "q6-4-1",
-        "question": "Po co stosować Wzorzec obiektu strony?",
+        "question": "Jaki jest główny cel stosowania wzorca Fabryki (PageFactory) w automatyzacji UI?",
         "options": [
-          "Aby oddzielić intencję testu od szczegółów interfejsu",
-          "Aby ukryć wszystkie asercje",
-          "Aby pisać więcej klas bez celu",
-          "Aby zastąpić test runner"
+          "Zmniejszenie sprzężenia (decoupling) i scentralizowanie tworzenia obiektów stron, co ułatwia przyszłą refaktoryzację",
+          "Automatyczne tłumaczenie selektorów CSS na XPath",
+          "Wyeliminowanie potrzeby pisania asercji w testach",
+          "Wymuszenie uruchamiania testów w jednym workerze"
         ],
         "correctAnswer": 0,
-        "explanation": "wzorzec obiektu strony zwiększa utrzymywalność, gdy izoluje selektory i akcje strony."
+        "explanation": "Dzięki PageFactory, jeśli zmienią się parametry konstruktora klas stron (np. dodamy zależność), modyfikujemy tylko fabrykę, chroniąc setki plików testowych przed zmianami."
       },
       {
         "id": "q6-4-2",
-        "question": "Co jest objawem God Page Object?",
+        "question": "Która zasada SOLID jest realizowana przez zastosowanie wzorca Strategii dla różnych metod płatności?",
         "options": [
-          "Jedna klasa obsługuje zbyt wiele niezależnych obszarów strony",
-          "Ma czytelną nazwę",
-          "Używa kompozycji",
-          "Ma mało metod"
+          "Open/Closed Principle (OCP) - możemy dodawać nowe metody płatności bez modyfikowania istniejącego kodu strony kasy",
+          "Single Responsibility Principle (SRP) - sprawia, że plik testowy ma tylko 1 linijkę kodu",
+          "Liskov Substitution Principle (LSP) - zabrania dziedziczenia klas",
+          "Dependency Inversion Principle (DIP) - wymaga twardego kodowania selektorów"
         ],
         "correctAnswer": 0,
-        "explanation": "Zbyt duża klasa staje się trudna w review i refaktorze."
+        "explanation": "Zasada Open/Closed mówi, że kod powinien być otwarty na rozszerzenia (dodanie nowej strategii), ale zamknięty na modyfikacje (nie zmieniamy kodu klasy CheckoutPage)."
       },
       {
         "id": "q6-4-3",
-        "question": "Kiedy komponent jest lepszy niż dziedziczenie?",
+        "question": "Do czego służą Service Objects (np. klienci API) w kontekście testów UI?",
         "options": [
-          "Gdy ten sam fragment interfejs użytkownika występuje na wielu stronach",
-          "Gdy chcemy ukryć błąd",
-          "Nigdy",
-          "Tylko w API"
+          "Do błyskawicznego przygotowywania stanu danych przed testem (Arrange) bezpośrednio na poziomie backendu, oszczędzając czas UI",
+          "Do renderowania interfejsu graficznego w konsoli serwera",
+          "Do generowania raportów HTML po zakończeniu testu",
+          "Do symulowania wolnego połączenia sieciowego w przeglądarce"
         ],
         "correctAnswer": 0,
-        "explanation": "Kompozycja dobrze modeluje powtarzalne części interfejsu."
-      },
-      {
-        "id": "q6-4-4",
-        "question": "Co powinien zawierać BasePage?",
-        "options": [
-          "Mały zestaw wspólnych, naprawdę uniwersalnych operacji",
-          "Całą logikę aplikacji",
-          "Wszystkie asercje biznesowe",
-          "Każdy selektor z projektu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "BasePage powinien być stabilnym fundamentem, nie workiem na wszystko."
-      },
-      {
-        "id": "q6-4-5",
-        "question": "Dlaczego fiksturas pasują do wzorzec obiektu strony?",
-        "options": [
-          "Dostarczają gotowe zależności i upraszczają setup testów",
-          "Zastępują lokatory",
-          "Usuwają potrzebę obiektów stron",
-          "Działają tylko w unit testach"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Fixture może tworzyć i wstrzykiwać Page Objecty oraz dane."
-      },
-      {
-        "id": "q6-4-6",
-        "question": "Co jest antywzorcem w metodzie login()?",
-        "options": [
-          "Ukrywanie wielu niejawnych asercji i przekierowań bez nazwy",
-          "Wypełnienie pól i kliknięcie submit",
-          "Czytelne parametry",
-          "Stabilne lokatory"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Metoda powinna jasno komunikować, czy tylko wykonuje akcję, czy też weryfikuje wynik."
-      },
-      {
-        "id": "q6-4-7",
-        "question": "Jak ograniczyć kruche selektory w wzorzec obiektu strony?",
-        "options": [
-          "Używać getByRole/getByLabel/getByTestId i centralizować lokatory",
-          "Używać nth-child wszędzie",
-          "Kopiować XPath z DevTools",
-          "Nie robić review"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Stabilne lokatory i enkapsulacja zmniejszają koszt zmian interfejs użytkownika."
-      },
-      {
-        "id": "q6-4-8",
-        "question": "Najważniejsza zasada lekcji „Zaawansowane wzorce obiektu strony” to:",
-        "options": [
-          "Abstrakcja ma zwiększać czytelność i utrzymywalność, nie ukrywać sens testu",
-          "Im więcej klas, tym lepiej",
-          "wzorzec obiektu strony zastępuje strategię testów",
-          "Każdy test musi być fluent"
-        ],
-        "correctAnswer": 0,
-        "explanation": "wzorzec obiektu strony jest narzędziem, nie celem samym w sobie."
+        "explanation": "Service Objects wykonują operacje przygotowawcze (np. tworzenie konta, koszyka) przez API w ułamku sekundy, dzięki czemu test UI skupia się wyłącznie na sprawdzeniu kluczowych funkcjonalności wizualnych."
       }
     ],
     "references": [
       {
-        "title": "Playwright Wzorzec obiektu stronys",
-        "url": "https://playwright.dev/docs/pom",
-        "description": "Oficjalny przewodnik po Wzorzec obiektu strony w Playwright."
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Chapter 3: Building a Scalable UI Framework (PageFactory & BasePage)."
       },
       {
-        "title": "Martin Fowler - Page Object",
-        "url": "https://martinfowler.com/bliki/PageObject.html",
-        "description": "Klasyczny tekst opisujący sens i granice wzorca Page Object."
-      },
-      {
-        "title": "Playwright fiksturami",
-        "url": "https://playwright.dev/docs/test-fiksturas",
-        "description": "Dokumentacja fiksturas i dependency injection w Playwright Test."
-      },
-      {
-        "title": "Clean Code TypeScript",
-        "url": "https://github.com/labs42io/clean-code-typescript",
-        "description": "Praktyczne zasady czystego kodu w TypeScript, przydatne w architekturze testów."
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Wskazówki dotyczące ewolucji wzorców POM i unikania over-engineeringu."
       }
     ],
     "tipsAndTricks": [
-      "Page Object ma ukrywać szczegóły interfejsu, ale nie sens scenariusza biznesowego.",
-      "Nie wkładaj do wzorzec obiektu strony każdej asercji — akcje, odczyty i oczekiwania domenowe rozdzielaj świadomie.",
-      "Kompozycja komponentów często jest lepsza niż głęboka hierarchia dziedziczenia.",
-      "Page Object i fiksturas powinny współpracować: fikstura dostarcza gotowy kontekst, wzorzec obiektu strony opisuje zachowanie strony."
+      "Stosuj wzorzec Strategii, aby pozbyć się kłopotliwych instrukcji warunkowych (if/else) wewnątrz Page Objectu, kiedy zachowanie zależy od wybranej opcji biznesowej.",
+      "Oddzielaj techniczną konfigurację od testu. Wykorzystaj Service Objects (API), aby przygotować bazę danych lub zalogować użytkownika w ułamku sekundy."
     ],
     "commonMistakes": [
       {
-        "mistake": "God Page Object",
-        "solution": "Podziel dużą klasę na stronę, komponenty i wyspecjalizowane helpery domenowe."
+        "mistake": "Wdrażanie zbyt wielu wzorców naraz na starcie projektu (Framework-Over-Product)",
+        "solution": "Unikaj przedwczesnego projektowania skomplikowanej architektury. Wprowadzaj wzorce dopiero wtedy, gdy kod rośnie i pojawia się realna duplikacja."
       },
       {
-        "mistake": "Publiczne lokatory używane bezpośrednio w testach",
-        "solution": "Udostępniaj metody lub czytelne gettery opisujące intencję, nie surową strukturę DOM."
-      },
-      {
-        "mistake": "Asercje ukryte w metodach akcji",
-        "solution": "Oddziel akcję od weryfikacji albo nazwij metodę jednoznacznie, np. expectLoginError."
-      },
-      {
-        "mistake": "Dziedziczenie BasePage z dziesiątkami metod",
-        "solution": "BasePage utrzymuj mały; resztę przenieś do komponentów, usług lub kompozycji."
+        "mistake": "Przechowywanie logiki weryfikacji i asercji w metodach Journey",
+        "solution": "Metody Journey powinny przeprowadzić przez ścieżkę (Act). Asercje i weryfikacje stanów powinny pozostać widoczne i jasne w ciele testu (Assert)."
       }
     ]
   }

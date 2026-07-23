@@ -1,200 +1,125 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory8_1 from './lesson-8.1.md?raw';
 
 export const lesson8_1: Lesson = {
   "id": "8.1",
   "moduleId": 8,
-  "title": "Kompletne testowanie REST API",
-  "description": "Metody HTTP, CRUD, kody statusu, uwierzytelnianie, paginacja, schemat JSON, limity zapytań i obsługa błędów.",
+  "title": "Kompletne testowanie REST API — Wprowadzenie i Architektura AOM",
+  "description": "Zrozum rolę testów API w piramidzie testów, opanuj wbudowaną fixturę request, oraz wdroż wzorzec API Object Model (AOM) z klasą bazową BaseApi i Fabryką API.",
   "order": 1,
-  "difficulty": "intermediate",
+  "difficulty": "beginner",
   "tags": [
     "api-testing",
-    "playwright",
-    "contract",
-    "http"
+    "request-fixture",
+    "REST",
+    "API-Object-Model",
+    "SOLID",
+    "factory"
   ],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować testy API dla tematu „Kompletne testowanie REST API”, obejmujące kontrakt, dane, scenariusze negatywne, sprzątanie danych i diagnostykę.",
+    "objective": "Po ukończeniu tej lekcji potrafisz zaprojektować i zaimplementować skalowalny framework testowania API w Playwright przy użyciu wzorca API Object Model (AOM), BaseApi oraz ApiFactory, eliminując sprzężenia w plikach testowych.",
     "theory": theory8_1,
     "codeExamples": [
-      "const created = await request.post('/api/users', { data: { email, role: 'customer' } });\nexpect(created.status()).toBe(201);\nconst user = await created.json();\n\nconst fetched = await request.get(`/api/users/${user.id}`);\nexpect(fetched.status()).toBe(200);\nexpect(await fetched.json()).toMatchObject({ email, role: 'customer' });\n\nconst deleted = await request.delete(`/api/users/${user.id}`);\nexpect(deleted.status()).toBe(204);\nexpect((await request.get(`/api/users/${user.id}`)).status()).toBe(404);\n",
-      "const forbidden = await request.get('/api/admin/users', {\n  headers: { Authorization: `Bearer ${customerToken}` },\n});\nexpect(forbidden.status()).toBe(403);\n"
+      `// Definicja klasy bazowej BaseApi (Książka 3 - Uppadhyay)
+export abstract class BaseApi {
+  constructor(protected request: APIRequestContext) {}
+  protected async postRequest(endpoint: string, data: any) {
+    return await this.request.post(endpoint, { data });
+  }
+}`,
+      `// Implementacja specyficznego modelu API
+export class UserApi extends BaseApi {
+  async createUser(userData: any) {
+    return await this.postRequest('/api/v1/users', userData);
+  }
+}`,
+      `// Użycie ApiFactory w testach lub fixturach
+export class ApiFactory {
+  public static getApi<T extends BaseApi>(apiName: string, request: APIRequestContext): T {
+    if (apiName === 'UserApi') return new UserApi(request) as unknown as T;
+    throw new Error('Niedozwolone API');
+  }
+}`
     ],
     "exercises": [
       {
         "id": "ex-8-1-1",
-        "title": "Ścieżka sukcesu kontraktu",
-        "description": "Dla tematu „Kompletne testowanie REST API” napisz test poprawnej odpowiedzi: status, body i headers."
+        "title": "Wdrożenie klasy bazowej BaseApi",
+        "description": "Zaimplementuj klasę bazową \`BaseApi\`, która automatycznie wstrzykuje nagłówek 'Authorization: Bearer <token>' pobierany ze zmiennych środowiskowych do każdego zapytania wychodzącego."
       },
       {
         "id": "ex-8-1-2",
-        "title": "Negative path",
-        "description": "Dodaj test braku autoryzacji, braku uprawnień, niepoprawnych danych albo konfliktu."
+        "title": "Stworzenie modelu OrdersApi oraz ApiFactory",
+        "description": "Napisz model API dla zasobu zamówień (\`OrdersApi\`) obsługujący pobieranie i usuwanie zamówień, a następnie zarejestruj go w nowo utworzonej fabryce \`ApiFactory\`."
       },
       {
         "id": "ex-8-1-3",
-        "title": "Dane testowe",
-        "description": "Przygotuj dane przez API lub fixture i zaplanuj sprzątanie danych."
-      },
-      {
-        "id": "ex-8-1-4",
-        "title": "Walidacja schematu",
-        "description": "Opisz albo zaimplementuj walidację struktury response względem schematu."
-      },
-      {
-        "id": "ex-8-1-5",
-        "title": "Paginacja lub lista",
-        "description": "Sprawdź limit, sortowanie, cursor/offset i stabilność listy wyników."
-      },
-      {
-        "id": "ex-8-1-6",
-        "title": "Organizacja kodu",
-        "description": "Wydziel klienta API/resource class bez ukrywania sensu asercji."
+        "title": "Hybrydowy scenariusz API + UI",
+        "description": "Napisz test, w którym za pomocą fixtury \`userApi\` błyskawicznie tworzysz nowego użytkownika w bazie (Arrange), a następnie w warstwie UI przechodzisz na stronę logowania i logujesz się na nowo utworzone konto (Act/Assert)."
       }
     ],
     "quiz": [
       {
         "id": "q8-1-1",
-        "question": "Co powinien sprawdzać dobry test API?",
+        "question": "Czym jest wzorzec API Object Model (AOM) w inżynierii testów?",
         "options": [
-          "Status, ciało odpowiedzi, nagłówki, kontrakt i semantykę odpowiedzi",
-          "Wyłącznie 200 OK",
-          "Tylko screenshot",
-          "Kolor przycisku"
+          "To wzorzec hermetyzujący adresy URL, nagłówki, metody i struktury zapytań HTTP w dedykowanych klasach usług",
+          "To technika służąca do generowania dokumentacji Swagger/OpenAPI",
+          "To biblioteka asercyjna do walidacji typów w TypeScript",
+          "To system automatycznego mockowania odpowiedzi bazy danych"
         ],
         "correctAnswer": 0,
-        "explanation": "API to kontrakt obejmujący więcej niż sam status."
+        "explanation": "Podobnie jak POM porządkuje interakcje z UI, tak AOM porządkuje i hermetyzuje interakcje z punktami końcowymi API (REST, GraphQL), chroniąc testy przed zmianami adresów czy struktury żądań."
       },
       {
         "id": "q8-1-2",
-        "question": "Czym różni się 401 od 403?",
+        "question": "Dlaczego zaleca się stosowanie ApiFactory do kreacji obiektów API?",
         "options": [
-          "401 oznacza brak/niepoprawne uwierzytelnienie, 403 brak uprawnień",
-          "To zawsze to samo",
-          "403 oznacza brak tokena",
-          "401 oznacza błąd walidacji"
+          "Zapobiega bezpośredniemu sprzężeniu testu z konstruktorami klas API, ułatwiając przyszłe zmiany w inicjalizacji",
+          "Automatycznie wysyła zapytania HTTP w tle",
+          "Gwarantuje, że wszystkie zapytania API będą darmowe",
+          "Służy wyłącznie do testowania protokołu SOAP"
         ],
         "correctAnswer": 0,
-        "explanation": "Rozróżnienie jest ważne dla bezpieczeństwa i UX klienta API."
+        "explanation": "ApiFactory ukrywa proces tworzenia klas API. Jeśli do klas API dodamy nowe parametry konstrukcyjne (np. logger), poprawiamy tylko fabrykę, chroniąc testy przed modyfikacją."
       },
       {
         "id": "q8-1-3",
-        "question": "Dlaczego warto walidować schema response?",
+        "question": "W jaki sposób wbudowana fixtura request zarządza sesjami autoryzacyjnymi?",
         "options": [
-          "Aby wykryć regresje kontraktu struktury danych",
-          "Aby zastąpić wszystkie asercje",
-          "Aby ukryć błędy",
-          "Aby uniknąć danych testowych"
+          "Może współdzielić stan sesji i ciasteczka z wbudowaną fixturą page i browser, jeśli są uruchomione w tym samym kontekście",
+          "Wymaga każdorazowego logowania przy każdym zapytaniu",
+          "Działa wyłącznie w trybie bezgłowym i nie potrafi wysyłać ciasteczek",
+          "Służy wyłącznie do testów jednostkowych bazy danych"
         ],
         "correctAnswer": 0,
-        "explanation": "Schema validation wykrywa zmiany pól, typów i wymaganych struktur."
-      },
-      {
-        "id": "q8-1-4",
-        "question": "Co oznacza idempotentność?",
-        "options": [
-          "Wielokrotne wykonanie tej samej operacji daje ten sam skutek",
-          "Operacja zawsze jest szybka",
-          "Brak autoryzacji",
-          "Losową odpowiedź"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Idempotencja jest kluczowa przy retry, PUT, DELETE i płatnościach."
-      },
-      {
-        "id": "q8-1-5",
-        "question": "Co jest ważne przy testach paginacji?",
-        "options": [
-          "Limit, cursor/offset, sortowanie i brak duplikatów między stronami",
-          "Tylko pierwszy element",
-          "Brak asercji",
-          "Wyłącznie interfejs użytkownika"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Paginacja często psuje się na granicach i przy sortowaniu."
-      },
-      {
-        "id": "q8-1-6",
-        "question": "Po co sprzątanie danych tracker w API tests?",
-        "options": [
-          "Aby usuwać zasoby utworzone w teście",
-          "Aby przyspieszać CSS",
-          "Aby ukrywać tokeny",
-          "Aby zastąpić requesty"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Testy API często tworzą dane, które trzeba bezpiecznie usunąć."
-      },
-      {
-        "id": "q8-1-7",
-        "question": "Jaki jest problem nadmiernie ukrytego API clienta?",
-        "options": [
-          "Test przestaje pokazywać, jaki kontrakt i rezultat sprawdza",
-          "Test staje się zawsze szybszy",
-          "API znika",
-          "Nie da się użyć TypeScript"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Klient ma upraszczać transport, ale asercje powinny być czytelne."
-      },
-      {
-        "id": "q8-1-8",
-        "question": "Najważniejsza zasada lekcji „Kompletne testowanie REST API” to:",
-        "options": [
-          "API testuje kontrakt i zachowanie usługi, nie tylko techniczne połączenie",
-          "Wystarczy response.ok",
-          "Nie trzeba negatywnych testów",
-          "Dane mogą zostać w środowisku"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wartość testu API wynika z jasnej weryfikacji kontraktu i skutków."
+        "explanation": "Wbudowana fixtura request w Playwright automatycznie synchronizuje stan ciasteczek i nagłówków sesyjnych z powiązanym kontekstem przeglądarki, co umożliwia bezproblemowe testy hybrydowe (API + UI)."
       }
     ],
     "references": [
       {
-        "title": "Playwright Testowanie API",
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Chapter 2: Building Your First API Test Automation Framework - kompletne AOM."
+      },
+      {
+        "title": "Playwright API Testing",
         "url": "https://playwright.dev/docs/api-testing",
-        "description": "Oficjalna dokumentacja testowania API w Playwright."
-      },
-      {
-        "title": "MDN HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Dokumentacja metod HTTP, statusów, nagłówków i semantyki protokołu."
-      },
-      {
-        "title": "GraphQL Documentation",
-        "url": "https://graphql.org/learn/",
-        "description": "Podstawy GraphQL: query, mutation, variables, fragments i errors."
-      },
-      {
-        "title": "JSON Schema",
-        "url": "https://json-schema.org/",
-        "description": "Standard opisu i walidacji struktury danych JSON."
+        "description": "Oficjalny przewodnik po testach API w Playwright Test."
       }
     ],
     "tipsAndTricks": [
-      "Test API powinien weryfikować kontrakt, semantykę i skutki uboczne, nie tylko status HTTP.",
-      "Scenariusze negatywne API są równie ważne jak happy path: auth, validation, forbidden, conflict i not found.",
-      "Dane tworzone przez API muszą mieć sprzątanie danych albo unikalny identyfikator przebiegu.",
-      "Klient API w testach powinien upraszczać requesty, ale nie ukrywać istotnych asercji."
+      "Stosuj klasy bazowe BaseApi, aby scentralizować obsługę błędów sieciowych i automatyczne dołączanie tokenów Bearer do nagłówków.",
+      "Używaj testów hybrydowych: twórz stan wejściowy przez API (0.1s), a weryfikuj proces w UI (1s). To najskuteczniejsza metoda skracania czasu wykonania dużych testów."
     ],
     "commonMistakes": [
       {
-        "mistake": "Sprawdzanie wyłącznie response.ok()",
-        "solution": "Dodaj asercje statusu, ciało odpowiedzi, nagłówki, kontraktu i skutku w systemie."
+        "mistake": "Bezpośrednie wpisywanie twardo kodowanych adresów URL typu /api/v1/orders w testach",
+        "solution": "Zawsze hermetyzuj endpointy w klasach AOM (np. OrdersApi)."
       },
       {
-        "mistake": "Brak testów 401/403/404/409/422",
-        "solution": "Projektuj negatywne scenariusze jako część kontraktu API."
-      },
-      {
-        "mistake": "Tworzenie danych bez sprzątanie danychu",
-        "solution": "Używaj sprzątanie danych trackera, run_id albo fixture usuwającej zasoby po teście."
-      },
-      {
-        "mistake": "Wartości wklejane w string GraphQL",
-        "solution": "Używaj variables, aby uniknąć błędów formatowania i injection."
+        "mistake": "Brak asercji na status code przed parsowaniem odpowiedzi JSON",
+        "solution": "Zawsze weryfikuj najpierw czy response.ok() jest prawdą lub czy status wynosi oczekiwany kod, aby uniknąć błędów parsowania pustych obiektów."
       }
     ]
   }

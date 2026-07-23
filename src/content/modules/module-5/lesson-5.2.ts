@@ -5,7 +5,7 @@ export const lesson5_2: Lesson = {
   "id": "5.2",
   "moduleId": 5,
   "title": "Fikstury — omówienie szczegółowe",
-  "description": "Wstrzykiwanie zależności w Playwright: własne fikstury, fikstury workerowe, obiekty stron, klienci API i automatyczne fikstury i cykl życia zasobów.",
+  "description": "Wstrzykiwanie zależności w Playwright: własne fikstury, zależności między fiksturami, automatyczna diagnostyka za pomocą testInfo.attach, cykl życia oraz zakres testu i workera.",
   "order": 2,
   "difficulty": "intermediate",
   "tags": [
@@ -13,189 +13,138 @@ export const lesson5_2: Lesson = {
     "dependency-injection",
     "worker-fixtures",
     "page-objects",
-    "api-clients"
+    "diagnostics"
   ],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować fikstury jako mechanizm wstrzykiwania zależności, rozumiesz różnicę między zakresem testowym i workerowym oraz umiesz tworzyć fikstury dla obiektów stron, klientów API i danych testowych.",
+    "objective": "Po ukończeniu lekcji potrafisz projektować zaawansowane fikstury jako mechanizm wstrzykiwania zależności, rozumiesz graf zależności fikstur, umiesz tworzyć automatyczne fikstury diagnostyczne z załącznikami oraz efektywnie dobierać zakres testowy i workerowy.",
     "theory": theory5_2,
     "codeExamples": [
-      "import { test as base } from '@playwright/test';\nimport { LoginPage } from '../pages/LoginPage';\nimport { OrdersClient } from '../clients/OrdersClient';\n\ntype Fixtures = {\n  loginPage: LoginPage;\n  ordersClient: OrdersClient;\n};\n\nexport const test = base.extend<Fixtures>({\n  loginPage: async ({ page }, use) => {\n    await use(new LoginPage(page));\n  },\n  ordersClient: async ({ request }, use) => {\n    await use(new OrdersClient(request));\n  },\n});\n",
-      "export const test = base.extend<{ testUser: User }>({\n  testUser: async ({}, use) => {\n    const user = await createUser({ role: 'customer' });\n    await use(user);\n    await deleteUser(user.id);\n  },\n});\n"
+      `// Przykład powiązanych fikstur (Książka 2 - Greffier)
+import { test as base } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+
+type Fixtures = {
+  loginPage: LoginPage;
+  loggedInAdminPage: Page;
+};
+
+export const test = base.extend<Fixtures>({
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+  loggedInAdminPage: async ({ page, loginPage }, use) => {
+    await loginPage.navigate('/');
+    await loginPage.login('admin@example.com', 'secret');
+    await use(page);
+  }
+});`,
+      `// Przykład automatycznej fixtury diagnostycznej (Książka 1 - Kelhini)
+export const testWithDiagnostics = test.extend({
+  consoleErrors: [async ({ page }, use, testInfo) => {
+    const errors: string[] = [];
+    page.on('console', msg => msg.type() === 'error' && errors.push(msg.text()));
+    await use(errors);
+    if (testInfo.status !== testInfo.expectedStatus && errors.length > 0) {
+      await testInfo.attach('console-errors', {
+        body: JSON.stringify(errors, null, 2),
+        contentType: 'application/json'
+      });
+    }
+  }, { auto: true }]
+});`
     ],
     "exercises": [
       {
         "id": "ex-5-2-1",
-        "title": "Struktura pakietu",
-        "description": "Dla tematu „Fikstury — omówienie szczegółowe” zaprojektuj strukturę test.describe/testów lub fixture odpowiadającą realnemu modułowi aplikacji."
+        "title": "Projektowanie fixtury zalogowanego użytkownika",
+        "description": "Zaimplementuj wstrzykiwanie zależności za pomocą powiązanych fixtur: stwórz fixturę \`userSessionPage\`, która pobiera stan sesji \`user.json\` zapożyczony z globalnego logowania i wstrzykuje skonfigurowany kontekst do testu."
       },
       {
         "id": "ex-5-2-2",
-        "title": "Diagnostyka testInfo",
-        "description": "Dodaj test.step, attachment lub annotations tak, aby raport ułatwiał analizę awarii."
+        "title": "Automatyczny zbieracz wolnych zapytań sieciowych",
+        "description": "Napisz automatyczną fixturę (auto: true), która analizuje czas trwania zapytań API i dołącza plik JSON z powolnymi zapytaniami sieciowymi (trwającymi powyżej 1000ms) do raportu przy użyciu \`testInfo.attach()\`."
       },
       {
         "id": "ex-5-2-3",
-        "title": "Izolacja danych",
-        "description": "Opisz, jak dane testowe będą izolowane przy równoległym wykonaniu."
-      },
-      {
-        "id": "ex-5-2-4",
-        "title": "Konfiguracja CI",
-        "description": "Zaproponuj, które testy uruchamiać w PR, nightly i release pipeline."
-      },
-      {
-        "id": "ex-5-2-5",
-        "title": "Refaktor organizacji",
-        "description": "Przepisz powtarzalny setup z hooków do fixture albo helpera o jednej odpowiedzialności."
-      },
-      {
-        "id": "ex-5-2-6",
-        "title": "Review utrzymywalności",
-        "description": "Przygotuj checklistę review dla organizacji testów w tym obszarze."
+        "title": "Izolacja danych bazodanowych per worker",
+        "description": "Zaprojektuj fixturę o zakresie \`worker\`, która inicjalizuje połączenie z bazą danych i zapewnia czyszczenie tabel po zakończeniu działania wszystkich testów w tym wątku roboczym."
       }
     ],
     "quiz": [
       {
         "id": "q5-2-1",
-        "question": "Jaka jest rola Runner testów Playwrighta?",
+        "question": "Które stwierdzenie najlepiej opisuje zasadę działania fixtur w Playwright?",
         "options": [
-          "Organizuje uruchamianie testów, izolację, fixtures, raporty i równoległość",
-          "Zastępuje aplikację backendową",
-          "Służy tylko do screenshotów",
-          "Nie ma wpływu na CI"
+          "Są inicjalizowane leniwie (lazy loading) - uruchamiają się tylko wtedy, gdy test zażąda ich w parametrach",
+          "Zawsze uruchamiają się wszystkie zadeklarowane fixtury dla każdego testu w projekcie",
+          "Są przeznaczone wyłącznie do otwierania i zamykania okna przeglądarki",
+          "Można ich używać wyłącznie w pliku konfiguracyjnym"
         ],
         "correctAnswer": 0,
-        "explanation": "Runner jest mechanizmem wykonawczym całego projektu testowego."
+        "explanation": "Leniwa inicjalizacja (lazy evaluation) to kluczowa zaleta fixtur - jeśli test nie potrzebuje danej fixtury, nie jest marnowany czas na jej setup."
       },
       {
         "id": "q5-2-2",
-        "question": "Kiedy fixture jest dobrym rozwiązaniem?",
+        "question": "W jaki sposób fixtura automatyczna (auto: true) różni się od standardowej?",
         "options": [
-          "Gdy powtarzalny kontekst ma jasną odpowiedzialność i jest używany w wielu testach",
-          "Gdy chcemy ukryć cały test",
-          "Zawsze zamiast asercji",
-          "Tylko dla CSS"
+          "Uruchamia się dla każdego testu, nawet jeśli nie została w nim zadeklarowana jako parametr",
+          "Działa wyłącznie na poziomie całego pakietu (global setup)",
+          "Nie posiada fazy sprzątania (teardown)",
+          "Zastępuje wbudowaną fixturę page"
         ],
         "correctAnswer": 0,
-        "explanation": "Fixture powinien upraszczać setup i dependency injection."
+        "explanation": "Automatyczne fixtury (auto fixtures) są wywoływane przez runner automatycznie dla każdego testu, co jest doskonałe do globalnej diagnostyki lub logowania."
       },
       {
         "id": "q5-2-3",
-        "question": "Co jest warunkiem bezpiecznej równoległości?",
+        "question": "Kiedy należy zastosować zakres worker (scope: 'worker') dla własnej fixtury?",
         "options": [
-          "Izolowane dane, konta i zasoby",
-          "Wspólny globalny użytkownik",
-          "Brak cleanupu",
-          "Jedna baza produkcyjna"
+          "Gdy zasób jest ciężki i kosztowny w inicjalizacji, np. połączenie z bazą danych lub kontener Docker Compose",
+          "Dla każdego standardowego obiektu Page Object",
+          "Zawsze, gdy chcemy uruchomić testy na urządzeniach mobilnych",
+          "Gdy chcemy całkowicie odizolować od siebie ciasteczka w każdym teście"
         ],
         "correctAnswer": 0,
-        "explanation": "Bez izolacji testy równoległe wpływają na siebie nawzajem."
+        "explanation": "Scope worker współdzieli zasób między wieloma testami uruchamianymi w tym samym wątku, co oszczędza cenny czas na ciężki setup bazy lub środowiska."
       },
       {
         "id": "q5-2-4",
-        "question": "Do czego służą tagi testów?",
+        "question": "Jak uzyskać dostęp do cyklu życia teardown (sprzątania) wewnątrz definicji fixtury?",
         "options": [
-          "Do selekcji suite w CI i opisania intencji testu",
-          "Do ukrywania błędów",
-          "Do zmiany przeglądarki losowo",
-          "Do usuwania raportów"
+          "Kod umieszczony po słowie kluczowym use() działa jako teardown",
+          "Należy jawnie zadeklarować funkcję afterEach() wewnątrz tablicy",
+          "Należy użyć metody testInfo.cleanup()",
+          "Playwright nie wspiera fazy sprzątania wewnątrz fixtur"
         ],
         "correctAnswer": 0,
-        "explanation": "Tagi pozwalają uruchamiać smoke, regression, critical czy slow w odpowiednich pipeline’ach."
-      },
-      {
-        "id": "q5-2-5",
-        "question": "Co jest antywzorcem w hooks?",
-        "options": [
-          "Ukrywanie w beforeEach złożonego flow, którego znaczenie nie jest widoczne w teście",
-          "Krótki setup wspólny",
-          "Cleanup zasobu",
-          "Czytelny test.step"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zbyt rozbudowane hooki utrudniają zrozumienie scenariusza."
-      },
-      {
-        "id": "q5-2-6",
-        "question": "Kiedy użyć sharding?",
-        "options": [
-          "Gdy suite jest duża i chcemy podzielić ją między maszyny CI",
-          "Dla jednego testu lokalnego",
-          "Zamiast asercji",
-          "Do mockowania API"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Sharding skaluje wykonanie testów w wielu procesach/maszynach."
-      },
-      {
-        "id": "q5-2-7",
-        "question": "Co powinien zawierać dobry raport testu?",
-        "options": [
-          "Kroki, artefakty, adnotacje i czytelny błąd",
-          "Tylko nazwę pliku",
-          "Brak trace",
-          "Same logi npm"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Raport powinien skracać czas diagnozy."
-      },
-      {
-        "id": "q5-2-8",
-        "question": "Najważniejsza zasada lekcji „Fikstury — omówienie szczegółowe” to:",
-        "options": [
-          "Organizacja wykonania testów jest elementem strategii jakości",
-          "Runner nie wymaga konfiguracji",
-          "Równoległość zawsze jest bezpieczna",
-          "Tagi są zbędne"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Sposób uruchamiania testów wpływa na szybkość, stabilność i zaufanie do wyników."
+        "explanation": "Wszystko, co znajdzie się przed use() to faza Setup (Arrange). Wywołanie use() przekazuje kontrolę do testu, a kod umieszczony po nim to faza Teardown (sprzątanie)."
       }
     ],
     "references": [
       {
-        "title": "Runner testów Playwright",
-        "url": "https://playwright.dev/docs/writing-tests",
-        "description": "Oficjalny przewodnik po pisaniu testów w Playwright Test."
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Chapter 7: Fixtures Deep Dive - wstrzykiwanie zależności i czysty kod."
       },
       {
-        "title": "Playwright Fixtures",
-        "url": "https://playwright.dev/docs/test-fixtures",
-        "description": "Dokumentacja fixtures i dependency injection w Playwright."
-      },
-      {
-        "title": "Playwright Parallelism",
-        "url": "https://playwright.dev/docs/test-parallel",
-        "description": "Równoległość, workers, sharding i tryby wykonywania testów."
-      },
-      {
-        "title": "Playwright Annotations",
-        "url": "https://playwright.dev/docs/test-annotations",
-        "description": "Tagi, adnotacje, skip, fixme, slow i metadane testów."
+        "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Chapter 5: Crafting Scalable Tests with the Fixture System - cykl życia i integracja."
       }
     ],
     "tipsAndTricks": [
-      "Runner jest częścią architektury testów: organizuje izolację, równoległość, retry, raportowanie i konfigurację.",
-      "Fixtures powinny ukrywać przygotowanie kontekstu, ale nie powinny ukrywać sensu scenariusza.",
-      "Równoległość przyspiesza suite tylko wtedy, gdy dane i środowisko są naprawdę izolowane.",
-      "Tagi i adnotacje są kontraktem z CI — projektuj je tak, aby pipeline mógł podejmować decyzje."
+      "Wykorzystaj fixtury zależne, aby ukryć procesy logowania (np. zalogowanie jako admin, zalogowanie jako klient). Dzięki temu testy stają się deklaratywne i skupione na scenariuszu.",
+      "Dołączaj pliki zrzutów i logów sieciowych za pomocą testInfo.attach() podczas błędu, co drastycznie skróci debugowanie w CI.",
+      "Zawsze staraj się sprzątać zasoby w fazie teardown fixtury (po wywołaniu use), aby zapobiec wyciekom pamięci oraz zanieczyszczeniu bazy danych."
     ],
     "commonMistakes": [
       {
-        "mistake": "Nadmierne używanie beforeEach do wszystkiego",
-        "solution": "Przygotowanie powtarzalnego kontekstu przenieś do fixtures, a w hookach zostaw tylko logikę wspólną dla suite."
+        "mistake": "Przechowywanie stanu testu w zmiennych globalnych o zasięgu pliku (let user)",
+        "solution": "Używaj otypowanych parametrów zwracanych bezpośrednio przez fixturę w sygnaturze testu."
       },
       {
-        "mistake": "Fixture robi zbyt wiele",
-        "solution": "Fixture powinien mieć jedną odpowiedzialność i czytelną nazwę domenową."
-      },
-      {
-        "mistake": "Równoległość bez izolacji danych",
-        "solution": "Używaj unikalnych danych per test, osobnych kont, tenantów lub cleanupu po run_id."
-      },
-      {
-        "mistake": "Tagi bez strategii",
-        "solution": "Zdefiniuj znaczenie @smoke, @regression, @slow, @critical i powiąż je z pipeline."
+        "mistake": "Inicjalizowanie bazy danych w beforeEach na poziomie całego pliku",
+        "solution": "Zastąp to fixturą o zakresie worker (scope: 'worker') w celu współdzielenia puli połączeń i znacznego przyspieszenia testów."
       }
     ]
   }

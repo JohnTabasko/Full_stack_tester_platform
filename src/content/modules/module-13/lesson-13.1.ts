@@ -1,200 +1,119 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory13_1 from './lesson-13.1.md?raw';
 
 export const lesson13_1: Lesson = {
   "id": "13.1",
   "moduleId": 13,
-  "title": "Wydajność wykonania testów",
-  "description": "Blokowanie zasobów, ponowne użycie uwierzytelnienia, wykonanie równoległe, workery, wydajność selektorów, strategia trace, profilowanie i analiza wąskich gardeł.",
+  "title": "Optymalizacja wydajności testów, CDP i profilowanie",
+  "description": "Zrozum wąskie gardła w testach Playwright. Opanuj blokowanie ciężkich zasobów sieciowych przez page.route, profilowanie pamięci i metryk za pomocą Chrome DevTools Protocol (CDP) oraz optymalizację zbierania artefaktów.",
   "order": 1,
   "difficulty": "advanced",
   "tags": [
     "performance",
-    "optimization",
-    "playwright",
-    "metrics"
+    "CDP",
+    "network-mocking",
+    "parallelism",
+    "optymalizacja",
+    "SOLID"
   ],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz mierzyć i optymalizować obszar „Wydajność wykonania testów” z użyciem baseline, metryk, budżetów wydajnościowych i świadomej analizy kompromisów.",
+    "objective": "Po ukończeniu tej lekcji potrafisz optymalizować wydajność zestawów testowych w Playwright, wdrażać blokowanie zasobów sieciowych, przeprowadzać diagnostykę pamięci i wydajności za pomocą protokołu CDP oraz prawidłowo konfigurować zbieranie artefaktów w CI.",
     "theory": theory13_1,
     "codeExamples": [
-      "test.beforeEach(async ({ page }) => {\n  await page.route('**/*', (route) => {\n    const type = route.request().resourceType();\n    if (['image', 'font'].includes(type)) return route.abort();\n    return route.continue();\n  });\n});\n",
-      "# Profilowanie najwolniejszych testów z JSON reportu — koncepcyjnie\ncat test-results/results.json   | jq '.suites[].specs[].tests[] | {title, duration: .results[0].duration}'   | jq -s 'sort_by(.duration) | reverse | .[0:10]'\n"
+      `// Przykład blokowania ciężkich zasobów sieciowych (Książka 1 - Kelhini)
+await page.route('**/*', (route) => {
+  const type = route.request().resourceType();
+  if (['image', 'media', 'font'].includes(type)) {
+    route.abort('blockedbyclient');
+  } else {
+    route.continue();
+  }
+});`,
+      `// Inicjalizacja sesji CDP w celu pobrania JS Heap Size (Książka 1, Rozdział 6)
+const client = await page.context().newCDPSession(page);
+await client.send('Performance.enable');
+const metrics = await client.send('Performance.getMetrics');
+const jsHeap = metrics.metrics.find(m => m.name === 'JSHeapUsedSize')?.value;`
     ],
     "exercises": [
       {
         "id": "ex-13-1-1",
-        "title": "Baseline",
-        "description": "Dla tematu „Wydajność wykonania testów” zaprojektuj pomiar bazowy i wskaż, jakie dane zapiszesz w raporcie."
+        "title": "Wdrożenie blokowania mediów na poziomie projektu",
+        "description": "Napisz fixturę o nazwie \`fastPage\`, która automatycznie rejestruje regułę \`page.route\` blokującą pobieranie grafik, wideo i czcionek, a następnie użyj jej w wybranym teście."
       },
       {
         "id": "ex-13-1-2",
-        "title": "Top bottlenecks",
-        "description": "Wskaż trzy potencjalne wąskie gardła i metryki, które je potwierdzą albo obalą."
+        "title": "Pomiar wycieków pamięci z CDP",
+        "description": "Zaimplementuj test, który przechodzi przez kilka kroków w aplikacji typu SPA. Na każdym kroku odpytaj sesję CDP o metrykę \`JSHeapUsedSize\` i rzuć błąd asercji, jeśli rozmiar pamięci wzrośnie o więcej niż 50% w stosunku do stanu początkowego."
       },
       {
         "id": "ex-13-1-3",
-        "title": "Performance budget",
-        "description": "Zdefiniuj progi p95, error rate, czas suite albo Core Web Vitals dla wybranego scenariusza."
-      },
-      {
-        "id": "ex-13-1-4",
-        "title": "Eksperyment optymalizacyjny",
-        "description": "Zaproponuj jedną zmianę, sposób pomiaru przed/po i kryterium sukcesu."
-      },
-      {
-        "id": "ex-13-1-5",
-        "title": "Raport",
-        "description": "Przygotuj strukturę raportu: cel, środowisko, wyniki, porównanie z baseline i rekomendacje."
-      },
-      {
-        "id": "ex-13-1-6",
-        "title": "Ryzyka uboczne",
-        "description": "Opisz, jakie ryzyko może wprowadzić dana optymalizacja i jak je przetestować."
+        "title": "Konfiguracja Shardingu w GitHub Actions",
+        "description": "Napisz fragment pliku konfiguracyjnego workflow dla GitHub Actions, który rozbija wykonanie zestawu testów na 4 niezależne maszyny (shardy), łącząc na koniec ich raporty w jeden spójny plik HTML."
       }
     ],
     "quiz": [
       {
         "id": "q13-1-1",
-        "question": "Jaka jest pierwsza zasada optymalizacji?",
+        "question": "W jaki sposób blokowanie zasobów sieciowych typu 'image' lub 'font' wpływa na testy UI in Playwright?",
         "options": [
-          "Najpierw mierz, potem zmieniaj",
-          "Najpierw usuwaj asercje",
-          "Zawsze zwiększ workers",
-          "Ignoruj baseline"
+          "Skraca czas ładowania stron i renderowania nawet o 50-70%, drastycznie zmniejszając narzut procesora i pamięci RAM",
+          "Całkowicie uniemożliwia nawigację do witryn",
+          "Automatycznie rzuca błąd asercji w teście",
+          "Wymaga każdorazowej instalacji rozszerzeń Chrome"
         ],
         "correctAnswer": 0,
-        "explanation": "Bez pomiaru nie da się odróżnić poprawy od wrażenia."
+        "explanation": "Pobieranie i renderowanie ciężkich obrazów, czcionek czy reklam to główny narzut czasowy. Ich zablokowanie za pomocą page.route znacznie przyspiesza wykonanie testów bez wpływu na ich logikę funkcjonalną."
       },
       {
         "id": "q13-1-2",
-        "question": "Co oznacza baseline?",
+        "question": "Jaką metrykę możemy zbadać korzystając z protokołu CDP (Chrome DevTools Protocol) w teście Playwright?",
         "options": [
-          "Punkt odniesienia dla przyszłych pomiarów",
-          "Losowy wynik testu",
-          "Brak budżetu",
-          "Typ lokatora"
+          "JSHeapUsedSize (rozmiar sterty pamięci JavaScript), czas trwania zadań procesora (Task Duration) oraz pokrycie kodu JS",
+          "Wyłącznie liczbę kliknięć użytkownika na stronie",
+          "Prędkość połączenia internetowego dostawcy usług",
+          "Adres IP maszyny CI"
         ],
         "correctAnswer": 0,
-        "explanation": "Baseline pozwala wykryć regresję lub poprawę."
+        "explanation": "Połączenie CDP umożliwia bezpośredni dostęp do wewnętrznych metryk Chromium, pozwalając diagnozować wycieki pamięci (JSHeapUsedSize) i obciążenie procesora bezpośrednio w kodzie testów."
       },
       {
         "id": "q13-1-3",
-        "question": "Co jest dobrą metryką dla czasu testów?",
+        "question": "Jakie ustawienie zbierania artefaktów diagnostycznych (trace, video, screenshot) jest optymalne dla rurociągów CI pod kątem wydajności?",
         "options": [
-          "p95 duration i top slow tests",
-          "Kolor raportu",
-          "Liczba folderów",
-          "Tylko średnia bez kontekstu"
+          "Zapisywanie wyłącznie w przypadku niepowodzenia (np. retain-on-failure lub on-first-retry), aby uniknąć marnowania czasu CPU i miejsca na dysku",
+          "Zapisywanie absolutnie wszystkiego dla każdego testu (on)",
+          "Całkowite wyłączenie zbierania jakichkolwiek artefaktów (off)",
+          "Generowanie wyłącznie nagrań wideo w rozdzielczości 4K"
         ],
         "correctAnswer": 0,
-        "explanation": "p95 i najwolniejsze testy lepiej pokazują koszt suite niż sama średnia."
-      },
-      {
-        "id": "q13-1-4",
-        "question": "Czym jest performance budget?",
-        "options": [
-          "Ustalonym limitem jakości wydajnościowej",
-          "Budżetem pieniężnym zespołu",
-          "Brakiem testów",
-          "Typem mocka"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Budżet zamienia wymaganie wydajności w mierzalny próg."
-      },
-      {
-        "id": "q13-1-5",
-        "question": "Dlaczego realne urządzenia są ważne w performance?",
-        "options": [
-          "Ujawniają ograniczenia CPU, pamięci, sieci i przeglądarek użytkowników",
-          "Zawsze są szybsze",
-          "Zastępują CI",
-          "Nie mają znaczenia"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Emulacja nie oddaje w pełni wydajności prawdziwego sprzętu."
-      },
-      {
-        "id": "q13-1-6",
-        "question": "Co jest ryzykiem resource blocking?",
-        "options": [
-          "Może ukryć problem zasobu istotnego dla użytkownika",
-          "Zawsze pogarsza testy",
-          "Nie działa w Playwright",
-          "Usuwa raporty"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Blokować należy tylko zasoby nieistotne dla testowanego zachowania."
-      },
-      {
-        "id": "q13-1-7",
-        "question": "Po co monitoring continuous performance?",
-        "options": [
-          "Aby wykrywać trendy i regresje w czasie",
-          "Aby zastąpić wszystkie testy",
-          "Aby ukryć wolne endpointy",
-          "Aby pominąć baseline"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wydajność degraduje się stopniowo; monitoring pozwala reagować wcześniej."
-      },
-      {
-        "id": "q13-1-8",
-        "question": "Najważniejsza zasada lekcji „Wydajność wykonania testów” to:",
-        "options": [
-          "Wydajność jest hipotezą mierzoną w kontrolowanych warunkach",
-          "Wystarczy subiektywne wrażenie",
-          "Nie trzeba raportu",
-          "Optymalizacja nie ma kosztów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Profesjonalna optymalizacja wymaga pomiaru, interpretacji i kontroli ryzyka."
+        "explanation": "Generowanie diagnostyki obciąża wątki robocze i wydłuża testy. Konfigurowanie ich pod kątem zbierania tylko w razie niepowodzenia (failure) optymalizuje czas działania rurociągów CI."
       }
     ],
     "references": [
       {
-        "title": "Playwright Best Practices",
-        "url": "https://playwright.dev/docs/best-practices",
-        "description": "Praktyki wpływające również na szybkość i stabilność testów Playwright."
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Chapter 6: Test Parallelization and Performance Optimization - CDP & network blocking."
       },
       {
-        "title": "Web.dev Performance",
-        "url": "https://web.dev/performance/",
-        "description": "Materiały o Core Web Vitals i optymalizacji doświadczenia użytkownika."
-      },
-      {
-        "title": "Lighthouse CI",
-        "url": "https://github.com/GoogleChrome/lighthouse-ci",
-        "description": "Automatyzacja audytów Lighthouse i budżety wydajnościowe w CI."
-      },
-      {
-        "title": "Prometheus Documentation",
-        "url": "https://prometheus.io/docs/introduction/overview/",
-        "description": "Monitoring metryk i alertowanie użyteczne w continuous performance."
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Chapter 5: Make It Fast - parallel execution."
       }
     ],
     "tipsAndTricks": [
-      "Optymalizację zaczynaj od pomiaru; bez baseline nie wiesz, czy poprawa jest realna.",
-      "Szybszy test bez diagnostyki może być gorszy niż wolniejszy test, który daje wiarygodny sygnał.",
-      "Oddziel wydajność frameworka testowego od wydajności aplikacji — to dwa różne problemy.",
-      "Budżety wydajnościowe powinny być powiązane z doświadczeniem użytkownika i ryzykiem biznesowym."
+      "Stosuj page.route do blokowania Google Analytics, pikseli śledzących i reklam w rurociągu CI. Skróci to czas trwania testu i zapobiegnie zanieczyszczeniu rzeczywistych danych statystycznych.",
+      "Otwieraj CDP tylko tam, gdzie zachodzi podejrzenie wycieku pamięci (np. w dużych aplikacjach SPA), aby nie dodawać zbędnego overheadu do wszystkich zdrowych testów."
     ],
     "commonMistakes": [
       {
-        "mistake": "Optymalizacja na ślepo",
-        "solution": "Najpierw zmierz czas testów, p95, top slow tests, network i zasoby środowiska."
+        "mistake": "Generowanie pełnych nagrań wideo i śladów (trace) dla każdego pomyślnego testu w CI",
+        "solution": "Skonfiguruj trace: 'on-first-retry' oraz video: 'retain-on-failure' w pliku playwright.config.ts."
       },
       {
-        "mistake": "Blokowanie zasobów potrzebnych do testowanego zachowania",
-        "solution": "Blokuj tylko to, co jest nieistotne dla scenariusza, np. analytics albo reklamy."
-      },
-      {
-        "mistake": "Porównywanie wyników z różnych środowisk bez kontekstu",
-        "solution": "Zapisuj wersję aplikacji, środowisko, dane, hardware, przeglądarkę i profil sieci."
-      },
-      {
-        "mistake": "Performance budget bez quality gate",
-        "solution": "Dodaj progi do CI i raportuj regresje jako osobny typ defektu."
+        "mistake": "Mieszanie testów ze stanami współdzielonymi (brak izolacji danych) przy włączonym fullyParallel",
+        "solution": "Upewnij się, że każdy test tworzy własnego unikalnego użytkownika i dane przed uruchomieniem."
       }
     ]
   }

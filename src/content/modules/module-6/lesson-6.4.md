@@ -1,12 +1,49 @@
-# Zaawansowane wzorce POM — journey, fasada, strategia i service objects
+# Zaawansowane wzorce POM — journey, fasada, strategia, fabryka i service objects
 
-Podstawowy POM porządkuje pojedyncze strony. W większym projekcie pojawiają się jednak przepływy obejmujące wiele ekranów, wiele wariantów płatności, setup przez API i komponenty współdzielone między domenami. Wtedy przydają się wzorce zaawansowane — ale tylko wtedy, gdy rozwiązują realny problem.
+Podstawowy Page Object Model (POM) porządkuje pojedyncze strony. W większych, profesjonalnych projektach pojawiają się jednak skomplikowane przepływy obejmujące wiele ekranów, warianty realizowane za pomocą strategii, dynamiczne powoływanie obiektów przez fabrykę, setup przez API oraz komponenty współdzielone między wieloma domenami. W takich sytuacjach inżynieria testów opiera się na zaawansowanych wzorcach projektowych.
 
-Największy błąd to budowanie frameworka testowego dla samej architektury. Dobry wzorzec skraca test i zwiększa czytelność. Zły wzorzec sprawia, że prosta ścieżka wymaga otwierania dziesięciu plików.
+Jak podkreśla Raj Uppadhyay w książce *"Scalable Test Automation with Playwright" (2026)*, celem zaawansowanych wzorców nie jest maksymalne skomplikowanie kodu, lecz **decoupling** (rozprzężenie) – oddzielenie scenariusza testowego od technicznej konstrukcji obiektów.
 
-## 1. Journey pattern
+---
 
-Journey reprezentuje proces biznesowy przechodzący przez kilka stron.
+## 1. Wzorzec Fabryki Obiektów Stron (Page Object Factory)
+
+Tradycyjna instancjacja `new LoginPage(page)` w każdym pliku testowym tworzy **silne sprzężenie (tight coupling)**. Jeśli w przyszłości zmieni się konstruktor `LoginPage` (np. dodamy zależność od loggera lub klasy konfiguracyjnej), musimy zaktualizować każdy test wywołujący ten konstruktor.
+
+**Wzorzec Fabryki** rozwiązuje ten problem. Zamiast tworzyć obiekty ręcznie, test żąda ich od scentralizowanej klasy fabryki, która jako jedyna wie, jak poprawnie skonstruować dany obiekt:
+
+```typescript
+import { Page } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+import { InventoryPage } from '../pages/InventoryPage';
+import { BasePage } from '../pages/BasePage';
+
+export type PageName = 'LoginPage' | 'InventoryPage';
+
+export class PageFactory {
+  /**
+   * Generyczna metoda fabrykująca zwracająca otypowany obiekt strony.
+   */
+  public static getPage<T extends BasePage>(pageName: PageName, page: Page): T {
+    switch (pageName) {
+      case 'LoginPage':
+        return new LoginPage(page) as unknown as T;
+      case 'InventoryPage':
+        return new InventoryPage(page) as unknown as T;
+      default:
+        throw new Error(`Strona "${pageName}" nie jest obsługiwana przez PageFactory.`);
+    }
+  }
+}
+```
+
+Dzięki temu zmiana konstruktora klasy `LoginPage` wymaga poprawki **wyłącznie w jednym pliku** (`PageFactory.ts`).
+
+---
+
+## 2. Journey pattern (Wzorzec Przepływu)
+
+Wzorzec Journey reprezentuje wieloetapowy proces biznesowy (np. zakup produktu, rejestracja z weryfikacją e-mail), przechodzący przez wiele stron i komponentów.
 
 ```typescript
 export class CheckoutJourney {
@@ -28,185 +65,87 @@ export class CheckoutJourney {
 }
 ```
 
-Journey jest dobre dla powtarzalnych procesów, ale nie powinno ukrywać głównej intencji testu. Jeśli test ma sprawdzić walidację płatności, nie chowaj całego procesu płatności w jednej metodzie bez kroków i asercji.
+**Złota zasada**: Journey upraszcza powtarzalne ścieżki, ale nie powinien maskować głównego sensu testu. Jeśli test ma sprawdzić walidację formularza płatności, nie ukrywaj procesu wypełniania formularza w jednej metodzie Journey – test powinien jawnie wywoływać metody walidacyjne na `CheckoutPage`.
 
-## 2. Fasada
+---
 
-Fasada upraszcza dostęp do zestawu stron, komponentów i klientów API.
+## 3. Wzorzec Strategii (Strategy Pattern)
+
+Gdy dany proces biznesowy ma wiele wariantów wykonania (np. różne metody płatności: BLIK, Karta Kredytowa, PayPal), stosowanie instrukcji warunkowych `if/else` wewnątrz Page Objectu drastycznie obniża czytelność kodu i łamie zasadę **Open/Closed Principle (OCP)**.
+
+**Wzorzec Strategii** pozwala wyodrębnić każdy wariant do osobnej, wymiennej klasy implementującej wspólny interfejs:
 
 ```typescript
-export class App {
-  readonly login: LoginPage;
-  readonly checkout: CheckoutPage;
-  readonly ordersApi: OrdersClient;
-
-  constructor(page: Page, request: APIRequestContext) {
-    this.login = new LoginPage(page);
-    this.checkout = new CheckoutPage(page);
-    this.ordersApi = new OrdersClient(request);
-  }
+// Definicja strategii płatności
+export interface PaymentStrategy {
+  pay(amount: number): Promise<void>;
 }
-```
 
-Użycie:
-
-```typescript
-test('użytkownik widzi zamówienie', async ({ app }) => {
-  const order = await app.ordersApi.createPaidOrder();
-  await app.checkout.openOrder(order.id);
-  await app.checkout.expectOrderVisible(order.id);
-});
-```
-
-Fasada nie może stać się God Objectem. Jeśli `App` ma 80 właściwości i zna cały system, problem wrócił pod inną nazwą.
-
-## 3. Strategia
-
-Strategia jest przydatna, gdy proces ma kilka wariantów, np. płatność kartą, BLIK i przelew.
-
-```typescript
-type PaymentStrategy = {
-  pay(): Promise<void>;
-};
-
-class CardPayment implements PaymentStrategy {
+// Strategia płatności kartą
+export class CardPayment implements PaymentStrategy {
   constructor(private readonly page: Page) {}
-
-  async pay() {
-    await this.page.getByLabel('Numer karty').fill('4242 4242 4242 4242');
-    await this.page.getByRole('button', { name: 'Zapłać kartą' }).click();
+  async pay(amount: number) {
+    await this.page.getByLabel('Card Number').fill('4111...');
+    await this.page.getByRole('button', { name: 'Zapłać' }).click();
   }
 }
 
-class BlikPayment implements PaymentStrategy {
+// Strategia płatności BLIK
+export class BlikPayment implements PaymentStrategy {
   constructor(private readonly page: Page) {}
-
-  async pay() {
+  async pay(amount: number) {
     await this.page.getByLabel('Kod BLIK').fill('123456');
-    await this.page.getByRole('button', { name: 'Zapłać BLIK' }).click();
+    await this.page.getByRole('button', { name: 'Potwierdź BLIK' }).click();
   }
 }
 ```
 
-CheckoutPage może przyjąć strategię:
+Teraz strona kasy (`CheckoutPage`) nie przejmuje się szczegółami technicznymi płatności – po prostu deleguje zadanie do przekazanej strategii:
 
 ```typescript
-async payWith(strategy: PaymentStrategy) {
-  await strategy.pay();
-}
-```
-
-## 4. Service/API Objects
-
-Nie wszystko jest stroną. Setup danych, cleanup i asercje backendowe warto trzymać w klientach API.
-
-```typescript
-export class OrdersClient {
-  constructor(private readonly request: APIRequestContext) {}
-
-  async createOrder(data: CreateOrderPayload) {
-    const response = await this.request.post('/api/orders', { data });
-    expect(response.status()).toBe(201);
-    return response.json();
-  }
-
-  async deleteOrder(orderId: string) {
-    await this.request.delete(`/api/orders/${orderId}`);
+export class CheckoutPage extends BasePage {
+  async processPayment(amount: number, strategy: PaymentStrategy) {
+    await test.step(`Przetwarzanie płatności o wartości ${amount}`, async () => {
+      await strategy.pay(amount);
+    });
   }
 }
 ```
 
-To ogranicza pokusę tworzenia danych przez UI tylko dlatego, że test już ma `page`.
+---
 
-## 5. Builder danych
+## 4. Service Objects (Wzorzec Obiektów Usługowych)
 
-Builder pomaga tworzyć czytelne dane testowe:
+Fizyczna interakcja z interfejsem użytkownika (UI) bywa powolna. Jeśli testujesz koszyk zakupowy, nie musisz w każdym teście przechodzić przez UI w celu dodania 5 produktów i zalogowania użytkownika.
 
-```typescript
-export function buildOrder(overrides: Partial<CreateOrderPayload> = {}): CreateOrderPayload {
-  return {
-    customerEmail: `user-${Date.now()}@example.com`,
-    items: [{ sku: 'BOOK-1', quantity: 1 }],
-    currency: 'PLN',
-    ...overrides,
-  };
-}
-```
-
-Builder nie powinien wykonywać requestów. Tworzy dane. Klient API wysyła dane. Page Object obsługuje UI.
-
-## 6. Kiedy wzorzec jest przesadą
-
-Nie używaj journey, fasady i strategii dla jednego prostego testu. Najpierw napisz czytelny test. Abstrakcję wprowadź, gdy pojawia się powtórzenie albo realna złożoność.
-
-## 7. Checklista
-
-- Czy wzorzec usuwa powtarzalność lub nazywa proces biznesowy?
-- Czy test nadal jest zrozumiały bez zaglądania do wielu klas?
-- Czy Page Object nie wykonuje setupu API?
-- Czy builder tylko buduje dane?
-- Czy strategia odpowiada realnym wariantom procesu?
-- Czy fasada nie staje się God Objectem?
-
-## Linki
-
-- [Page Object Models](https://playwright.dev/docs/pom)
-- [Fixtures](https://playwright.dev/docs/test-fixtures)
-- [API testing](https://playwright.dev/docs/api-testing)
-
-## 8. Strategy dla ról użytkowników
-
-Ten sam proces może różnić się zależnie od roli. Strategia pozwala zamknąć różnice w małych klasach:
+**Service Objects** (np. klienci API) służą do błyskawicznego przygotowywania stanu danych przed testem (Arrange) bezpośrednio na poziomie backendu:
 
 ```typescript
-type LoginStrategy = { login(): Promise<void> };
+// Inicjalizacja stanu przez API (błyskawiczna)
+const user = await userApiService.createUser();
+const order = await orderApiService.createOrder(user.token, productData);
 
-class AdminLogin implements LoginStrategy {
-  constructor(private readonly loginPage: LoginPage) {}
-  async login() { await this.loginPage.login('admin@example.test', 'secret'); }
-}
-
-class CustomerLogin implements LoginStrategy {
-  constructor(private readonly loginPage: LoginPage) {}
-  async login() { await this.loginPage.login('customer@example.test', 'secret'); }
-}
+// Testowanie właściwego zachowania w UI (szybkie i stabilne)
+await loginPage.loginWithToken(user.token);
+await ordersPage.open(order.id);
+await ordersPage.assertOrderIsVisible(order.id);
 ```
 
-Nie używaj strategii, jeśli wystarczy jeden parametr metody. Wzorzec ma zmniejszać złożoność, nie ją zwiększać.
+Dzięki temu oddzielamy testowanie zachowania interfejsu (UI) od inżynierii przygotowania danych (API).
 
-## 9. Journey z test.step
+---
 
-Długi journey powinien być widoczny w raporcie:
+## 5. Checklista Zaawansowanych Wzorców POM
 
-```typescript
-await test.step('Klient kupuje produkt', async () => {
-  await checkoutJourney.buyProduct(product.name);
-});
-```
+Uruchom tę checklistę przed wdrożeniem skomplikowanej abstrakcji:
+- [ ] **Problem sprzężenia**: Czy bezpośrednie wywoływanie `new` utrudni w przyszłości refaktoryzację? (Jeśli tak -> wdroż `PageFactory`).
+- [ ] **Open/Closed**: Czy dodanie nowego wariantu procesu (np. nowej płatności) wymaga modyfikowania istniejącej klasy POM? (Jeśli tak -> wdroż `Strategy Pattern`).
+- [ ] **Szybkość testów**: Czy możesz przygotować dane testowe za pomocą Service Object (API) zamiast przeklikiwać cały interfejs UI?
+- [ ] **Czytelność**: Czy po schowaniu kodu za warstwą abstrakcji test nadal jasno opisuje intencję scenariusza?
 
-Jeśli journey ukrywa zbyt wiele, rozbij go na kilka kroków w teście. Raport powinien pokazywać, gdzie proces się zatrzymał.
+---
 
-## 10. Service Object jako granica backendu
-
-Service Object nie jest Page Objectem. Powinien mieć własne asercje techniczne i zwracać dane domenowe. Dzięki temu test może łączyć szybki setup przez API z czytelną weryfikacją UI.
-
-## 11. Builder + Service + POM w jednym scenariuszu
-
-Zaawansowana architektura często łączy trzy warstwy:
-
-```typescript
-const order = buildOrder({ status: 'PAID' });
-const created = await ordersClient.createOrder(order);
-await ordersPage.open(created.id);
-await ordersPage.expectOrderStatus(created.id, 'Opłacone');
-```
-
-To czytelniejsze niż tworzenie zamówienia przez UI, jeśli celem testu jest wyświetlenie statusu, a nie flow tworzenia zamówienia.
-
-## 12. Fasada a jawność zależności
-
-Fasada `app` jest wygodna, ale może ukrywać zależności. Jeśli test używa tylko `app.doEverything()`, reviewer nie widzi, czy test dotyka UI, API, bazy czy mocków. Używaj fasady do organizacji, nie do ukrywania zakresu.
-
-## 13. Zasada końcowa
-
-Zaawansowany wzorzec jest uzasadniony tylko wtedy, gdy zmniejsza koszt zmiany albo poprawia diagnostykę. W przeciwnym razie prosty test jest lepszy.
+## Bibliografia i Linki
+*   *Raj Uppadhyay, Scalable Test Automation with Playwright (2026), Chapter 3: Building a Scalable UI Framework (PageFactory & BasePage)*
+*   *Jean-François Greffier, Practical Playwright Test (2026), Chapter 12: Solving the Test Frameworks Puzzle*
+*   [Playwright Best Practices](https://playwright.dev/docs/best-practices)
