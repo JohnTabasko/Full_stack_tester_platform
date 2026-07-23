@@ -161,6 +161,21 @@ export const lesson26_1: Lesson = {
     ],
     "references": [
       {
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
+      },
+      {
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
+      },
+      {
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
+      },
+      {
         "title": "Appium Documentation",
         "url": "https://appium.io/docs/en/latest/",
         "description": "Dokumentacja Appium, standardu automatyzacji aplikacji mobilnych."
@@ -182,6 +197,8 @@ export const lesson26_1: Lesson = {
       }
     ],
     "tipsAndTricks": [
+      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
+      
       "Macierz urządzeń powinna wynikać z danych użytkowników i ryzyka, nie z listy wszystkich możliwych modeli.",
       "Emulator jest świetny do szybkiej informacji zwrotnej, ale realne urządzenie ujawnia problemy sprzętowe, sieciowe i systemowe.",
       "W testach mobilnych szczególnie dbaj o stan aplikacji: uprawnienia, pamięć, sieć, sesję i dane lokalne.",

@@ -285,3 +285,8 @@ Nie dołączaj tokenów i cookies do publicznych raportów bez maskowania.
 - [Fixtures](https://playwright.dev/docs/test-fixtures)
 - [API testing](https://playwright.dev/docs/api-testing)
 - [Browser contexts](https://playwright.dev/docs/browser-contexts)
+
+## 📘 Suplement Inżynieryjny 2026: Mechanizmy Zaawansowane (Dialogs & Interception)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 11 & 12*
+*   **Event-First Pattern dla Dialogów**: Playwright automatycznie odrzuca systemowe dialogi (`alert`, `confirm`). Jeśli chcesz je zatwierdzić, musisz zarejestrować subskrypcję zdarzenia *przed* wywołaniem akcji wyzwalającej: `page.once('dialog', dialog => dialog.accept())`.
+*   **Intercepcja Sieciowa (`route.fallback`)**: Nowoczesne mockowanie API opiera się na elastycznych regułach przechwytywania, umożliwiających przekazywanie żądań do rzeczywistego serwera lub nadpisywanie nagłówków w locie.

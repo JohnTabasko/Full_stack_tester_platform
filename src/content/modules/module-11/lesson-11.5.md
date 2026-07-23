@@ -887,3 +887,8 @@ Pipeline jest living system — wymaga regularnego review, refactoring i evoluti
 - [CircleCI Resource Classes](https://circleci.com/docs/configuration-reference/#resourceclass) — sizing compute resources
 - [Docker Layer Caching — GitHub Actions](https://github.com/marketplace/actions/docker-build-push-action) — DLC dla Docker images
 - [JUnit Merge Tool](https://www.npmjs.com/package/junit-merge) — merging parallel test results
+
+## 📘 Suplement Inżynieryjny 2026: Integracja z CI/CD (Pipeline Optimization)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 7*
+*   **Sharding**: Rozdzielaj uruchomienie testów na wiele niezależnych maszyn (shardów) w rurociągu CI/CD (np. GitHub Actions) w celu skrócenia czasu wykonania z godzin do kilku minut.
+*   **Dockerization**: Zawsze uruchamiaj testy regresji wizualnej w kontenerach Docker, aby zagwarantować identyczne renderowanie czcionek i grafik na maszynie dewelopera oraz serwerze CI.

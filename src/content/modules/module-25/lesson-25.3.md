@@ -223,3 +223,7 @@ Dobre środowisko Compose jest małe, szybkie, opisane i możliwe do usunięcia 
 ## 18. Compose a testy równoległe
 
 Jeśli kilka pipeline’ów uruchamia Compose na jednej maszynie, porty mogą kolidować. Rozwiązania: dynamiczne porty, osobne project name przez `COMPOSE_PROJECT_NAME`, albo osobne runnery. Dane również muszą być izolowane, np. osobna baza lub `runId`.
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy DevOps i Środowiska Testowe
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 9*
+*   **Docker Compose Hygiene**: Do każdego uruchomienia testów w CI podnoś odizolowane, świeże środowisko kontenerowe za pomocą Docker Compose, co wyeliminuje problem "brudnych" danych pozostawionych przez wcześniejsze wdrożenia.

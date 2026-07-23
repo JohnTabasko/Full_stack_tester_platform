@@ -1056,3 +1056,7 @@ Projekt e-commerce to demonstration of full stack thinking. Jako Full Stack Test
 - [Test Automation University — E2E Testing](https://testautomationu.applitools.com/) — comprehensive e2e testing course
 - [Testing Library — Priority](https://testing-library.com/docs/guiding-principles) — guiding principles for test design
 - [Risk-Based Testing — ISTQB](https://www.istqb.org/downloads/send/51-foundation-level-extensions/135-ctfl-tm-ext-newsample-exam-a4.html) — risk-based testing approach
+
+## 📘 Suplement Inżynieryjny 2026: Projekty Praktyczne (Matrix builds & Coverage)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 16*
+*   **Matrix Coverage**: Projektuj projekty pod kątem testów w różnych viewportach i przeglądarkach (Chromium, Firefox, WebKit), tworząc matrycę pokrycia krytycznych przepływów.

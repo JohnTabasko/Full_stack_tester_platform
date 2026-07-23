@@ -196,3 +196,8 @@ Drag and drop bywa implementowany różnie. Dla prostych elementów użyj `dragT
 ## 17. Zasada końcowa
 
 Zaawansowane akcje są asynchroniczne i często dotykają systemu plików albo backendu. Projektuj je z event-first pattern, deterministycznymi danymi i jasną asercją końcową.
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy Playwright (Locators & Actions)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 2*
+*   **Priorytet Dostępności (A11y)**: Współczesne testy odrzucają surowe selektory CSS i XPath. Zawsze dąż do używania lokalizatorów semantycznych (`getByRole`, `getByLabel`), które imitują interakcję prawdziwego użytkownika i ułatwiają zachowanie standardów dostępności w kodzie produkcyjnym.
+*   **Auto-Waiting State Machine**: Playwright przed kliknięciem elementu automatycznie sprawdza jego stan (czy jest widoczny, stabilny, włączony i klikalny). Zrozumienie tej maszyny stanów zapobiega pisaniu zbędnych oczekiwań (np. `sleep`).

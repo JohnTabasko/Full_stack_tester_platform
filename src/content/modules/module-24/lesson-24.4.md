@@ -204,3 +204,7 @@ Wyniki testów wydajnościowych można wykorzystać do planowania pojemności. J
 ## 16. Regresja wydajności
 
 Regresja to pogorszenie względem baseline. Dlatego zapisuj wyniki historyczne. Pojedynczy test mówi, jak było dziś. Trend mówi, czy system zwalnia po kolejnych zmianach.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Wydajności z k6 i JMeter
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Performance Budgets**: Integruj testy wydajnościowe k6 z rurociągami CI, definiując precyzyjne budżety wydajności (np. 95% żądań musi odpowiedzieć w czasie poniżej 200 ms). Zapobiegnie to stopniowej degradacji szybkości systemu.

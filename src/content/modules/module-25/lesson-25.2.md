@@ -193,3 +193,7 @@ W testach kontenerowych pamiętaj:
 ## 17. Zasada końcowa
 
 Sieć debuguj warstwami: DNS, połączenie, TLS, HTTP, autoryzacja, CORS, aplikacja. Nie przeskakuj od razu do poprawiania testu UI.
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy DevOps i Środowiska Testowe
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 9*
+*   **Docker Compose Hygiene**: Do każdego uruchomienia testów w CI podnoś odizolowane, świeże środowisko kontenerowe za pomocą Docker Compose, co wyeliminuje problem "brudnych" danych pozostawionych przez wcześniejsze wdrożenia.

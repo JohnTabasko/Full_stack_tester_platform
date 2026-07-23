@@ -315,3 +315,7 @@ To jest poziom, na którym tester staje się prawdziwym partnerem w zespole, nie
 - [Test Pyramid — Martin Fowler](https://martinfowler.com/articles/practical-test-pyramid.html)
 - [Definition of Done — Agile Alliance](https://www.agilealliance.org/agile101/agile-glossary/)
 - [Quality Assurance in Software Development — ISTQB](https://www.istqb.org/)
+
+## 📘 Suplement Inżynieryjny 2026: Fundamenty Testera i Strategia Jakości
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Risk-Based Testing**: Dobór testów automatycznych powinien zależeć bezpośrednio od analizy ryzyka biznesowego. Pokrywaj testami E2E wyłącznie obszary o najwyższym stopniu prawdopodobieństwa awarii i skutkach biznesowych.

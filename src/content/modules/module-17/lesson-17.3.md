@@ -199,3 +199,7 @@ Technika projektowania nie mówi jeszcze, gdzie test ma być wykonany. Ten sam p
 - najważniejsza ścieżka użytkownika — E2E.
 
 Full Stack Tester powinien projektować przypadki niezależnie od narzędzia, a dopiero potem zdecydować, czy użyć Vitest, API testu, Playwright, SQL czy eksploracji.
+
+## 📘 Suplement Inżynieryjny 2026: Fundamenty Testera i Strategia Jakości
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Risk-Based Testing**: Dobór testów automatycznych powinien zależeć bezpośrednio od analizy ryzyka biznesowego. Pokrywaj testami E2E wyłącznie obszary o najwyższym stopniu prawdopodobieństwa awarii i skutkach biznesowych.

@@ -220,3 +220,7 @@ Test komponentu powinien dawać pewność, że użytkownik może wykonać intera
 Koniec.
  Gotowe.
  Teraz.
+
+## 📘 Suplement Inżynieryjny 2026: Testy Jednostkowe, Integracyjne i Komponentowe
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 11*
+*   **Playwright Component Testing (CT)**: Testowanie komponentów w rzeczywistym środowisku przeglądarki (np. React, Vue) łączy realizm testów E2E z szybkością wykonania testów jednostkowych, tworząc optymalne środowisko do testowania odizolowanego UI.

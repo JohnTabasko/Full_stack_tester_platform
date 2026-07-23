@@ -835,3 +835,7 @@ Jeśli `external_id` nie ma indeksu, mała baza testowa może działać szybko, 
 ## Ograniczenia jako oracle
 
 Foreign keys, unique constraints i check constraints mogą być oracle jakości danych. Test może sprawdzić, że baza odrzuca niespójny stan, a aplikacja obsługuje taki błąd w kontrolowany sposób.
+
+## 📘 Suplement Inżynieryjny 2026: SQL i Bazy Danych dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
+*   **Isolation Levels**: Przy testowaniu współbieżności bazy danych (np. deadlocks, warunki wyścigu), upewnij się, że Twoje testy celowo wymuszają i weryfikują zachowanie aplikacji na różnych poziomach izolacji transakcji (Read Committed, Serializable).

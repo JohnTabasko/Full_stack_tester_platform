@@ -255,3 +255,8 @@ Dialog nie powinien być tylko zaakceptowany. Sprawdź jego typ i treść. Jeśl
 ## 21. Zdarzenia a cleanup
 
 Jeśli test pobiera plik, otwiera popup albo tworzy nową stronę, posprzątaj zasoby: zamknij popup, zapisz plik do katalogu test-results, usuń dane testowe. Event-first pattern rozwiązuje synchronizację, ale nie zwalnia z higieny testu.
+
+## 📘 Suplement Inżynieryjny 2026: Mechanizmy Zaawansowane (Dialogs & Interception)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 11 & 12*
+*   **Event-First Pattern dla Dialogów**: Playwright automatycznie odrzuca systemowe dialogi (`alert`, `confirm`). Jeśli chcesz je zatwierdzić, musisz zarejestrować subskrypcję zdarzenia *przed* wywołaniem akcji wyzwalającej: `page.once('dialog', dialog => dialog.accept())`.
+*   **Intercepcja Sieciowa (`route.fallback`)**: Nowoczesne mockowanie API opiera się na elastycznych regułach przechwytywania, umożliwiających przekazywanie żądań do rzeczywistego serwera lub nadpisywanie nagłówków w locie.

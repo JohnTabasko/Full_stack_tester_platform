@@ -753,3 +753,8 @@ Testowanie bezpieczeństwa z Playwright to punkt, w którym automatyzacja spotyk
 - [npm audit](https://docs.npmjs.com/cli/v9/commands/npm-audit) — dependency vulnerability scanning
 - [CSP Evaluator](https://csp-evaluator.withgoogle.com/) — CSP policy validator
 - [Security Headers — observatory.mozilla.org](https://observatory.mozilla.org/) — security header scanner
+
+## 📘 Suplement Inżynieryjny 2026: Dostępność i Regresja Wizualna (A11y & Masking)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapters 9 & 10*
+*   **Axe Scoping**: Skanuj dostępność aplikacji tylko w obszarach, nad którymi masz kontrolę, wykluczając elementy zewnętrzne przez `.exclude()`.
+*   **Maskowanie i Progi Tolerancji**: Przy testach wizualnych maskuj elementy dynamiczne (np. daty) za pomocą `mask`, a progi czułości pikseli kontroluj przez `maxDiffPixelRatio`.

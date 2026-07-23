@@ -899,3 +899,7 @@ To są scenariusze, których zwykle nie pokryje zwykły test happy path.
 ## Push notifications
 
 Powiadomienia push wymagają środowiska testowego i diagnostyki. Testuj nie tylko, że push przyszedł, ale że tapnięcie otwiera właściwy ekran, deep link ma poprawne dane, a brak uprawnień pokazuje sensowny fallback.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Mobilne (Appium 2)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 6*
+*   **Appium 2 Driver Lifecycle**: Przy automatyzacji aplikacji natywnych za pomocą Appium 2, dbaj o efektywne zarządzanie cyklem życia sterowników oraz zbieranie artefaktów (zrzuty pamięci, logi systemowe ADB/Xcode) bezpośrednio do rurociągu testowego.

@@ -185,3 +185,7 @@ Kubernetes może zabijać Pody przez OOMKilled albo throttling CPU. Jeśli testy
 ## 17. Zasada końcowa
 
 Tester full stack nie musi zarządzać klastrem, ale musi umieć zebrać dowody: status rollout, logi, events, konfigurację i stan flag funkcji.
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy DevOps i Środowiska Testowe
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 9*
+*   **Docker Compose Hygiene**: Do każdego uruchomienia testów w CI podnoś odizolowane, świeże środowisko kontenerowe za pomocą Docker Compose, co wyeliminuje problem "brudnych" danych pozostawionych przez wcześniejsze wdrożenia.

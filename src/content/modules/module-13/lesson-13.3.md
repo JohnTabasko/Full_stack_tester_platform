@@ -689,3 +689,8 @@ Pamiętaj: optymalizacja, która zmniejsza coverage lub wiarygodność, jest cou
 - [Lighthouse Performance Budgets](https://developer.chrome.com/docs/lighthouse/performance/performance-budget/) — budget-based performance tracking
 - [Playwright Test Sharding](https://playwright.dev/docs/test-sharding) — parallel execution configuration
 - [Parallelization Strategies — CircleCI](https://circleci.com/docs/parallelism-faster-pipelines/) — thinking about parallel execution cost
+
+## 📘 Suplement Inżynieryjny 2026: Wydajność i Optymalizacja (CDP Profiling)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 6*
+*   **Profilowanie CDP**: Nawiąż bezpośrednie połączenie z procesorem przeglądarki przez Chrome DevTools Protocol (`page.context().newCDPSession(page)`), aby zbierać dokładne metryki pamięci (`JSHeapUsedSize`) i wykrywać wycieki.
+*   **Przechwytywanie i Blokowanie Sieci**: Blokuj zbędne skrypty śledzące, reklamy, grafiki i czcionki za pomocą `page.route` w celu radykalnego przyspieszenia ładowania stron w środowiskach testowych.

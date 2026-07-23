@@ -683,3 +683,7 @@ Odporność testuj przez kontrolowane eksperymenty:
 - brak dostępu do cache.
 
 Każdy eksperyment powinien mieć hipotezę i kryterium zakończenia. Nie rób chaos testingu bez zgody zespołu i obserwowalności.
+
+## 📘 Suplement Inżynieryjny 2026: Obserwowalność i Diagnostyka Systemów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 10*
+*   **Correlation IDs**: W testach E2E zawsze wstrzykuj unikalny identyfikator korelacji (Correlation ID) do nagłówków żądań HTTP. Umożliwi to pełne śledzenie rozproszone (Distributed Tracing) i powiązanie awarii w teście z konkretnymi logami i śladami na backendzie.

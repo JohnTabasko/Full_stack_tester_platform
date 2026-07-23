@@ -235,3 +235,8 @@ Dla wybranych przypadków możesz użyć snapshotów wizualnych lub ARIA. Nie st
 ## 17. Zasada końcowa
 
 Dobra asercja webowa odpowiada na pytanie: jaki stan użytkownik lub system ma zobaczyć po akcji? Jeśli asercja nie odpowiada na to pytanie, prawdopodobnie jest zbyt techniczna albo zbyt słaba.
+
+## 📘 Suplement Inżynieryjny 2026: Asercje i Weryfikacje (Web-First Assertions)
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Asercje Web-First**: Zawsze używaj asynchronicznych asercji, takich jak `expect(locator).toBeVisible()`. Te asercje automatycznie ponawiają sprawdzenie (poll) przez określony timeout (domyślnie 5s), zapobiegając niestabilności spowodowanej powolnym renderowaniem sieciowym.
+*   **Custom Matchers (`expect.extend`)**: Dla zachowania czystości kodu domenowego wyodrębniaj techniczne aserty do niestandardowych metod weryfikujących (np. `expect(page).toBeAuthenticated()`).

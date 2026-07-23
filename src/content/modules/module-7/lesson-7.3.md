@@ -193,3 +193,8 @@ Generator danych powinien być stabilny. Jeśli aktualizacja biblioteki Faker zm
 - Czy można znaleźć dane po `runId`?
 - Czy seed jest zapisany, jeśli potrzebna jest reprodukcja?
 - Czy dane są syntetyczne i bezpieczne?
+
+## 📘 Suplement Inżynieryjny 2026: Zarządzanie Danymi Testowymi (Data Management)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
+*   **Izolacja Danych**: Nigdy nie współdziel mutowalnych danych między testami działającymi równolegle. Używaj generatorów (np. biblioteki Faker) do tworzenia unikalnych tożsamości i twórz stan bazy dynamicznie per test.
+*   **Szybki Setup przez API**: Zamiast przeklikiwać UI w celu przygotowania danych, użyj szybkiego klienta API przed rozpoczęciem testu funkcjonalnego.

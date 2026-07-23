@@ -535,3 +535,7 @@ Nie testuj wszystkiego przez jeden wielki E2E. Lepszy zestaw:
 - contract tests dla HTTP i eventów;
 - component/service tests dla pojedynczej usługi;
 - kilka E2E dla krytycznych procesów.
+
+## 📘 Suplement Inżynieryjny 2026: Mikroserwisy i Systemy Asynchroniczne
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 6*
+*   **Event-Driven Testing**: Przy testowaniu kolejek wiadomości (np. Kafka, RabbitMQ) weryfikuj spójność ostateczną (eventual consistency). Używaj mechanizmu ponowień (polling) z precyzyjnie określonym oknem tolerancji czasu na dostarczenie zdarzenia.

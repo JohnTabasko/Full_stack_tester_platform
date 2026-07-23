@@ -84,12 +84,29 @@ await expect(page.locator('.payment-box')).toHaveScreenshot('payment-card.png', 
     ],
     "references": [
       {
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
+      },
+      {
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
+      },
+      {
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
+      },
+      {
         "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
         "url": "https://www.packtpub.com",
         "description": "Chapter 10: Setting Up Visual Regression Testing - golden snapshots and masking."
       }
     ],
     "tipsAndTricks": [
+      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
+      
       "Zawsze staraj się uruchamiać testy wizualne w kontenerze Docker w rurociągu CI, ponieważ silniki renderowania czcionek na Linuxie i macOS są nieznacznie różne, co powoduje zbędne czerwone testy.",
       "Ustaw maxDiffPixelRatio na poziomie 0.01 - 0.02 dla testów całych stron, aby minimalne różnice w renderowaniu cieni i tekstu nie blokowały Twoich wydań."
     ],

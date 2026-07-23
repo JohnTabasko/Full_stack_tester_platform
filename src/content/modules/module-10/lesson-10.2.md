@@ -1002,3 +1002,8 @@ Wtedy testy przestają być tylko kosztem operacyjnym — stają się źródłem
 - [Adaptive Cards — Microsoft](https://adaptivecards.io/) — specyfikacja i narzędzia do budowy kart dla Teams
 - [JUnit XML Format Specification](https://llg.cubic.org/docs/junit/) — standardowy format maszynowy dla systemów CI
 - [GitHub Actions — Publishing workflow artefakty](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) — jak bezpiecznie zarządzać webhook URLs jako secrets w CI
+
+## 📘 Suplement Inżynieryjny 2026: Raportowanie i Analityka
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Raporty dla Biznesu**: Dobry raport to nie tylko statystyka "passed/failed". Używaj zaawansowanych reporterów (np. Monocart) i dołączaj bogate załączniki za pomocą `testInfo.attach()` w fazie teardownu.
+*   **Oznaczanie znanych błędów**: Korzystaj z adnotacji testowych (np. `test.info().annotations.push(...)`), aby powiązać błędy w testach z otwartymi zgłoszeniami w systemach typu GitHub Issues lub Jira.

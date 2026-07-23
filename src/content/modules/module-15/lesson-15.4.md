@@ -548,3 +548,7 @@ Oceń swój projekt także pod kątem Playwright:
 | Zakres | Czy UI nie testuje rzeczy, które lepiej sprawdzić przez API? |
 
 Projekt końcowy powinien być Twoją odpowiedzią na pytanie: „Jak zaprojektowałbyś automatyzację w prawdziwym zespole?”.
+
+## 📘 Suplement Inżynieryjny 2026: Projekty Praktyczne (Matrix builds & Coverage)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 16*
+*   **Matrix Coverage**: Projektuj projekty pod kątem testów w różnych viewportach i przeglądarkach (Chromium, Firefox, WebKit), tworząc matrycę pokrycia krytycznych przepływów.

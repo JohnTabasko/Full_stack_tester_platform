@@ -196,3 +196,8 @@ Dane produkcyjnopodobne są wartościowe, ale muszą być kontrolowane. Losowa p
 ## 17. Zasada końcowa
 
 Stabilność nie oznacza, że test nigdy nie pada. Stabilność oznacza, że test pada z właściwego powodu, zostawia dowody i daje ten sam wynik dla tego samego stanu systemu.
+
+## 📘 Suplement Inżynieryjny 2026: Debugowanie i Rozwiązywanie Problemów
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 8*
+*   **Diagnostyka Trace Viewer**: W przypadku awarii w CI, plik trace jest Twoim najważniejszym dowodem. Zawiera nagranie DOM, historię sieci, logi konsoli przeglądarki oraz zrzuty ekranu przed i po każdej akcji.
+*   **UI Mode**: Wykorzystaj interaktywny tryb UI (`npx playwright test --ui`) do błyskawicznego pisania, debugowania i podróżowania w czasie (time-travel) w kodzie testów.

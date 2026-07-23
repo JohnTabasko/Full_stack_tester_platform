@@ -964,3 +964,7 @@ Dobre testy migracji sprawdzają:
 ## Maskowanie danych
 
 Jeśli używasz snapshotu produkcyjnego do testów, dane muszą być zanonimizowane lub syntetyzowane. Maskowanie powinno zachować właściwości danych ważne dla testów: długości, rozkłady, relacje i wartości brzegowe, ale usunąć PII i sekrety.
+
+## 📘 Suplement Inżynieryjny 2026: SQL i Bazy Danych dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
+*   **Isolation Levels**: Przy testowaniu współbieżności bazy danych (np. deadlocks, warunki wyścigu), upewnij się, że Twoje testy celowo wymuszają i weryfikują zachowanie aplikacji na różnych poziomach izolacji transakcji (Read Committed, Serializable).

@@ -535,3 +535,7 @@ Umiejętność pisania skryptów bash, przeszukiwania logów i zarządzania proc
 - [Bash Scripting Tutorial](https://www.shell-tips.com/bash/)
 - [DevHints — Bash Cheat Sheet](https://devhints.io/bash)
 - [Shell Command Language — POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy DevOps i Środowiska Testowe
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 9*
+*   **Docker Compose Hygiene**: Do każdego uruchomienia testów w CI podnoś odizolowane, świeże środowisko kontenerowe za pomocą Docker Compose, co wyeliminuje problem "brudnych" danych pozostawionych przez wcześniejsze wdrożenia.

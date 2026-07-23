@@ -855,3 +855,7 @@ Profesjonalny projekt testowy to nie tylko testy. To:
 - [Playwright CI Best Practices](https://playwright.dev/docs/ci-best-practices/) — CI/CD recommendations
 - [ESLint Configuration](https://eslint.org/docs/user-guide/configuring/) — linting setup
 - [Husky — Git hooks](https://typicode.github.io/husky/) — pre-commit hooks
+
+## 📘 Suplement Inżynieryjny 2026: Projekty Praktyczne (Matrix builds & Coverage)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 16*
+*   **Matrix Coverage**: Projektuj projekty pod kątem testów w różnych viewportach i przeglądarkach (Chromium, Firefox, WebKit), tworząc matrycę pokrycia krytycznych przepływów.

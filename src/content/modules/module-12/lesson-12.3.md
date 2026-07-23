@@ -488,3 +488,8 @@ Gdy traktujesz testy jako "pierwszorzędny citizen" w zespole, nie tylko poprawi
 - [SOLID Principles for Software Testing](https://www.ministryoftesting.com/articles/solid-principles-for-test-automation)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
 - [Code Review Best Practices](https://github.com/mrxpalmer/code-review-checklist)
+
+## 📘 Suplement Inżynieryjny 2026: Dobre Praktyki i Wzorce (SOLID & Clean Code)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Zasada Single Responsibility (SRP)**: Każdy komponent frameworka powinien odpowiadać za jedną rzecz. Unikaj monolitycznych klas POM łączących akcje UI, setup bazy, zapytania API i asercje.
+*   **WET (Write Everything Twice)**: Unikaj przedwczesnej abstrakcji. Zastosuj zasadę WET i wyodrębnij kod do abstrakcji dopiero przy trzeciej duplikacji.

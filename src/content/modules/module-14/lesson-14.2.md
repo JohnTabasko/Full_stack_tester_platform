@@ -92,3 +92,8 @@ test('zaawansowany audyt z załącznikiem diagnostycznym', async ({ page }, test
 ## Bibliografia i Linki
 *   *Faraz K. Kelhini & Butch Mayhew, Hands-On Automated Testing with Playwright (2026), Chapter 9: Accessibility Testing with Playwright and axe-core*
 *   [Oficjalna dokumentacja Axe-core Playwright](https://github.com/dequelabs/axe-core-playwright)
+
+## 📘 Suplement Inżynieryjny 2026: Dostępność i Regresja Wizualna (A11y & Masking)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapters 9 & 10*
+*   **Axe Scoping**: Skanuj dostępność aplikacji tylko w obszarach, nad którymi masz kontrolę, wykluczając elementy zewnętrzne przez `.exclude()`.
+*   **Maskowanie i Progi Tolerancji**: Przy testach wizualnych maskuj elementy dynamiczne (np. daty) za pomocą `mask`, a progi czułości pikseli kontroluj przez `maxDiffPixelRatio`.

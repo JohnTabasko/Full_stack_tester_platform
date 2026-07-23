@@ -173,3 +173,7 @@ AI może pomóc porównać dwa raporty: ostatni zielony run i aktualny czerwony.
 ## 16. Bezpieczne streszczanie raportów
 
 Raport dla zespołu może być generowany z pomocą AI, jeśli dane są bezpieczne. Dobry prompt powinien prosić o: streszczenie wpływu, pogrupowanie awarii po domenie, wskazanie właścicieli i listę brakujących danych diagnostycznych.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Wspierane przez Sztuczną Inteligencję
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 12*
+*   **AI Prompt Governance**: Przy wdrażaniu narzędzi generatywnych (LLM) do tworzenia testów, stosuj rygorystyczne zasady prywatności i weryfikacji kodu, zapobiegając halucynacjom oraz wyciekom danych wrażliwych do zewnętrznych modeli.

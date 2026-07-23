@@ -248,3 +248,8 @@ Snapshot dużego obiektu bywa wygodny, ale często stabilizuje zbyt dużo szczeg
 ## 16. Zasada końcowa
 
 Asercje ogólne są najmocniejsze, gdy wyrażają kontrakt danych: typ, format, wymagane pola, kolejność i obsługę błędów. Nie porównuj więcej, niż wymaga scenariusz.
+
+## 📘 Suplement Inżynieryjny 2026: Asercje i Weryfikacje (Web-First Assertions)
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Asercje Web-First**: Zawsze używaj asynchronicznych asercji, takich jak `expect(locator).toBeVisible()`. Te asercje automatycznie ponawiają sprawdzenie (poll) przez określony timeout (domyślnie 5s), zapobiegając niestabilności spowodowanej powolnym renderowaniem sieciowym.
+*   **Custom Matchers (`expect.extend`)**: Dla zachowania czystości kodu domenowego wyodrębniaj techniczne aserty do niestandardowych metod weryfikujących (np. `expect(page).toBeAuthenticated()`).

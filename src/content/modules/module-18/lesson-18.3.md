@@ -850,3 +850,7 @@ Sprawdzaj:
 ## Exit codes w CI
 
 Skrypty testowe powinny zwracać poprawny kod wyjścia. Jeśli testy padają, proces musi zakończyć się kodem różnym od zera. Nie ukrywaj błędów przez `|| true`, chyba że świadomie zbierasz raport w osobnym kroku i później failujesz pipeline.
+
+## 📘 Suplement Inżynieryjny 2026: TypeScript, Node.js i Git dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 1*
+*   **Type Safety**: Unikaj stosowania typu `any`. Wykorzystuj typ `unknown` w połączeniu ze strażnikami typów (Type Guards) lub operator `satisfies` do bezpiecznej walidacji struktury danych wejściowych w testach.

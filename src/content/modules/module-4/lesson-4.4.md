@@ -621,3 +621,8 @@ Przy testach realtime sprawdzaj nie tylko, że wiadomość została wysłana, al
 - [Mocking API Responses](https://playwright.dev/docs/api/class-apirequestcontext)
 - [REST API mocking patterns](https://mmazzarolo.com/blog/2022-04-16-playwright-e2e-tests-with-mocked-apis/)
 - [Mocking Best Practices](https://kentcdodds.com/blog/interface-segregation-principle-and-testing)
+
+## 📘 Suplement Inżynieryjny 2026: Mechanizmy Zaawansowane (Dialogs & Interception)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 11 & 12*
+*   **Event-First Pattern dla Dialogów**: Playwright automatycznie odrzuca systemowe dialogi (`alert`, `confirm`). Jeśli chcesz je zatwierdzić, musisz zarejestrować subskrypcję zdarzenia *przed* wywołaniem akcji wyzwalającej: `page.once('dialog', dialog => dialog.accept())`.
+*   **Intercepcja Sieciowa (`route.fallback`)**: Nowoczesne mockowanie API opiera się na elastycznych regułach przechwytywania, umożliwiających przekazywanie żądań do rzeczywistego serwera lub nadpisywanie nagłówków w locie.

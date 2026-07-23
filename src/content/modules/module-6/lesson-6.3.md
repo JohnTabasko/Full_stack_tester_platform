@@ -224,3 +224,8 @@ Root locator jest najważniejszą granicą odpowiedzialności komponentu.
  To ważne.
  Naprawdę.
  Granica komponentu musi pozostać jasna.
+
+## 📘 Suplement Inżynieryjny 2026: Wzorzec Obiektu Strony (Page Object Factory)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 3*
+*   **PageObject Factory**: Zastąp bezpośrednią instancjację `new LoginPage(page)` za pomocą fabryki `PageFactory`. Zapobiega to kruchości testów – przy zmianie konstruktora klasy strony poprawiasz wyłącznie kod fabryki.
+*   **Metoda Szablonowa (Template Method)**: Definiuj szkielet procesów (np. nawigacji i sprawdzania błędów 500) w abstrakcyjnej klasie bazowej `BasePage`.

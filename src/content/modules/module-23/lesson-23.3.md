@@ -773,3 +773,7 @@ Te dwa modele pomagają uporządkować diagnostykę. Jeśli API jest wolne, spra
 ## Alert fatigue
 
 Alert powinien wymagać działania. Jeśli każdy drobny spike generuje alarm, zespół przestaje reagować. Tester analizujący jakość powinien odróżniać alert diagnostyczny od alertu blokującego release.
+
+## 📘 Suplement Inżynieryjny 2026: Obserwowalność i Diagnostyka Systemów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 10*
+*   **Correlation IDs**: W testach E2E zawsze wstrzykuj unikalny identyfikator korelacji (Correlation ID) do nagłówków żądań HTTP. Umożliwi to pełne śledzenie rozproszone (Distributed Tracing) i powiązanie awarii w teście z konkretnymi logami i śladami na backendzie.

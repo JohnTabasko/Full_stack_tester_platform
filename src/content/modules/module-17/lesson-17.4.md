@@ -200,3 +200,7 @@ Po znalezieniu błędu zapytaj:
 5. Jaki poziom testu jest najlepszy?
 
 Nie każdy bug znaleziony eksploracyjnie musi stać się testem E2E. Czasem najlepszy test regresyjny to unit, API albo contract test.
+
+## 📘 Suplement Inżynieryjny 2026: Fundamenty Testera i Strategia Jakości
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Risk-Based Testing**: Dobór testów automatycznych powinien zależeć bezpośrednio od analizy ryzyka biznesowego. Pokrywaj testami E2E wyłącznie obszary o najwyższym stopniu prawdopodobieństwa awarii i skutkach biznesowych.

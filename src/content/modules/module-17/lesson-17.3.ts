@@ -155,6 +155,21 @@ export const lesson17_3: Lesson = {
     ],
     "references": [
       {
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
+      },
+      {
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
+      },
+      {
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
+      },
+      {
         "title": "ISTQB CTFL",
         "url": "https://www.istqb.org/certifications/certified-tester-foundation-level",
         "description": "Oficjalny sylabus technik projektowania testów."
@@ -171,6 +186,8 @@ export const lesson17_3: Lesson = {
       }
     ],
     "tipsAndTricks": [
+      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
+      
       "Jeśli nie potrafisz uzasadnić danych testowych, prawdopodobnie wybrałeś je przypadkowo.",
       "Dla każdej walidacji liczbowej automatycznie pytaj o wartości: min-1, min, min+1, max-1, max, max+1.",
       "Tablica decyzyjna jest świetnym narzędziem rozmowy z analitykiem lub product ownerem.",

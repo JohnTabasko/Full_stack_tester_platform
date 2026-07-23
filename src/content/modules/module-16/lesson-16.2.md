@@ -134,3 +134,7 @@ Sprawdzaj zarówno linki, jak i podstawową treść. Email może mieć poprawny 
 ## 13. Zasada końcowa
 
 Test poczty powinien potwierdzać skutek biznesowy: konto aktywowane, hasło zresetowane, faktura dostarczona. Sama obecność wiadomości w skrzynce testowej jest tylko częścią dowodu.
+
+## 📘 Suplement Inżynieryjny 2026: Środowiska Specjalistyczne (Multi-Tenant Isolation)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Multi-Tenant Isolation**: W środowiskach specjalistycznych dbaj o to, aby każdy worker operował na niezależnym podmiocie (tenant) lub wydzielonej strukturze danych, co wyeliminuje anomalie współbieżności.

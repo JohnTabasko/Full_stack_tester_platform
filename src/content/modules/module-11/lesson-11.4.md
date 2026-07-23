@@ -818,3 +818,8 @@ Jako Full Stack Tester pracujący z wieloma platformami CI/CD pamiętaj:
 - [BrowserStack Playwright Integration](https://www.browserstack.com/docs/automate/playwright) — oficjalna integracja Playwright + BrowserStack
 - [Sauce Labs Playwright Documentation](https://docs.saucelabs.com/test-results/viewing-test-results/view-in-sauce/index.html) — Sauce Labs + Playwright
 - [Cross-Platform CI/CD Patterns — Martin Fowler](https://martinfowler.com/articles/continuousIntegration.html) — teoretyczne podstawy CI/CD niezależne od platformy
+
+## 📘 Suplement Inżynieryjny 2026: Integracja z CI/CD (Pipeline Optimization)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 7*
+*   **Sharding**: Rozdzielaj uruchomienie testów na wiele niezależnych maszyn (shardów) w rurociągu CI/CD (np. GitHub Actions) w celu skrócenia czasu wykonania z godzin do kilku minut.
+*   **Dockerization**: Zawsze uruchamiaj testy regresji wizualnej w kontenerach Docker, aby zagwarantować identyczne renderowanie czcionek i grafik na maszynie dewelopera oraz serwerze CI.

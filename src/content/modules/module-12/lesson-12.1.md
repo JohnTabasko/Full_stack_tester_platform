@@ -167,3 +167,8 @@ expect(order.status).toBe('PAID');
 ```
 
 Nie rób tego w każdym teście, ale dla krytycznych przepływów UI + API daje dużo większą pewność.
+
+## 📘 Suplement Inżynieryjny 2026: Dobre Praktyki i Wzorce (SOLID & Clean Code)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Zasada Single Responsibility (SRP)**: Każdy komponent frameworka powinien odpowiadać za jedną rzecz. Unikaj monolitycznych klas POM łączących akcje UI, setup bazy, zapytania API i asercje.
+*   **WET (Write Everything Twice)**: Unikaj przedwczesnej abstrakcji. Zastosuj zasadę WET i wyodrębnij kod do abstrakcji dopiero przy trzeciej duplikacji.

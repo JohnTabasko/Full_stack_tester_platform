@@ -738,3 +738,8 @@ Każdy shard powinien publikować własny raport lub blob report. Inaczej po awa
 - Czy sekrety są w GitHub Secrets, a nie w repozytorium?
 - Czy sharding nie gubi raportów?
 - Czy PR uruchamia szybki zestaw smoke, a nightly pełną regresję?
+
+## 📘 Suplement Inżynieryjny 2026: Integracja z CI/CD (Pipeline Optimization)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 7*
+*   **Sharding**: Rozdzielaj uruchomienie testów na wiele niezależnych maszyn (shardów) w rurociągu CI/CD (np. GitHub Actions) w celu skrócenia czasu wykonania z godzin do kilku minut.
+*   **Dockerization**: Zawsze uruchamiaj testy regresji wizualnej w kontenerach Docker, aby zagwarantować identyczne renderowanie czcionek i grafik na maszynie dewelopera oraz serwerze CI.

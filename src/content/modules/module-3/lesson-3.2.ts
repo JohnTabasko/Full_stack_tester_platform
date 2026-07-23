@@ -153,6 +153,21 @@ export const lesson3_2: Lesson = {
     ],
     "references": [
       {
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
+      },
+      {
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
+      },
+      {
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
+      },
+      {
             "title": "GenericAssertions",
             "url": "https://playwright.dev/docs/api/class-genericassertions",
             "description": "Asercje ogólne Playwright."
@@ -167,8 +182,10 @@ export const lesson3_2: Lesson = {
             "url": "https://jestjs.io/docs/expect",
             "description": "Matcher API kompatybilne z ekosystemem JS."
       }
-],
+    ],
     "tipsAndTricks": [
+      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
+      
       "Asercja powinna opisywać oczekiwany rezultat, a nie tylko potwierdzać, że kod się wykonał.",
       "Web-first assertions są retry-aware — używaj ich zamiast ręcznego pollingu interfejsu użytkownika.",
       "W API sprawdzaj status, body, nagłówki i scenariusze negatywne; sam status 200 rzadko wystarcza.",

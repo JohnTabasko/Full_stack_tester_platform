@@ -489,3 +489,8 @@ Zasada: projektuj raportowanie z myślą o odbiorcy i decyzji, którą ma wspier
 - [JUnit XML Format](https://github.com/testmoapp/junitxml)
 - [GitHub Actions Artifacts](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts)
 - [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer)
+
+## 📘 Suplement Inżynieryjny 2026: Raportowanie i Analityka
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Raporty dla Biznesu**: Dobry raport to nie tylko statystyka "passed/failed". Używaj zaawansowanych reporterów (np. Monocart) i dołączaj bogate załączniki za pomocą `testInfo.attach()` w fazie teardownu.
+*   **Oznaczanie znanych błędów**: Korzystaj z adnotacji testowych (np. `test.info().annotations.push(...)`), aby powiązać błędy w testach z otwartymi zgłoszeniami w systemach typu GitHub Issues lub Jira.

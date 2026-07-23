@@ -1181,3 +1181,7 @@ Testy nie muszą odtwarzać każdej anomalii w UI. Często lepszy jest test inte
 ## Deadlocki
 
 Deadlock pojawia się, gdy transakcje czekają na siebie wzajemnie. W systemach zamówień i płatności może wystąpić przy aktualizacji zasobów w różnej kolejności. Testy współbieżne powinny sprawdzać, czy aplikacja obsługuje retry i nie zostawia częściowego stanu.
+
+## 📘 Suplement Inżynieryjny 2026: SQL i Bazy Danych dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
+*   **Isolation Levels**: Przy testowaniu współbieżności bazy danych (np. deadlocks, warunki wyścigu), upewnij się, że Twoje testy celowo wymuszają i weryfikują zachowanie aplikacji na różnych poziomach izolacji transakcji (Read Committed, Serializable).

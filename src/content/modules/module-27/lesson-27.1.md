@@ -454,3 +454,7 @@ Umiejętność "współpracy z AI" — pisanie dobrych promptów, weryfikacja wy
 - [Anthropic Claude — API Documentation](https://docs.anthropic.com/)
 - [Playwright Documentation](https://playwright.dev/docs/intro)
 - [AI in Software Testing — IEEE](https://ieeexplore.ieee.org/document/10042339)
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Wspierane przez Sztuczną Inteligencję
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 12*
+*   **AI Prompt Governance**: Przy wdrażaniu narzędzi generatywnych (LLM) do tworzenia testów, stosuj rygorystyczne zasady prywatności i weryfikacji kodu, zapobiegając halucynacjom oraz wyciekom danych wrażliwych do zewnętrznych modeli.

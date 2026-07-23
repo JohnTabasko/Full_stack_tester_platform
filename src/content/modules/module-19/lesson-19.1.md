@@ -229,3 +229,7 @@ Reviewer testu jednostkowego powinien łatwo zrozumieć:
 - dlaczego oczekiwany wynik jest poprawny;
 - czy są przypadki brzegowe;
 - czy test nie jest zbyt mocno związany z implementacją.
+
+## 📘 Suplement Inżynieryjny 2026: Testy Jednostkowe, Integracyjne i Komponentowe
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 11*
+*   **Playwright Component Testing (CT)**: Testowanie komponentów w rzeczywistym środowisku przeglądarki (np. React, Vue) łączy realizm testów E2E z szybkością wykonania testów jednostkowych, tworząc optymalne środowisko do testowania odizolowanego UI.

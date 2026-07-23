@@ -237,3 +237,8 @@ Jeśli używasz `evaluateHandle`, pamiętaj o `dispose`. Uchwyty trzymają refer
 ## 16. Zasada końcowa
 
 JavaScript evaluation to skalpel, nie młotek. Używaj go tam, gdzie Playwrightowe locatory, akcje i konteksty nie rozwiązują problemu w sposób bliższy użytkownikowi.
+
+## 📘 Suplement Inżynieryjny 2026: Mechanizmy Zaawansowane (Dialogs & Interception)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 11 & 12*
+*   **Event-First Pattern dla Dialogów**: Playwright automatycznie odrzuca systemowe dialogi (`alert`, `confirm`). Jeśli chcesz je zatwierdzić, musisz zarejestrować subskrypcję zdarzenia *przed* wywołaniem akcji wyzwalającej: `page.once('dialog', dialog => dialog.accept())`.
+*   **Intercepcja Sieciowa (`route.fallback`)**: Nowoczesne mockowanie API opiera się na elastycznych regułach przechwytywania, umożliwiających przekazywanie żądań do rzeczywistego serwera lub nadpisywanie nagłówków w locie.

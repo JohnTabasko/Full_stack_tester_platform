@@ -207,3 +207,8 @@ Najtrudniejsze są awarie w połowie setupu. Rejestruj cleanup natychmiast po ut
 ## 15. Zasada końcowa
 
 Obsługa błędów ma zwiększać ilość informacji, a nie zmniejszać wiarygodność testu. Jeśli po dodaniu `try-catch` test częściej przechodzi, ale mniej mówi o problemie, rozwiązanie jest błędne.
+
+## 📘 Suplement Inżynieryjny 2026: Debugowanie i Rozwiązywanie Problemów
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 8*
+*   **Diagnostyka Trace Viewer**: W przypadku awarii w CI, plik trace jest Twoim najważniejszym dowodem. Zawiera nagranie DOM, historię sieci, logi konsoli przeglądarki oraz zrzuty ekranu przed i po każdej akcji.
+*   **UI Mode**: Wykorzystaj interaktywny tryb UI (`npx playwright test --ui`) do błyskawicznego pisania, debugowania i podróżowania w czasie (time-travel) w kodzie testów.

@@ -207,3 +207,7 @@ Dobra praktyka: mockuj zależności poza granicą testowanej jednostki. Nie mock
 Mock ma być kontrolowaną protezą zależności, nie alternatywną rzeczywistością systemu.
 
 Koniec.
+
+## 📘 Suplement Inżynieryjny 2026: Testy Jednostkowe, Integracyjne i Komponentowe
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 11*
+*   **Playwright Component Testing (CT)**: Testowanie komponentów w rzeczywistym środowisku przeglądarki (np. React, Vue) łączy realizm testów E2E z szybkością wykonania testów jednostkowych, tworząc optymalne środowisko do testowania odizolowanego UI.

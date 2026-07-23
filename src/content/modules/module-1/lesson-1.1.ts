@@ -90,6 +90,21 @@ import { chromium } from 'playwright';
     ],
     "references": [
       {
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
+      },
+      {
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
+      },
+      {
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
+      },
+      {
         "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
         "url": "https://www.packtpub.com",
         "description": "Chapter 1: Quick Setup Refresher - różnice architektoniczne i ekosystem."
@@ -101,6 +116,8 @@ import { chromium } from 'playwright';
       }
     ],
     "tipsAndTricks": [
+      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
+      
       "Nie zamykaj i nie otwieraj przeglądarki ręcznie w testach. Pozwól Playwrightowi zarządzać cyklem życia za pomocą fixture-a page, który automatycznie tworzy nowy, ultra-szybki Browser Context dla każdego testu.",
       "Zawsze wybieraj pakiet @playwright/test do automatyzacji QA. Posiada on natywne, stabilne asercje asynchroniczne i wbudowany system raportowania."
     ],

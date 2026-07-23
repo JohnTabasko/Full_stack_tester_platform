@@ -181,3 +181,8 @@ Budżet wydajności ma sens tylko wtedy, gdy zespół na niego reaguje.
 Metryki bez właściciela i trendu szybko stają się tylko szumem raportowym.
 
 Koniec.
+
+## 📘 Suplement Inżynieryjny 2026: Zaawansowane Testowanie API (API Object Model)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 2*
+*   **API Object Model (AOM)**: Hermetyzuj adresy URL, nagłówki i struktury zapytań HTTP w klasach modelu API dziedziczących po `BaseApi`. Powołuj te obiekty za pomocą `ApiFactory`, chroniąc testy przed modyfikacją endpointów.
+*   **Synchronizacja Autoryzacji**: Korzystaj z wbudowanej fixtury `request`, która potrafi współdzielić stan sesji i ciasteczka bezpośrednio z kontekstem przeglądarki.

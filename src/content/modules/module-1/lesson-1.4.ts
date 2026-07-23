@@ -155,6 +155,21 @@ export const lesson1_4: Lesson = {
     ],
     "references": [
       {
+        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
+        "url": "https://rebrand.ly/dae925",
+        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
+      },
+      {
+        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
+        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
+        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
+      },
+      {
+        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "url": "https://www.packtpub.com",
+        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
+      },
+      {
         "title": "Playwright Documentation",
         "url": "https://playwright.dev/docs/intro",
         "description": "Oficjalna dokumentacja Playwright: instalacja, runner, lokatory i dobre praktyki."
@@ -176,6 +191,8 @@ export const lesson1_4: Lesson = {
       }
     ],
     "tipsAndTricks": [
+      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
+      
       "Już od pierwszego dnia traktuj projekt testowy jak kod produkcyjny: z wersjonowaniem, review i jasnymi skryptami.",
       "Nie ucz się Playwrighta przez zapamiętywanie metod. Ucz się przez rozumienie problemów: synchronizacja, izolacja danych, diagnostyka i czytelność.",
       "Każdy test powinien odpowiadać na pytanie: jakie ryzyko zmniejszam i skąd będę wiedzieć, co zawiodło?",

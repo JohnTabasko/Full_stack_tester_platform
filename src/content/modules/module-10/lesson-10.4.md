@@ -763,3 +763,8 @@ Najlepsze wdrożenia Allure, które widziałem, traktują etykiety jako contract
 - [Allure Categories](https://docs.qameta.io/allure/latest/reporting/categories/) — definicja kategorii failure'ów
 - [Allure Labels](https://docs.qameta.io/allure/latest/reporting/widgets/) — epic, feature, story, severity — pełna dokumentacja etykiet
 - [GitHub Actions — GitHub Pages deployment](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page) — deployment raportów na GitHub Pages
+
+## 📘 Suplement Inżynieryjny 2026: Raportowanie i Analityka
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Raporty dla Biznesu**: Dobry raport to nie tylko statystyka "passed/failed". Używaj zaawansowanych reporterów (np. Monocart) i dołączaj bogate załączniki za pomocą `testInfo.attach()` w fazie teardownu.
+*   **Oznaczanie znanych błędów**: Korzystaj z adnotacji testowych (np. `test.info().annotations.push(...)`), aby powiązać błędy w testach z otwartymi zgłoszeniami w systemach typu GitHub Issues lub Jira.

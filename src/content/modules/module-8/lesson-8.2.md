@@ -577,3 +577,8 @@ const saveButton = page
 - [Playwright Best Practices — Locators](https://playwright.dev/docs/best-practices#locators)
 - [ARIA Roles Reference](https://www.w3.org/WAI/PF/ARIA/roles)
 - [Testing Library —优先级 selektorów](https://testing-library.com/docs/queries/about/#priority)
+
+## 📘 Suplement Inżynieryjny 2026: Zaawansowane Testowanie API (API Object Model)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 2*
+*   **API Object Model (AOM)**: Hermetyzuj adresy URL, nagłówki i struktury zapytań HTTP w klasach modelu API dziedziczących po `BaseApi`. Powołuj te obiekty za pomocą `ApiFactory`, chroniąc testy przed modyfikacją endpointów.
+*   **Synchronizacja Autoryzacji**: Korzystaj z wbudowanej fixtury `request`, która potrafi współdzielić stan sesji i ciasteczka bezpośrednio z kontekstem przeglądarki.

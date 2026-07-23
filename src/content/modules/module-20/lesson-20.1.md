@@ -928,3 +928,7 @@ EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 'u1';
 ```
 
 Nie musisz być DBA, ale powinieneś umieć zauważyć pełny skan dużej tabeli, brak indeksu lub kosztowny join.
+
+## 📘 Suplement Inżynieryjny 2026: SQL i Bazy Danych dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
+*   **Isolation Levels**: Przy testowaniu współbieżności bazy danych (np. deadlocks, warunki wyścigu), upewnij się, że Twoje testy celowo wymuszają i weryfikują zachowanie aplikacji na różnych poziomach izolacji transakcji (Read Committed, Serializable).

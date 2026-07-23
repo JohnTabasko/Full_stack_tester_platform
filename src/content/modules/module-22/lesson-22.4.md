@@ -476,3 +476,7 @@ Dla procesu przez kilka usług zapisuj:
 - trace OpenTelemetry.
 
 Bez tych danych test E2E w mikroserwisach jest bardzo trudny do debugowania.
+
+## 📘 Suplement Inżynieryjny 2026: Mikroserwisy i Systemy Asynchroniczne
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 6*
+*   **Event-Driven Testing**: Przy testowaniu kolejek wiadomości (np. Kafka, RabbitMQ) weryfikuj spójność ostateczną (eventual consistency). Używaj mechanizmu ponowień (polling) z precyzyjnie określonym oknem tolerancji czasu na dostarczenie zdarzenia.

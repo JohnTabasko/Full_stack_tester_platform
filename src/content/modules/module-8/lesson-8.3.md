@@ -209,3 +209,8 @@ expect(response.headers()['x-request-id']).toBeTruthy();
 Kontrakt API nie jest dokumentem obok systemu. Jest wykonywalną umową. Jeśli test kontraktu nie działa w CI, dokumentacja może bardzo szybko przestać odpowiadać rzeczywistości.
 
 Każda zmiana kontraktu powinna być świadoma, widoczna i uzgodniona.
+
+## 📘 Suplement Inżynieryjny 2026: Zaawansowane Testowanie API (API Object Model)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 2*
+*   **API Object Model (AOM)**: Hermetyzuj adresy URL, nagłówki i struktury zapytań HTTP w klasach modelu API dziedziczących po `BaseApi`. Powołuj te obiekty za pomocą `ApiFactory`, chroniąc testy przed modyfikacją endpointów.
+*   **Synchronizacja Autoryzacji**: Korzystaj z wbudowanej fixtury `request`, która potrafi współdzielić stan sesji i ciasteczka bezpośrednio z kontekstem przeglądarki.

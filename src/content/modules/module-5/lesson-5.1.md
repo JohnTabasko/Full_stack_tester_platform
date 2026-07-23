@@ -718,3 +718,8 @@ Silnik testowy Playwrighta oferuje zaawansowane mechanizmy do organizacji, wykon
 - [Playwright Test Configuration](https://playwright.dev/docs/test-configuration)
 - [Playwright CLI Reference](https://playwright.dev/docs/test-cli)
 - [Advanced Playwright Test Patterns](https://playwright.dev/docs/test-projects)
+
+## 📘 Suplement Inżynieryjny 2026: Runner Testów i Fixtury (Fixtures Deep Dive)
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 7*
+*   **Fixtury Zależne i Automatyczne**: Odrzuć kruche bloki `beforeEach`/`afterEach`. Projektuj modularne fixtury, które mogą od siebie zależeć (np. `loggedInAdminPage` polega na `loginPage`). Używaj automatycznych fixtur (`auto: true`) do globalnego zbierania metryk.
+*   **Scope Worker**: Inicjalizuj ciężkie zasoby (np. połączenia DB) na poziomie workera (`scope: 'worker'`), współdzieląc je bezpiecznie między testami w tym samym procesie.

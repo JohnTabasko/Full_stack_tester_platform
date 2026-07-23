@@ -156,3 +156,7 @@ AI nie zwalnia z odpowiedzialności za jakość danych testowych i oczekiwanych 
 
 Każdy wygenerowany przypadek wymaga krytycznego review człowieka przed automatyzacją.
  Bez wyjątków.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Wspierane przez Sztuczną Inteligencję
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 12*
+*   **AI Prompt Governance**: Przy wdrażaniu narzędzi generatywnych (LLM) do tworzenia testów, stosuj rygorystyczne zasady prywatności i weryfikacji kodu, zapobiegając halucynacjom oraz wyciekom danych wrażliwych do zewnętrznych modeli.

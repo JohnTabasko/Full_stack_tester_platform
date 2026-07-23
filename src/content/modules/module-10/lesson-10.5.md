@@ -936,3 +936,8 @@ Quality gates zamieniają "testy przeszły" w "produkt jest gotowy do release". 
 - [Email HTML Templates — Litmus](https://www.litmus.com/resources/email-template-design-best-practices/) — projektowanie email reports w HTML
 - [GitHub Actions — Workflow triggers](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run) — orchestracja pipeline z workflow_run trigger
 - [Prometheus Alerting Rules](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/) — definicja alertów w Prometheus dla quality metrics
+
+## 📘 Suplement Inżynieryjny 2026: Raportowanie i Analityka
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Raporty dla Biznesu**: Dobry raport to nie tylko statystyka "passed/failed". Używaj zaawansowanych reporterów (np. Monocart) i dołączaj bogate załączniki za pomocą `testInfo.attach()` w fazie teardownu.
+*   **Oznaczanie znanych błędów**: Korzystaj z adnotacji testowych (np. `test.info().annotations.push(...)`), aby powiązać błędy w testach z otwartymi zgłoszeniami w systemach typu GitHub Issues lub Jira.

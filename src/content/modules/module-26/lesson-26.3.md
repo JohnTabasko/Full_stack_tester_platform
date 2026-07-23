@@ -941,3 +941,7 @@ Bez tych danych awaria na farmie jest trudna do odtworzenia lokalnie.
 ## Dane testowe na device farm
 
 Device farm współdzieli urządzenia między testami i zespołami. Test powinien zakładać brudny stan urządzenia i sam przygotować aplikację: install/reset/login/cleanup. Nie polegaj na stanie pozostawionym przez poprzedni test.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Mobilne (Appium 2)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 6*
+*   **Appium 2 Driver Lifecycle**: Przy automatyzacji aplikacji natywnych za pomocą Appium 2, dbaj o efektywne zarządzanie cyklem życia sterowników oraz zbieranie artefaktów (zrzuty pamięci, logi systemowe ADB/Xcode) bezpośrednio do rurociągu testowego.

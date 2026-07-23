@@ -873,3 +873,7 @@ Testowanie SaaS to testowanie systemów z złożoną logiką uprawnień i izolac
 - [Subscription Billing Testing — Stripe](https://stripe.com/docs/testing)
 - [Webhook Testing Patterns](https://webhooks.tech/webhook-testing-best-practices)
 - [Audit Logging for Compliance](https://www.cms.gov/privacy/guidance-for-compliance)
+
+## 📘 Suplement Inżynieryjny 2026: Projekty Praktyczne (Matrix builds & Coverage)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 16*
+*   **Matrix Coverage**: Projektuj projekty pod kątem testów w różnych viewportach i przeglądarkach (Chromium, Firefox, WebKit), tworząc matrycę pokrycia krytycznych przepływów.

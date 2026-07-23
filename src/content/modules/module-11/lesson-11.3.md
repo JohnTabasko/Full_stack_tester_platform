@@ -832,3 +832,8 @@ Jeśli masz Jenkinsa — używaj go świadomie. Jeśli wybierasz nowe narzędzie
 - [Kubernetes Plugin](https://plugins.jenkins.io/kubernetes/) — dynamic provisioning agents w Kubernetes
 - [Jenkins Shared Libraries](https://www.jenkins.io/doc/book/pipeline/shared-libraries/) — reusable pipeline components
 - [Microsoft Playwright Docker Image](https://mcr.microsoft.com/product/playwright/about) — oficjalny obraz Docker z Playwright
+
+## 📘 Suplement Inżynieryjny 2026: Integracja z CI/CD (Pipeline Optimization)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 7*
+*   **Sharding**: Rozdzielaj uruchomienie testów na wiele niezależnych maszyn (shardów) w rurociągu CI/CD (np. GitHub Actions) w celu skrócenia czasu wykonania z godzin do kilku minut.
+*   **Dockerization**: Zawsze uruchamiaj testy regresji wizualnej w kontenerach Docker, aby zagwarantować identyczne renderowanie czcionek i grafik na maszynie dewelopera oraz serwerze CI.

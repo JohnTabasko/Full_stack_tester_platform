@@ -776,3 +776,7 @@ W praktyce proces wygląda tak:
 - Czy dane providera są deterministyczne?
 - Czy kontrakty są wersjonowane?
 - Czy deployment używa informacji z brokera?
+
+## 📘 Suplement Inżynieryjny 2026: Testy Kontraktowe i Zarządzanie API (Pact)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 10*
+*   **Consumer-Driven Contracts**: Używaj narzędzi takich jak Pact obok tradycyjnych testów API, aby zapewnić, że zmiany na backendzie nie popsują integracji u konsumentów (frontend, mikroserwisy), tworząc automatyczny gatekeeper w CI/CD.

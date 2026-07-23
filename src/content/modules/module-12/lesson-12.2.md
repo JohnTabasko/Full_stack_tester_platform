@@ -275,3 +275,8 @@ Użyj tej checklisty podczas Code Review, aby ocenić, czy Twój framework UI za
 - [ ] **WET vs DRY**: Czy abstrakcja (np. nowa fixtura, klasa pomocnicza) została wprowadzona z powodu potrójnej duplikacji kodu, czy powstała przedwcześnie?
 - [ ] **Modularne Fixtury**: Czy udało się wyeliminować bloki `beforeEach`/`afterEach` na rzecz modularnych, reużywalnych fixture-ów?
 - [ ] **Diagnostyka**: Czy w przypadku błędu test automatycznie zbiera i załącza kontekst (zrzuty ekranu, wideo, logi konsoli) do raportu HTML?
+
+## 📘 Suplement Inżynieryjny 2026: Dobre Praktyki i Wzorce (SOLID & Clean Code)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Zasada Single Responsibility (SRP)**: Każdy komponent frameworka powinien odpowiadać za jedną rzecz. Unikaj monolitycznych klas POM łączących akcje UI, setup bazy, zapytania API i asercje.
+*   **WET (Write Everything Twice)**: Unikaj przedwczesnej abstrakcji. Zastosuj zasadę WET i wyodrębnij kod do abstrakcji dopiero przy trzeciej duplikacji.

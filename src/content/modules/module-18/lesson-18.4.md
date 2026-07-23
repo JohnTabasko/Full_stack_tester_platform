@@ -739,3 +739,7 @@ test(api): add contract tests for orders
 ```
 
 Historia Git jest narzędziem diagnostycznym, nie tylko archiwum kodu.
+
+## 📘 Suplement Inżynieryjny 2026: TypeScript, Node.js i Git dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 1*
+*   **Type Safety**: Unikaj stosowania typu `any`. Wykorzystuj typ `unknown` w połączeniu ze strażnikami typów (Type Guards) lub operator `satisfies` do bezpiecznej walidacji struktury danych wejściowych w testach.

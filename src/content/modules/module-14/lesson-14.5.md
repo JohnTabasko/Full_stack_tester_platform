@@ -956,3 +956,8 @@ Testowanie compliance z Playwright to most między technical implementation a re
 - [PCI DSS Requirements](https://www.pcisecuritystandards.org/) — payment card industry standards
 - [OWASP Security Headers](https://owasp.org/www-project-secure-headers/) — security header implementation guide
 - [GDPR Testing Checklist — GDPR.eu](https://gdpr.eu/what-is-gdpr/) — practical GDPR compliance checklist
+
+## 📘 Suplement Inżynieryjny 2026: Dostępność i Regresja Wizualna (A11y & Masking)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapters 9 & 10*
+*   **Axe Scoping**: Skanuj dostępność aplikacji tylko w obszarach, nad którymi masz kontrolę, wykluczając elementy zewnętrzne przez `.exclude()`.
+*   **Maskowanie i Progi Tolerancji**: Przy testach wizualnych maskuj elementy dynamiczne (np. daty) za pomocą `mask`, a progi czułości pikseli kontroluj przez `maxDiffPixelRatio`.

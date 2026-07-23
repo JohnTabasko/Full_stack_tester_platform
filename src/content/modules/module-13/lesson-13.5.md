@@ -880,3 +880,8 @@ Najlepsze zespoły mają performance budget jako first-class citizen — tak sam
 - [Performance Budgets in CI — web.dev](https://web.dev/use-lighthouse-for-performance-budgets/) — performance budgets as CI gates
 - [Alertmanager Configuration](https://prometheus.io/docs/alerting/latest/configuration/) — routing alerts to Slack/PagerDuty
 - [Grafana Alerting — Trends](https://grafana.com/docs/grafana/latest/alerting/fundamentals/alert-rules/alert-instances/) — alert na trends, not just values
+
+## 📘 Suplement Inżynieryjny 2026: Wydajność i Optymalizacja (CDP Profiling)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 6*
+*   **Profilowanie CDP**: Nawiąż bezpośrednie połączenie z procesorem przeglądarki przez Chrome DevTools Protocol (`page.context().newCDPSession(page)`), aby zbierać dokładne metryki pamięci (`JSHeapUsedSize`) i wykrywać wycieki.
+*   **Przechwytywanie i Blokowanie Sieci**: Blokuj zbędne skrypty śledzące, reklamy, grafiki i czcionki za pomocą `page.route` w celu radykalnego przyspieszenia ładowania stron w środowiskach testowych.

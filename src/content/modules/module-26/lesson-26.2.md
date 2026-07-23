@@ -976,3 +976,7 @@ Brak właściwego drivera jest częstą przyczyną problemów z sesją.
 ## Capabilities jako kontrakt sesji
 
 Capabilities powinny być wersjonowane i reviewowane. Zmiana `noReset`, `fullReset`, `autoGrantPermissions` albo `appActivity` może całkowicie zmienić wynik testu. Traktuj capabilities jak konfigurację testową, nie przypadkowy JSON.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Mobilne (Appium 2)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 6*
+*   **Appium 2 Driver Lifecycle**: Przy automatyzacji aplikacji natywnych za pomocą Appium 2, dbaj o efektywne zarządzanie cyklem życia sterowników oraz zbieranie artefaktów (zrzuty pamięci, logi systemowe ADB/Xcode) bezpośrednio do rurociągu testowego.

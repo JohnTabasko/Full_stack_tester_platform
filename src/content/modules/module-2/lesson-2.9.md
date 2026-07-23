@@ -241,3 +241,8 @@ Visual test jest dobry dla layoutu, wyglądu komponentu i regresji UI, ale nie p
 ## 19. Zasada końcowa
 
 Visual regression testing jest wartościowe wtedy, gdy ma mały, świadomy zakres i mocny proces review. Bez tego staje się kosztownym generatorem szumu.
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy Playwright (Locators & Actions)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 2*
+*   **Priorytet Dostępności (A11y)**: Współczesne testy odrzucają surowe selektory CSS i XPath. Zawsze dąż do używania lokalizatorów semantycznych (`getByRole`, `getByLabel`), które imitują interakcję prawdziwego użytkownika i ułatwiają zachowanie standardów dostępności w kodzie produkcyjnym.
+*   **Auto-Waiting State Machine**: Playwright przed kliknięciem elementu automatycznie sprawdza jego stan (czy jest widoczny, stabilny, włączony i klikalny). Zrozumienie tej maszyny stanów zapobiega pisaniu zbędnych oczekiwań (np. `sleep`).

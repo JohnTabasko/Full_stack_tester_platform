@@ -145,3 +145,8 @@ Podczas projektowania wstrzykiwania zależności za pomocą fixture-ów, zawsze 
 *   *Jean-François Greffier, Practical Playwright Test (2026), Chapter 7: Fixtures Deep Dive*
 *   *Faraz K. Kelhini & Butch Mayhew, Hands-On Automated Testing with Playwright (2026), Chapter 5: Crafting Scalable Tests with the Fixture System*
 *   [Oficjalna Dokumentacja Playwright Test Fixtures](https://playwright.dev/docs/test-fixtures)
+
+## 📘 Suplement Inżynieryjny 2026: Runner Testów i Fixtury (Fixtures Deep Dive)
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 7*
+*   **Fixtury Zależne i Automatyczne**: Odrzuć kruche bloki `beforeEach`/`afterEach`. Projektuj modularne fixtury, które mogą od siebie zależeć (np. `loggedInAdminPage` polega na `loginPage`). Używaj automatycznych fixtur (`auto: true`) do globalnego zbierania metryk.
+*   **Scope Worker**: Inicjalizuj ciężkie zasoby (np. połączenia DB) na poziomie workera (`scope: 'worker'`), współdzieląc je bezpiecznie między testami w tym samym procesie.

@@ -846,3 +846,7 @@ Testowanie mobilne wymaga od testera pełnego zrozumienia, że aplikacja mobilna
 - [BrowserStack — App Automate](https://www.browserstack.com/docs/app-automate) — device farm dla testów natywnych i hybrydowych
 - [Progressive Web App — Google Web Fundamentals](https://developers.google.com/web/updates/2015/12/getting-started-pwa) — deep dive w service workers i PWA patterns
 - [Mobile Testing Strategy — Ministry of Testing](https://www.ministryoftesting.com/) — ramy strategii testów mobilnych
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Mobilne (Appium 2)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 6*
+*   **Appium 2 Driver Lifecycle**: Przy automatyzacji aplikacji natywnych za pomocą Appium 2, dbaj o efektywne zarządzanie cyklem życia sterowników oraz zbieranie artefaktów (zrzuty pamięci, logi systemowe ADB/Xcode) bezpośrednio do rurociągu testowego.

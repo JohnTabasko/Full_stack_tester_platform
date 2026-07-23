@@ -509,3 +509,8 @@ Profesjonalny POM to nie jest "ładny kod" — to instrument ochrony Twojej inwe
 - [Page Object Pattern — Martin Fowler](https://martinfowler.com/bliki/PageObject.html)
 - [SOLID Principles for Test Automation](https://www.ministryoftesting.com/articles/solid-principles-for-test-automation)
 - [Playwright Fixtures Guide](https://playwright.dev/docs/test-fixtures)
+
+## 📘 Suplement Inżynieryjny 2026: Wzorzec Obiektu Strony (Page Object Factory)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 3*
+*   **PageObject Factory**: Zastąp bezpośrednią instancjację `new LoginPage(page)` za pomocą fabryki `PageFactory`. Zapobiega to kruchości testów – przy zmianie konstruktora klasy strony poprawiasz wyłącznie kod fabryki.
+*   **Metoda Szablonowa (Template Method)**: Definiuj szkielet procesów (np. nawigacji i sprawdzania błędów 500) w abstrakcyjnej klasie bazowej `BasePage`.

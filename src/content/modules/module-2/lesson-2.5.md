@@ -229,3 +229,8 @@ const rows = table.getByRole('row').filter({ hasText: runId });
 ## 17. Zasada końcowa
 
 Praca z wieloma elementami powinna zaczynać się od pytania: który konkretnie element ma znaczenie biznesowe? Jeśli odpowiedzią jest „trzeci przycisk”, test prawdopodobnie jest zbyt kruchy.
+
+## 📘 Suplement Inżynieryjny 2026: Podstawy Playwright (Locators & Actions)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 2*
+*   **Priorytet Dostępności (A11y)**: Współczesne testy odrzucają surowe selektory CSS i XPath. Zawsze dąż do używania lokalizatorów semantycznych (`getByRole`, `getByLabel`), które imitują interakcję prawdziwego użytkownika i ułatwiają zachowanie standardów dostępności w kodzie produkcyjnym.
+*   **Auto-Waiting State Machine**: Playwright przed kliknięciem elementu automatycznie sprawdza jego stan (czy jest widoczny, stabilny, włączony i klikalny). Zrozumienie tej maszyny stanów zapobiega pisaniu zbędnych oczekiwań (np. `sleep`).

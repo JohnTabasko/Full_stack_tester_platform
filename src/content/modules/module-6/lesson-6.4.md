@@ -149,3 +149,8 @@ Uruchom tę checklistę przed wdrożeniem skomplikowanej abstrakcji:
 *   *Raj Uppadhyay, Scalable Test Automation with Playwright (2026), Chapter 3: Building a Scalable UI Framework (PageFactory & BasePage)*
 *   *Jean-François Greffier, Practical Playwright Test (2026), Chapter 12: Solving the Test Frameworks Puzzle*
 *   [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+
+## 📘 Suplement Inżynieryjny 2026: Wzorzec Obiektu Strony (Page Object Factory)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 3*
+*   **PageObject Factory**: Zastąp bezpośrednią instancjację `new LoginPage(page)` za pomocą fabryki `PageFactory`. Zapobiega to kruchości testów – przy zmianie konstruktora klasy strony poprawiasz wyłącznie kod fabryki.
+*   **Metoda Szablonowa (Template Method)**: Definiuj szkielet procesów (np. nawigacji i sprawdzania błędów 500) w abstrakcyjnej klasie bazowej `BasePage`.

@@ -170,3 +170,8 @@ await expect(page.getByRole('status')).toHaveText('Zamówienie opłacone');
 ## 25. Antywzorzec: brak usuwania starego kodu
 
 Martwe helpery, stare Page Objecty i nieużywane fixtures komplikują projekt. Usuwaj je tak samo jak martwy kod produkcyjny.
+
+## 📘 Suplement Inżynieryjny 2026: Dobre Praktyki i Wzorce (SOLID & Clean Code)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Zasada Single Responsibility (SRP)**: Każdy komponent frameworka powinien odpowiadać za jedną rzecz. Unikaj monolitycznych klas POM łączących akcje UI, setup bazy, zapytania API i asercje.
+*   **WET (Write Everything Twice)**: Unikaj przedwczesnej abstrakcji. Zastosuj zasadę WET i wyodrębnij kod do abstrakcji dopiero przy trzeciej duplikacji.

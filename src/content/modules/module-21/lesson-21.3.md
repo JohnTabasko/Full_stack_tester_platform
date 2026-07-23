@@ -656,3 +656,7 @@ Eventy są trudniejsze niż HTTP, bo stare komunikaty mogą istnieć w kolejce l
 - Czy CI wykrywa breaking change?
 - Czy istnieje plan migracji?
 - Czy eventy są kompatybilne z istniejącymi konsumentami?
+
+## 📘 Suplement Inżynieryjny 2026: Testy Kontraktowe i Zarządzanie API (Pact)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 10*
+*   **Consumer-Driven Contracts**: Używaj narzędzi takich jak Pact obok tradycyjnych testów API, aby zapewnić, że zmiany na backendzie nie popsują integracji u konsumentów (frontend, mikroserwisy), tworząc automatyczny gatekeeper w CI/CD.

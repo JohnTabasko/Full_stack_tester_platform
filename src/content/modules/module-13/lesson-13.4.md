@@ -679,3 +679,8 @@ Mobile testing to nie bonus — to requirement dla większości współczesnych 
 - [Mobile Performance Testing — web.dev](https://web.dev/learn/performance/) — performance testing for mobile
 - [Core Web Vitals for Mobile — Google](https://web.dev/vitals-mobile/) — mobile-specific CWV guidance
 - [Network Throttling — Playwright](https://playwright.dev/docs/emulation#clobbering-network-conditions) — network condition simulation
+
+## 📘 Suplement Inżynieryjny 2026: Wydajność i Optymalizacja (CDP Profiling)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 6*
+*   **Profilowanie CDP**: Nawiąż bezpośrednie połączenie z procesorem przeglądarki przez Chrome DevTools Protocol (`page.context().newCDPSession(page)`), aby zbierać dokładne metryki pamięci (`JSHeapUsedSize`) i wykrywać wycieki.
+*   **Przechwytywanie i Blokowanie Sieci**: Blokuj zbędne skrypty śledzące, reklamy, grafiki i czcionki za pomocą `page.route` w celu radykalnego przyspieszenia ładowania stron w środowiskach testowych.

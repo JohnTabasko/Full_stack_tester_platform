@@ -532,3 +532,7 @@ docker run --ipc=host \
 - [Docker Best Practices for Playwright](https://playwright.dev/docs/docker#best-practices)
 - [Playwright in CI — GitHub Actions](https://playwright.dev/docs/ci)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
+
+## 📘 Suplement Inżynieryjny 2026: Środowiska Specjalistyczne (Multi-Tenant Isolation)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Multi-Tenant Isolation**: W środowiskach specjalistycznych dbaj o to, aby każdy worker operował na niezależnym podmiocie (tenant) lub wydzielonej strukturze danych, co wyeliminuje anomalie współbieżności.

@@ -235,3 +235,8 @@ Jeśli test potrzebuje tylko jednej strony, importowanie ogromnego `app` może u
 - Czy worker fixtures nie przechowują stanu UI?
 - Czy `app` fixture nie stała się God Objectem?
 - Czy test nadal pokazuje intencję biznesową?
+
+## 📘 Suplement Inżynieryjny 2026: Wzorzec Obiektu Strony (Page Object Factory)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 3*
+*   **PageObject Factory**: Zastąp bezpośrednią instancjację `new LoginPage(page)` za pomocą fabryki `PageFactory`. Zapobiega to kruchości testów – przy zmianie konstruktora klasy strony poprawiasz wyłącznie kod fabryki.
+*   **Metoda Szablonowa (Template Method)**: Definiuj szkielet procesów (np. nawigacji i sprawdzania błędów 500) w abstrakcyjnej klasie bazowej `BasePage`.

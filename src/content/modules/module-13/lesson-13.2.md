@@ -792,3 +792,8 @@ Pamiętaj: performance regression może być bardziej kosztowne niż functional 
 - [Playwright emulateNetworkConditions](https://playwright.dev/docs/emulation#clobbering-network-conditions) — throttling networka
 - [Google PageSpeed Insights](https://pagespeed.web.dev/) — real-world performance data
 - [Grafana + Prometheus for Performance](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/) — wizualizacja metryk wydajności
+
+## 📘 Suplement Inżynieryjny 2026: Wydajność i Optymalizacja (CDP Profiling)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 6*
+*   **Profilowanie CDP**: Nawiąż bezpośrednie połączenie z procesorem przeglądarki przez Chrome DevTools Protocol (`page.context().newCDPSession(page)`), aby zbierać dokładne metryki pamięci (`JSHeapUsedSize`) i wykrywać wycieki.
+*   **Przechwytywanie i Blokowanie Sieci**: Blokuj zbędne skrypty śledzące, reklamy, grafiki i czcionki za pomocą `page.route` w celu radykalnego przyspieszenia ładowania stron w środowiskach testowych.

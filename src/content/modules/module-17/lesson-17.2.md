@@ -145,3 +145,7 @@ Then suma zamówienia jest pomniejszona o 10%, ale nie więcej niż 50 zł
 - [Vitest Guide](https://vitest.dev/guide/)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
 - [Pact — Contract Testing](https://docs.pact.io/)
+
+## 📘 Suplement Inżynieryjny 2026: Fundamenty Testera i Strategia Jakości
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Risk-Based Testing**: Dobór testów automatycznych powinien zależeć bezpośrednio od analizy ryzyka biznesowego. Pokrywaj testami E2E wyłącznie obszary o najwyższym stopniu prawdopodobieństwa awarii i skutkach biznesowych.

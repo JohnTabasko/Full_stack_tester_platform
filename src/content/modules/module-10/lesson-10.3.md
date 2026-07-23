@@ -815,3 +815,8 @@ Najlepsze zespoły, które widziałem, mają wspólny dashboard metryk, do któr
 - [Statistical Process Control for QA](https://en.wikipedia.org/wiki/Statistical_process_control) — SPC jako metodologia wykrywania anomalii w procesach jakościowych
 - [Google Test Analytics — Flaky Tests](https://testing.googleblog.com/2020/12/test-selectors-for-flaky-tests.html) — podejście Googla do zarządzania flaky testami na skalę
 - [InfluxDB + Grafana for Test Metrics](https://www.influxdata.com/integrations/playwright/) — integracja Playwright z InfluxDB dla time-series analytics
+
+## 📘 Suplement Inżynieryjny 2026: Raportowanie i Analityka
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
+*   **Raporty dla Biznesu**: Dobry raport to nie tylko statystyka "passed/failed". Używaj zaawansowanych reporterów (np. Monocart) i dołączaj bogate załączniki za pomocą `testInfo.attach()` w fazie teardownu.
+*   **Oznaczanie znanych błędów**: Korzystaj z adnotacji testowych (np. `test.info().annotations.push(...)`), aby powiązać błędy w testach z otwartymi zgłoszeniami w systemach typu GitHub Issues lub Jira.

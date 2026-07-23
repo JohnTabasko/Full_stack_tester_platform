@@ -178,3 +178,7 @@ Niektóre integracje, np. z bankiem, podpisem kwalifikowanym albo zewnętrznym S
 ## 20. Zasada końcowa
 
 Integracja zewnętrzna musi mieć świadomie dobrany poziom realizmu. Jeden test na prawdziwym sandboxie może dawać więcej wartości niż dziesięć niestabilnych E2E zależnych od dostawcy.
+
+## 📘 Suplement Inżynieryjny 2026: Środowiska Specjalistyczne (Multi-Tenant Isolation)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Multi-Tenant Isolation**: W środowiskach specjalistycznych dbaj o to, aby każdy worker operował na niezależnym podmiocie (tenant) lub wydzielonej strukturze danych, co wyeliminuje anomalie współbieżności.

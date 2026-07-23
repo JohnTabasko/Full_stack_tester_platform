@@ -704,3 +704,7 @@ Przykład pytań testera:
 - czy span HTTP ma route i status code?
 - czy span DB ma nazwę systemu i statement bez sekretów?
 - czy messaging span ma topic/queue i message id?
+
+## 📘 Suplement Inżynieryjny 2026: Obserwowalność i Diagnostyka Systemów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 10*
+*   **Correlation IDs**: W testach E2E zawsze wstrzykuj unikalny identyfikator korelacji (Correlation ID) do nagłówków żądań HTTP. Umożliwi to pełne śledzenie rozproszone (Distributed Tracing) i powiązanie awarii w teście z konkretnymi logami i śladami na backendzie.

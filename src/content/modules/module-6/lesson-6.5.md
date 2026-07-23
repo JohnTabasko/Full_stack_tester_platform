@@ -210,3 +210,8 @@ Page Object też jest kodem. Review powinno sprawdzać nazwy metod, locatory, od
 ## 17. Zasada końcowa
 
 POM ma chronić test przed przypadkowymi zmianami UI, ale nie może ukrywać sensu scenariusza. Czytelność testu jest ważniejsza niż elegancja wzorca.
+
+## 📘 Suplement Inżynieryjny 2026: Wzorzec Obiektu Strony (Page Object Factory)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 3*
+*   **PageObject Factory**: Zastąp bezpośrednią instancjację `new LoginPage(page)` za pomocą fabryki `PageFactory`. Zapobiega to kruchości testów – przy zmianie konstruktora klasy strony poprawiasz wyłącznie kod fabryki.
+*   **Metoda Szablonowa (Template Method)**: Definiuj szkielet procesów (np. nawigacji i sprawdzania błędów 500) w abstrakcyjnej klasie bazowej `BasePage`.

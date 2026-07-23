@@ -196,3 +196,8 @@ Nowa osoba powinna dostać krótki przewodnik:
 6. jak opisać PR.
 
 Jeśli onboarding wymaga przekazywania wiedzy ustnie, standard nie jest kompletny.
+
+## 📘 Suplement Inżynieryjny 2026: Dobre Praktyki i Wzorce (SOLID & Clean Code)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
+*   **Zasada Single Responsibility (SRP)**: Każdy komponent frameworka powinien odpowiadać za jedną rzecz. Unikaj monolitycznych klas POM łączących akcje UI, setup bazy, zapytania API i asercje.
+*   **WET (Write Everything Twice)**: Unikaj przedwczesnej abstrakcji. Zastosuj zasadę WET i wyodrębnij kod do abstrakcji dopiero przy trzeciej duplikacji.

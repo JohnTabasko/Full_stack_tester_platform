@@ -479,3 +479,7 @@ Baggage pozwala przenosić dodatkowe metadane. Trzeba używać go ostrożnie, bo
 ## Correlation ID vs trace ID
 
 Correlation ID jest często domenowym identyfikatorem diagnostycznym. Trace ID pochodzi z systemu tracingu. Mogą współistnieć. Najlepszy raport testu zawiera oba, jeśli są dostępne.
+
+## 📘 Suplement Inżynieryjny 2026: Obserwowalność i Diagnostyka Systemów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 10*
+*   **Correlation IDs**: W testach E2E zawsze wstrzykuj unikalny identyfikator korelacji (Correlation ID) do nagłówków żądań HTTP. Umożliwi to pełne śledzenie rozproszone (Distributed Tracing) i powiązanie awarii w teście z konkretnymi logami i śladami na backendzie.

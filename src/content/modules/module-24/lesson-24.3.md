@@ -180,3 +180,7 @@ JMeter nie ma identycznego mechanizmu thresholds jak k6, ale możesz egzekwować
 ## 16. Zasada końcowa
 
 JMeter jest najcenniejszy, gdy traktujesz Test Plan jak kod: wersjonujesz, uruchamiasz w CLI, publikujesz raport i opisujesz profil obciążenia.
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Wydajności z k6 i JMeter
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Performance Budgets**: Integruj testy wydajnościowe k6 z rurociągami CI, definiując precyzyjne budżety wydajności (np. 95% żądań musi odpowiedzieć w czasie poniżej 200 ms). Zapobiegnie to stopniowej degradacji szybkości systemu.

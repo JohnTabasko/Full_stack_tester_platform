@@ -174,3 +174,7 @@ Dla dashboardów realtime ważne jest zachowanie przy serii wiadomości. Nie mus
 ## 20. Zasada końcowa
 
 W testach realtime najważniejsza jest obserwowalna spójność stanu. Transport może być WebSocket, SSE albo polling, ale użytkownik powinien widzieć aktualne i poprawne dane.
+
+## 📘 Suplement Inżynieryjny 2026: Środowiska Specjalistyczne (Multi-Tenant Isolation)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Multi-Tenant Isolation**: W środowiskach specjalistycznych dbaj o to, aby każdy worker operował na niezależnym podmiocie (tenant) lub wydzielonej strukturze danych, co wyeliminuje anomalie współbieżności.

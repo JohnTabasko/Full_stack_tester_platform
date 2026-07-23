@@ -204,3 +204,8 @@ W dojrzałym projekcie dane testowe są kontraktem. Buildery, factory, endpointy
 ## 17. Zasada końcowa
 
 Dane testowe są częścią testu. Jeśli nie wiesz, skąd się wzięły, kto je usuwa i czy mogą działać równolegle, test nie jest gotowy do stabilnego CI.
+
+## 📘 Suplement Inżynieryjny 2026: Zarządzanie Danymi Testowymi (Data Management)
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
+*   **Izolacja Danych**: Nigdy nie współdziel mutowalnych danych między testami działającymi równolegle. Używaj generatorów (np. biblioteki Faker) do tworzenia unikalnych tożsamości i twórz stan bazy dynamicznie per test.
+*   **Szybki Setup przez API**: Zamiast przeklikiwać UI w celu przygotowania danych, użyj szybkiego klienta API przed rozpoczęciem testu funkcjonalnego.

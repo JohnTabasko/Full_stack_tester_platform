@@ -581,3 +581,7 @@ await expect(service.createOrder({ items: [] })).rejects.toThrow(/validation/i);
 ```
 
 Nie pisz `expect(async () => ...).toThrow()`, bo to nie sprawdza odrzuconej obietnicy w oczekiwany sposób.
+
+## 📘 Suplement Inżynieryjny 2026: TypeScript, Node.js i Git dla Testerów
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 1*
+*   **Type Safety**: Unikaj stosowania typu `any`. Wykorzystuj typ `unknown` w połączeniu ze strażnikami typów (Type Guards) lub operator `satisfies` do bezpiecznej walidacji struktury danych wejściowych w testach.

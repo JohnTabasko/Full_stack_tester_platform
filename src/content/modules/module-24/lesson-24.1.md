@@ -466,3 +466,7 @@ Umiejętność łączenia Playwright (funkcjonalność) z k6 (wydajność) czyni
 - [k6 Cloud — Results Visualization](https://k6.io/docs/cloud/analyzing-results/)
 - [Performance Testing vs. Load Testing vs. Stress Testing](https://www.blazemeter.com/blog/performance-testing-vs-load-testing-vs-stress-testing)
 - [k6 Thresholds Guide](https://k6.io/docs/testing-guides/load-testing#:~:text=Thresholds)
+
+## 📘 Suplement Inżynieryjny 2026: Testowanie Wydajności z k6 i JMeter
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
+*   **Performance Budgets**: Integruj testy wydajnościowe k6 z rurociągami CI, definiując precyzyjne budżety wydajności (np. 95% żądań musi odpowiedzieć w czasie poniżej 200 ms). Zapobiegnie to stopniowej degradacji szybkości systemu.

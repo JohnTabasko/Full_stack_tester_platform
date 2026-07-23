@@ -872,3 +872,8 @@ Jako Full Stack Tester projektujesz pipeline tak, aby każdy member zespołu —
 - [GitLab CI/CD Cache](https://docs.gitlab.com/ee/ci/caching/) — strategia cache dla npm i dependencies
 - [Microsoft Playwright Docker Image](https://mcr.microsoft.com/product/playwright/about) — oficjalny obraz Docker z Playwright
 - [GitLab CI/CD DIND Service](https://docs.gitlab.com/ee/ci/docker/using_docker_build.html) — Docker-in-Docker w GitLab CI
+
+## 📘 Suplement Inżynieryjny 2026: Integracja z CI/CD (Pipeline Optimization)
+*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 7*
+*   **Sharding**: Rozdzielaj uruchomienie testów na wiele niezależnych maszyn (shardów) w rurociągu CI/CD (np. GitHub Actions) w celu skrócenia czasu wykonania z godzin do kilku minut.
+*   **Dockerization**: Zawsze uruchamiaj testy regresji wizualnej w kontenerach Docker, aby zagwarantować identyczne renderowanie czcionek i grafik na maszynie dewelopera oraz serwerze CI.

@@ -161,3 +161,7 @@ Jeśli test uruchamia frontend, backend, bazę, kolejkę, zewnętrzne API i prze
 ## 17. Zasada końcowa
 
 Test integracyjny jest najbardziej wartościowy wtedy, gdy sprawdza realną granicę systemu i nadal pozwala szybko wskazać przyczynę awarii.
+
+## 📘 Suplement Inżynieryjny 2026: Testy Jednostkowe, Integracyjne i Komponentowe
+*Inspiracja: „Practical Playwright Test” (2026), Chapter 11*
+*   **Playwright Component Testing (CT)**: Testowanie komponentów w rzeczywistym środowisku przeglądarki (np. React, Vue) łączy realizm testów E2E z szybkością wykonania testów jednostkowych, tworząc optymalne środowisko do testowania odizolowanego UI.

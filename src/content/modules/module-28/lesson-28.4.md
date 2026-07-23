@@ -628,3 +628,7 @@ Przed publikacją portfolio sprawdź:
 - storageState nie jest w repo;
 - screenshoty nie pokazują prywatnych danych;
 - historia Git nie zawiera przypadkowo sekretów.
+
+## 📘 Suplement Inżynieryjny 2026: Portfolio i Egzamin Testera Full Stack
+*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 12*
+*   **SDET Portfolio Checklist**: Profesjonalne portfolio testera full stack powinno demonstrować znajomość czystego kodu (clean code), zasady SOLID, wzorców projektowych (AOM, POM, Fabryka), automatycznej diagnostyki w CI oraz testów hybrydowych (API + UI).
