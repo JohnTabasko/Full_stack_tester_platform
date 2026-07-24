@@ -1,174 +1,77 @@
-# Zasady projektowania testów
+# Inżynieryjne zasady projektowania testów automatycznych
 
-Dobre testy Playwright zaczynają się od ryzyka, nie od narzędzia. Nie chodzi o to, aby automatyzować jak najwięcej kliknięć. Chodzi o to, aby zespół szybko wiedział, czy najważniejsze zachowania produktu nadal działają. Test ma być wartościowy, stabilny, czytelny i możliwy do diagnozy w CI.
+Wytwarzanie oprogramowania testowego (Test Software Engineering) podlega tym samym rygorystycznym zasadom i wymaganiom architektonicznym, co tworzenie kodu aplikacyjnego. Pisanie testów w sposób chaotyczny, bez jasnego podziału na etapy oraz bez uwzględnienia analizy ryzyka, nieuchronnie prowadzi do paraliżu testów i utraty zaufania zespołu do zielonych raportów.
 
-## 1. Projektowanie od ryzyka
+W tej lekcji przeanalizujemy fundamentalne zasady projektowania testów: od **metodologii analizy ryzyka (Risk-Based Testing)**, poprzez rygorystyczny wzorzec **Arrange-Act-Assert (AAA)**, aż po dobór właściwego poziomu testów (UI vs API).
 
-Zanim napiszesz test, odpowiedz:
+---
 
-- jaki błąd chcę wykryć?
-- jaki byłby wpływ na użytkownika lub biznes?
-- czy UI/E2E to właściwy poziom testu?
-- jakie dane są potrzebne?
-- jaka asercja udowodni poprawność?
+## 1. Projektowanie testów od ryzyka (Risk-Based Testing)
 
-Przykład: walidacja formatu kwoty może być testem jednostkowym. Integracja płatności z aktualizacją statusu zamówienia może wymagać testu API lub E2E. Krytyczna ścieżka płatności powinna mieć smoke test w UI.
+W warunkach komercyjnych czas i zasoby są ograniczone – nie jesteś w stanie przetestować absolutnie wszystkiego. Z tego powodu automatyzację należy rozpocząć od **analizy ryzyka biznesowego**:
 
-## 2. Piramida testów
+*   **Prawdopodobieństwo wystąpienia awarii**: Które moduły kodu są modyfikowane najczęściej? Gdzie deweloperzy najczęściej popełniają błędy?
+*   **Wpływ biznesowy (Koszt awarii)**: Co się stanie, jeśli dany moduł przestanie działać na produkcji? (np. awaria koszyka i kasy blokuje przychody firmy – priorytet krytyczny P0; literówka w stopce – priorytet niski P3).
 
-Nie wszystko powinno być testem E2E. Testy UI są najdroższe: wymagają przeglądarki, danych, środowiska i diagnostyki. Dlatego:
+### Strategia pokrycia testowego:
+1.  **Smoke Tests (Testy Dymne - P0)**: Błyskawiczny zestaw weryfikujący krytyczne ścieżki przychodowe (np. rejestracja, logowanie, płatność). Powinien trwać maksymalnie 2-3 minuty i być uruchamiany po każdym commitu dewelopera.
+2.  **Regression Tests (Pełna Regresja - P1/P2)**: Szczegółowe pokrycie przypadków brzegowych, formularzy i integracji, uruchamiane rzadziej (np. raz dziennie / w nocy).
 
-- reguły walidacji testuj nisko;
-- kontrakty i autoryzację testuj przez API;
-- krytyczne ścieżki użytkownika testuj przez UI;
-- regresję wizualną stosuj tam, gdzie layout jest ryzykiem.
+---
 
-## 3. AAA — Arrange, Act, Assert
+## 2. Rygorystyczny wzorzec AAA (Arrange, Act, Assert)
 
+Każdy przypadek testowy w Twoim pliku specyfikacji musi posiadać krystalicznie czystą strukturę opartą o trzy odizolowane fazy **AAA**:
+
+```
++-------------------------------------------------------------+
+|    ARRANGE: Przygotuj środowisko, dane i zaloguj sesję      |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|    ACT: Wykonaj interakcję biznesową (maksymalnie 1-2 kroki) |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|    ASSERT: Zweryfikuj końcowy stan aplikacji (Web-First)    |
++-------------------------------------------------------------+
+```
+
+### Przykład idealnej struktury testu:
 ```typescript
-test('klient może opłacić zamówienie', async ({ page, request }) => {
-  // Arrange
-  const order = await createOrder(request, buildOrder());
+import { test, expect } from './fixtures/custom-test';
 
-  // Act
-  await page.goto(`/orders/${order.id}`);
-  await page.getByRole('button', { name: 'Opłać' }).click();
+test('użytkownik o niskich uprawnieniach nie może modyfikować ról', async ({ page, loginPage }) => {
+  // 1. ARRANGE: Przygotuj stan użytkownika i przejdź do widoku
+  await loginPage.navigate();
+  await loginPage.login('user-viewer@sklep.pl', 'pass');
+  await page.goto('/admin/users');
 
-  // Assert
-  await expect(page.getByRole('status')).toContainText('Opłacone');
+  // 2. ACT: Spróbuj wykonać akcję kliknięcia
+  await page.getByRole('row', { name: 'Jan Kowalski' }).getByRole('button', { name: 'Edytuj rolę' }).click();
+
+  // 3. ASSERT: Zweryfikuj odmowę dostępu i poprawność komunikatu
+  await expect(page.getByRole('alert')).toContainText('Brak wymaganych uprawnień administratora');
 });
 ```
 
-Jeśli Arrange, Act i Assert mieszają się chaotycznie, test będzie trudny w debugowaniu.
+---
 
-## 4. Oficjalne best practices Playwright
+## 3. Wybór poziomu: UI vs API vs Hybryda
 
-Najważniejsze zasady:
+Najczęstszym błędem spowalniającym testy E2E jest przeklikiwanie całego interfejsu graficznego (UI) w celu przygotowania stanu (Arrange). 
 
-- testuj zachowanie widoczne dla użytkownika;
-- używaj locatorów użytkownika: role, label, text;
-- izoluj testy i dane;
-- unikaj zależności od kolejności testów;
-- nie używaj `waitForTimeout` jako synchronizacji;
-- używaj web-first assertions;
-- mockuj tylko tam, gdzie ma to uzasadnienie;
-- włącz trace/screenshot/video jako diagnostykę, nie ozdobę;
-- trzymaj testy małe i czytelne.
+### Zalecana strategia hybrydowa (The Hybrid Approach):
+*   Jeśli testujesz koszyk, nie trać 10 sekund na przechodzenie przez stronę główną, logowanie przez UI i wyszukiwanie 3 produktów.
+*   **Użyj API** w fazie Arrange, aby zalogować się w ułamku sekundy, utworzyć koszyk i dodać do niego produkty.
+*   **Użyj UI** w fazie Act i Assert, aby przetestować końcowy krok płatności w przeglądarce.
 
-## 5. Given-When-Then
+---
 
-Given-When-Then jest dobrym językiem dla testów biznesowych:
-
-```typescript
-test('klient widzi błąd dla odrzuconej płatności', async ({ page }) => {
-  await test.step('Given klient jest na stronie płatności', async () => {
-    await page.goto('/checkout/payment');
-  });
-
-  await test.step('When płaci kartą odrzuconą', async () => {
-    await page.getByLabel('Numer karty').fill('4000000000000002');
-    await page.getByRole('button', { name: 'Zapłać' }).click();
-  });
-
-  await test.step('Then widzi komunikat o odrzuceniu', async () => {
-    await expect(page.getByRole('alert')).toContainText('Płatność odrzucona');
-  });
-});
-```
-
-## 6. Smoke vs regression
-
-Smoke:
-
-- szybki;
-- krytyczne ścieżki;
-- każdy PR;
-- mało danych;
-- mało przeglądarek.
-
-Regression:
-
-- szerszy zakres;
-- nightly lub przed release;
-- więcej projektów/przeglądarek;
-- większe koszty diagnostyki.
-
-Tagi pomagają powiązać testy z pipeline:
-
-```typescript
-test('checkout działa @smoke @critical', async ({ page }) => {});
-```
-
-## 7. Checklista projektowania testu
-
-- Czy test chroni konkretne ryzyko?
-- Czy to właściwy poziom testu?
-- Czy dane są izolowane?
-- Czy locator jest stabilny i widoczny dla użytkownika?
-- Czy asercja sprawdza skutek, a nie implementację?
-- Czy test może działać równolegle?
-- Czy awaria zostawi trace i czytelny raport?
-
-## Linki
-
-- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Locators](https://playwright.dev/docs/locators)
-- [Assertions](https://playwright.dev/docs/test-assertions)
-- [Parallelism](https://playwright.dev/docs/test-parallel)
-
-## 8. Decyzja: UI, API czy test niższego poziomu?
-
-Przy każdym scenariuszu wybierz najtańszy poziom, który daje wiarygodną informację. Jeśli reguła waliduje format numeru telefonu, test jednostkowy da szybszy feedback niż E2E. Jeśli endpoint ma odrzucać brak uprawnień, test API będzie szybszy i precyzyjniejszy niż UI. Jeśli chcesz sprawdzić, że klient faktycznie przechodzi checkout i widzi potwierdzenie, E2E jest właściwe.
-
-Przykład decyzji dla płatności:
-
-| Ryzyko | Najlepszy poziom |
-|---|---|
-| algorytm naliczania rabatu | unit/integration |
-| kontrakt `POST /payments` | API |
-| brak uprawnień do cudzej płatności | API/security |
-| użytkownik widzi potwierdzenie po płatności | E2E UI |
-| układ formularza płatności | visual/component |
-
-## 9. Minimalna liczba akcji
-
-Dobry test wykonuje tylko akcje potrzebne do wywołania zachowania. Jeśli test sprawdza edycję adresu, utwórz użytkownika przez API i przejdź bezpośrednio do ekranu adresu. Nie przechodź przez rejestrację, logowanie, onboarding i menu, jeśli nie są celem testu.
-
-## 10. Review projektu testu
-
-Przed merge zadaj pytania:
-
-- Czy test padnie, jeśli realne ryzyko się zmaterializuje?
-- Czy test nie dubluje dokładnie sprawdzenia z niższego poziomu?
-- Czy test ma tylko jedną główną przyczynę awarii?
-- Czy jest szybki na tyle, aby działać w odpowiednim pipeline?
-- Czy raport po awarii wskaże właściciela problemu?
-
-Projekt testu jest tak samo ważny jak jego implementacja.
-
-## 11. Jedna główna intencja testu
-
-Test może mieć kilka asercji, ale powinien mieć jedną główną intencję. Jeśli test sprawdza logowanie, koszyk, płatność, email i fakturę, awaria może mieć zbyt wiele przyczyn. Taki test może istnieć jako krytyczny E2E smoke, ale nie powinien być wzorcem dla całej regresji.
-
-## 12. Test jako dokumentacja zachowania
-
-Dobrze napisany test jest żywą dokumentacją. Nazwy testów, kroki `test.step`, dane i asercje powinny mówić, jak system ma działać. Jeśli product owner nie rozumie nazwy testu w raporcie, nazwa jest prawdopodobnie zbyt techniczna.
-
-## 13. Asercja skutku ubocznego
-
-W testach full stack często warto sprawdzić skutek na innej warstwie:
-
-```typescript
-await page.getByRole('button', { name: 'Opłać' }).click();
-await expect(page.getByText('Opłacone')).toBeVisible();
-
-const order = await ordersClient.getOrder(orderId);
-expect(order.status).toBe('PAID');
-```
-
-Nie rób tego w każdym teście, ale dla krytycznych przepływów UI + API daje dużo większą pewność.
-
-## 📘 Suplement Inżynieryjny 2026: Dobre Praktyki i Wzorce (SOLID & Clean Code)
-*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
-*   **Zasada Single Responsibility (SRP)**: Każdy komponent frameworka powinien odpowiadać za jedną rzecz. Unikaj monolitycznych klas POM łączących akcje UI, setup bazy, zapytania API i asercje.
-*   **WET (Write Everything Twice)**: Unikaj przedwczesnej abstrakcji. Zastosuj zasadę WET i wyodrębnij kod do abstrakcji dopiero przy trzeciej duplikacji.
+## 4. Checklista Projektowania Testów
+- [ ] Czy kwalifikujesz testy do odpowiednich priorytetów (Smoke vs Regression) na podstawie analizy ryzyka biznesowego?
+- [ ] Czy struktura Twojego kodu ściśle realizuje wzorzec AAA, oddzielając setup od akcji i asercji?
+- [ ] Czy wykorzystujesz interfejsy API do błyskawicznego przygotowywania danych w fazie Arrange?
+- [ ] Czy pliki testowe sprawdzają zachowania widziane z perspektywy rzeczywistego użytkownika, a nie detale techniczne HTML?

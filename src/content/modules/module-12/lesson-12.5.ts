@@ -1,212 +1,56 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory12_5 from './lesson-12.5.md?raw';
 
 export const lesson12_5: Lesson = {
   "id": "12.5",
   "moduleId": 12,
   "title": "Antywzorce i typowe błędy",
-  "description": "Antywzorce Playwright: waitForTimeout, kruche locatory, kolejność testów, over-mocking, brak asercji, magiczne dane i koszt CI.",
+  "description": "Unikaj kosztownych błędów w automatyzacji. Poznaj najgroźniejsze antywzorce: ręczne opóźnienia (waitForTimeout), nadmierną abstrakcję (over-engineering), wycieki stanów sesyjnych oraz zasady WET.",
   "order": 5,
   "difficulty": "advanced",
-  "tags": [
-    "best-practices",
-    "patterns",
-    "quality",
-    "maintainability"
-  ],
+  "tags": ["antipatterns", "best-practices", "waitForTimeout", "WET-principle", "over-engineering"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zastosować temat „Antywzorce i typowe błędy” w sposób świadomy: rozpoznajesz korzyści, ograniczenia, antywzorce i wpływ na utrzymywalność testów.",
+    "objective": "Po ukończeniu tej lekcji potrafisz zidentyfikować i wyeliminować najgroźniejsze antywzorce projektowe w kodzie testów, zastąpić ręczne opóźnienia stabilnym auto-waitingiem, zapobiegać wyciekom stanu (leaking state) oraz świadomie stosować zasadę WET.",
     "theory": theory12_5,
     "codeExamples": [
-      "// Antywzorzec\nawait page.waitForTimeout(5000);\nawait page.locator('.btn-primary').click();\n\n// Refaktor\nawait expect(page.getByRole('button', { name: 'Zapisz' })).toBeEnabled();\nawait page.getByRole('button', { name: 'Zapisz' }).click();\nawait expect(page.getByText('Zapisano')).toBeVisible();\n",
-      "// Antywzorzec: test zależny od poprzedniego.\n// Lepsze: utwórz dane przez API w Arrange i usuń je w cleanup.\n"
+      `// Przykład poprawnego auto-waiting zamiast waitForTimeout (Książka 2 - Greffier)
+await expect(page.getByRole('button', { name: 'Kup' })).toBeVisible();`
     ],
     "exercises": [
       {
         "id": "ex-12-5-1",
-        "title": "Audyt praktyki",
-        "description": "Dla obszaru „Antywzorce i typowe błędy” przeanalizuj istniejący test i wskaż trzy usprawnienia."
-      },
-      {
-        "id": "ex-12-5-2",
-        "title": "Refaktor kontrolowany",
-        "description": "Wykonaj mały refaktor testu, zachowując ten sam zakres asercji i poprawiając czytelność."
-      },
-      {
-        "id": "ex-12-5-3",
-        "title": "Standard zespołowy",
-        "description": "Napisz krótki standard lub checklistę dotyczącą tej praktyki."
-      },
-      {
-        "id": "ex-12-5-4",
-        "title": "Antywzorzec",
-        "description": "Opisz przykład antywzorca, jego krótkoterminową wygodę i długoterminowy koszt."
-      },
-      {
-        "id": "ex-12-5-5",
-        "title": "Metryka utrzymywalności",
-        "description": "Zaproponuj metrykę lub obserwację, która pokaże, czy praktyka działa."
-      },
-      {
-        "id": "ex-12-5-6",
-        "title": "Code review",
-        "description": "Przygotuj komentarz review, który jest konkretny, uprzejmy i prowadzi do lepszego rozwiązania."
+        "title": "Audyt i czyszczenie kodu z waitForTimeout",
+        "description": "Przeskanuj bazę kodu swojego projektu testowego w poszukiwaniu wywołań `page.waitForTimeout()`. Zastąp je stabilnymi weryfikacjami asynchronicznymi Web-First i zaobserwuj poprawę stabilności testów."
       }
     ],
     "quiz": [
       {
         "id": "q12-5-1",
-        "question": "Po co zespołowi dobre praktyki testowe?",
+        "question": "Dlaczego stosowanie ręcznych, stałych opóźnień (np. page.waitForTimeout(3000)) jest uważane za krytyczny błąd w automatyzacji testów?",
         "options": [
-          "Aby zmniejszać koszt utrzymania i zwiększać wiarygodność testów",
-          "Aby tworzyć więcej dokumentów",
-          "Aby ukrywać błędy",
-          "Aby zastąpić myślenie"
+          "Ponieważ wydłuża niepotrzebnie czas wykonania pomyślnych testów, a w CI (na wolniejszych maszynach) wciąż może być zbyt krótkie, powodując losowe awarie testów",
+          "Ponieważ blokuje kompilację TypeScript",
+          "Ponieważ usuwa ciasteczka sesyjne z przeglądarki",
+          "Nie jest błędem, to zalecana praktyka przez Microsoft"
         ],
         "correctAnswer": 0,
-        "explanation": "Dobre praktyki mają wspierać decyzje i utrzymywalność."
-      },
-      {
-        "id": "q12-5-2",
-        "question": "Czym jest antywzorzec?",
-        "options": [
-          "Rozwiązaniem pozornie wygodnym, które długoterminowo zwiększa koszt lub ryzyko",
-          "Każdym wzorcem projektowym",
-          "Każdym testem E2E",
-          "Synonimem refaktoru"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Antywzorzec często działa na początku, ale szkodzi przy skali."
-      },
-      {
-        "id": "q12-5-3",
-        "question": "Co jest celem przegląd kodu testów?",
-        "options": [
-          "Poprawa jakości informacji, stabilności i utrzymywalności",
-          "Szukanie winnych",
-          "Formatowanie dla sportu",
-          "Zastąpienie CI"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Review testów powinno oceniać wartość, koszt i diagnostykę."
-      },
-      {
-        "id": "q12-5-4",
-        "question": "Kiedy refaktoryzować testy?",
-        "options": [
-          "Gdy duplikacja, kruchość lub brak czytelności zwiększa koszt zmian",
-          "Nigdy",
-          "Tylko gdy wszystkie testy są czerwone",
-          "Bez uruchamiania suite"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Refaktor powinien odpowiadać na konkretny problem utrzymaniowy."
-      },
-      {
-        "id": "q12-5-5",
-        "question": "Co oznacza test independence?",
-        "options": [
-          "Test sam przygotowuje i sprząta potrzebny stan",
-          "Test wymaga poprzedniego testu",
-          "Test nie ma danych",
-          "Test nie ma asercji"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Niezależność umożliwia równoległość i powtarzalność."
-      },
-      {
-        "id": "q12-5-6",
-        "question": "Co jest dobrą cechą standardu zespołowego?",
-        "options": [
-          "Jest krótki, praktyczny i egzekwowalny w review/CI",
-          "Jest długi i nieczytany",
-          "Nie ma właściciela",
-          "Jest sprzeczny z praktyką"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Standard musi pomagać zespołowi w codziennej pracy."
-      },
-      {
-        "id": "q12-5-7",
-        "question": "Dlaczego ADR jest przydatny?",
-        "options": [
-          "Zapisuje kontekst, decyzję i konsekwencje ważnego wyboru",
-          "Zastępuje testy",
-          "Ukrywa dług techniczny",
-          "Jest tylko dla managerów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "ADR zachowuje pamięć decyzji architektonicznej."
-      },
-      {
-        "id": "q12-5-8",
-        "question": "Najważniejsza zasada lekcji „Antywzorce i typowe błędy” to:",
-        "options": [
-          "Praktyki mają służyć jakości i utrzymaniu, nie być dekoracją procesu",
-          "Najważniejsza jest liczba wzorców",
-          "Każdy test ma być maksymalnie abstrakcyjny",
-          "Standardy są zbędne"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Profesjonalizm polega na świadomym doborze praktyk do kontekstu."
+        "explanation": "Ręczne sleep-y to główny powód niestabilności testów (flakiness). Prawidłowym podejściem jest używanie asercji Web-First, które odpytują DOM w tle i kończą oczekiwanie natychmiast po pojawieniu się elementu."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
         "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
         "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Best Practices",
-        "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalna lista dobrych praktyk i antywzorców."
-      },
-      {
-        "title": "Actionability",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Dlaczego nie używać sleepów."
-      },
-      {
-        "title": "Trace Viewer",
-        "url": "https://playwright.dev/docs/trace-viewer",
-        "description": "Diagnostyka zamiast zgadywania."
+        "description": "Chapter 12: Solving the Test Frameworks Puzzle (WET vs DRY and over-engineering)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Dobra praktyka jest dobra tylko wtedy, gdy rozwiązuje realny problem w Twoim kontekście.",
-      "Standardy zespołowe powinny zmniejszać tarcie, nie tworzyć rytuały bez wartości.",
-      "Refaktoryzuj testy tak samo świadomie jak kod aplikacji: małymi krokami i z zachowaniem sensu asercji.",
-      "Antywzorzec rozpoznasz po tym, że lokalnie daje wygodę, a zespołowo zwiększa koszt utrzymania."
+      "Stosuj zasadę WET (Write Everything Twice). Wyciągaj kod do wspólnej abstrakcji dopiero przy trzeciej powtarzalności, upewniając się wcześniej, że znasz jego ostateczną, stabilną strukturę."
     ],
     "commonMistakes": [
       {
-        "mistake": "Ślepe kopiowanie wzorców",
-        "solution": "Najpierw nazwij problem: duplikacja, złożoność, brak diagnostyki, sprzężenie albo koszt CI."
-      },
-      {
-        "mistake": "Brak standardów review testów",
-        "solution": "Ustal checklistę obejmującą ryzyko, dane, lokatory, asercje, diagnostykę i poziom testu."
-      },
-      {
-        "mistake": "Refaktor bez testu zabezpieczającego",
-        "solution": "Zmieniaj architekturę testów małymi krokami i uruchamiaj suite po każdej zmianie."
-      },
-      {
-        "mistake": "Ignorowanie antywzorców, bo testy są zielone",
-        "solution": "Zielony wynik nie oznacza utrzymywalności; oceniaj też koszt zmian i flaky rate."
+        "mistake": "Zostawianie w kodzie zaimprowizowanych waitForTimeout po zakończeniu debugowania lokalnego",
+        "solution": "Zawsze usuwaj te instrukcje przed utworzeniem Commitu w systemie Git."
       }
     ]
   }
