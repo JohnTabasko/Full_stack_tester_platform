@@ -1,212 +1,60 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory16_4 from './lesson-16.4.md?raw';
 
 export const lesson16_4: Lesson = {
   "id": "16.4",
   "moduleId": 16,
   "title": "Testowanie komponentów w Playwright",
-  "description": "Playwright Component Testing: mount, props/state, provider wrappers, accessibility, visual snapshots, design system i granice CT vs E2E.",
+  "description": "Poznaj rewolucyjną alternatywę dla JSDOM. Opanuj Playwright Component Testing (CT), renderowanie komponentów metodą mount() w rzeczywistych przeglądarkach oraz asercje interakcji.",
   "order": 4,
   "difficulty": "advanced",
-  "tags": [
-    "advanced-testing",
-    "integrations",
-    "playwright",
-    "reliability"
-  ],
+  "tags": ["component-testing", "mount", "React", "Vue", "Shadow-DOM", "clean-code"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować testy dla obszaru „Testowanie komponentów w Playwright” z kontrolą środowiska, scenariuszami awarii, retry, idempotencją i artefaktami diagnostycznymi.",
+    "objective": "Po ukończeniu tej lekcji potrafisz skonfigurować środowisko Playwright CT w swoim projekcie frontendowym, renderować odizolowane komponenty metodą mount(), przekazywać parametry i zdarzenia oraz pisać szybkie i stabilne testy komponentów w prawdziwej przeglądarce.",
     "theory": theory16_4,
     "codeExamples": [
-      "import { test, expect } from '@playwright/experimental-ct-react';\nimport { LoginForm } from './LoginForm';\n\ntest('shows validation error', async ({ mount }) => {\n  const component = await mount(<LoginForm />);\n  await component.getByRole('button', { name: 'Zaloguj' }).click();\n  await expect(component.getByText('Podaj adres e-mail')).toBeVisible();\n});\n",
-      "await expect(component).toHaveScreenshot('login-form-error.png');\n"
+      `// Przykład testu komponentu w Playwright CT (Książka 2 - Greffier)
+import { test, expect } from '@playwright/experimental-ct-react';
+test('test przycisku', async ({ mount }) => {
+  const component = await mount(<Button label="Zapisz" />);
+  await expect(component).toHaveText('Zapisz');
+});`
     ],
     "exercises": [
       {
         "id": "ex-16-4-1",
-        "title": "Środowisko kontrolowane",
-        "description": "Dla tematu „Testowanie komponentów w Playwright” zaprojektuj środowisko testowe: zależności, healthchecki, dane i cleanup."
-      },
-      {
-        "id": "ex-16-4-2",
-        "title": "Happy path i failure path",
-        "description": "Napisz scenariusz sukcesu oraz scenariusz błędu/timeoutu/niedostępności zależności."
-      },
-      {
-        "id": "ex-16-4-3",
-        "title": "Idempotencja i retry",
-        "description": "Sprawdź, co stanie się po ponowieniu tej samej operacji lub komunikatu."
-      },
-      {
-        "id": "ex-16-4-4",
-        "title": "Artefakty diagnostyczne",
-        "description": "Wskaż logi, requesty, wiadomości, screenshoty lub trace potrzebne do diagnozy."
-      },
-      {
-        "id": "ex-16-4-5",
-        "title": "CI strategy",
-        "description": "Zaproponuj, które testy uruchamiać w PR, nightly i release."
-      },
-      {
-        "id": "ex-16-4-6",
-        "title": "Granice testu",
-        "description": "Określ, co testować unit/component/API/E2E, aby nie tworzyć zbyt ciężkiego scenariusza."
+        "title": "Test komponentu wejściowego Input",
+        "description": "Napisz test dla komponentu pola tekstowego `InputField`. Przekaż mu domyślny tekst pomocniczy (placeholder), wpisz wartość za pomocą `.fill()`, upewnij się, że poprawnie wyzwala zdarzenie `onChange` i waliduje pustą wartość."
       }
     ],
     "quiz": [
       {
         "id": "q16-4-1",
-        "question": "Co jest najważniejsze przy testowaniu zaawansowanych integracji?",
+        "question": "Jaka jest główna zaleta stosowania Playwright Component Testing (CT) w porównaniu do tradycyjnego React Testing Library opartego na JSDOM?",
         "options": [
-          "Kontrolowane środowisko, scenariusze błędów i diagnostyka",
-          "Dostęp do produkcji",
-          "Brak cleanupu",
-          "Wyłącznie happy path"
+          "Playwright CT renderuje i testuje komponenty w rzeczywistym, prawdziwym silniku przeglądarki (Chromium/Firefox/Safari), co pozwala na pełną i trafną weryfikację m.in. stylów CSS i responsywności",
+          "Jest znacznie wolniejszy",
+          "Nie obsługuje języka TypeScript",
+          "Działa wyłącznie w trybie tekstowym bez grafiki"
         ],
         "correctAnswer": 0,
-        "explanation": "Integracje zawodzą na granicach, dlatego wymagają kontroli warunków i dowodów."
-      },
-      {
-        "id": "q16-4-2",
-        "question": "Dlaczego healthcheck jest lepszy niż sleep?",
-        "options": [
-          "Sprawdza realną gotowość usługi",
-          "Zawsze trwa dłużej",
-          "Ukrywa błędy",
-          "Nie działa w CI"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Sleep czeka na czas; healthcheck czeka na stan."
-      },
-      {
-        "id": "q16-4-3",
-        "question": "Co powinien obejmować test webhooka?",
-        "options": [
-          "Podpis, duplikat, retry, błędne body i efekt w systemie",
-          "Tylko status 200",
-          "Kolor przycisku",
-          "Brak logów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Webhook jest granicą zewnętrzną i musi być odporny na nadużycia oraz powtórzenia."
-      },
-      {
-        "id": "q16-4-4",
-        "question": "Kiedy component testing jest lepszy niż E2E?",
-        "options": [
-          "Gdy chcemy szybko sprawdzić warianty stanu pojedynczego komponentu",
-          "Gdy testujemy płatność end-to-end",
-          "Gdy potrzebujemy prawdziwej bazy",
-          "Nigdy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "CT daje szybki feedback dla komponentu bez kosztu pełnego systemu."
-      },
-      {
-        "id": "q16-4-5",
-        "question": "Co oznacza circuit breaker?",
-        "options": [
-          "Mechanizm ograniczający wywołania do zawodzącej zależności",
-          "Typ selektora",
-          "Format raportu",
-          "Nowy rodzaj cookie"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Circuit breaker chroni system przed kaskadową awarią zależności."
-      },
-      {
-        "id": "q16-4-6",
-        "question": "Co testować w e-mailach transakcyjnych?",
-        "options": [
-          "Dostarczenie, temat, treść, linki, bezpieczeństwo tokenów i brak danych wrażliwych",
-          "Tylko kolor szablonu",
-          "Wyłącznie SMTP port",
-          "Nic"
-        ],
-        "correctAnswer": 0,
-        "explanation": "E-mail jest częścią procesu biznesowego, np. aktywacji lub resetu hasła."
-      },
-      {
-        "id": "q16-4-7",
-        "question": "Co jest ważne przy testach real-time?",
-        "options": [
-          "Reconnect, kolejność, duplikaty i wielu użytkowników",
-          "Tylko otwarcie strony",
-          "Brak asercji",
-          "Jeden sleep"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Komunikacja real-time ma ryzyka niedostępne w prostym HTTP."
-      },
-      {
-        "id": "q16-4-8",
-        "question": "Najważniejsza zasada lekcji „Testowanie komponentów w Playwright” to:",
-        "options": [
-          "Testuj granice integracji w kontrolowanych warunkach",
-          "Ufaj zewnętrznej usłudze bez testów",
-          "Nie zapisuj artefaktów",
-          "Ignoruj retry"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zaawansowane tematy są głównie o kontrolowaniu granic systemu."
+        "explanation": "JSDOM to jedynie tekstowa imitacja przeglądarki uruchamiana w konsoli Node.js, która ignoruje style CSS i renderowanie. Playwright CT daje 100% realizm działania komponentu w rzeczywistym silniku przeglądarki."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
         "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
         "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Component testing",
-        "url": "https://playwright.dev/docs/test-components",
-        "description": "Oficjalny przewodnik po Playwright CT."
-      },
-      {
-        "title": "Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Locatory dostępnościowe w CT."
-      },
-      {
-        "title": "Visual comparisons",
-        "url": "https://playwright.dev/docs/test-snapshots",
-        "description": "Snapshoty komponentów."
+        "description": "Chapter 11: Beyond End-to-End Testing (Component Testing)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Zaawansowane integracje testuj przez kontrolowane środowisko, nie przez przypadkowy dostęp do usług produkcyjnych.",
-      "Każda integracja zewnętrzna wymaga scenariusza sukcesu, błędu, timeoutu, retry i idempotencji.",
-      "Kontenery są świetne, jeśli mają healthchecki, deterministyczne dane i czysty cleanup.",
-      "Komunikację real-time testuj przez stan końcowy i zdarzenia, nie przez arbitralne opóźnienia."
+      "Używaj Playwright CT do budowania i testowania bibliotek komponentów (Design Systems), gwarantując ich bezbłędne renderowanie i działanie we wszystkich głównych przeglądarkach."
     ],
     "commonMistakes": [
       {
-        "mistake": "Testy zależne od prawdziwej usługi zewnętrznej bez sandboxa",
-        "solution": "Użyj sandboxa, mock servera, contract testu albo service virtualization."
-      },
-      {
-        "mistake": "Brak healthchecków w docker-compose",
-        "solution": "Czekaj na gotowość bazy, mail servera i aplikacji przez healthcheck, nie sleep."
-      },
-      {
-        "mistake": "Testowanie WebSocket tylko przez otwarcie połączenia",
-        "solution": "Sprawdź wysyłkę, odbiór, reconnect, duplikaty i zachowanie wielu użytkowników."
-      },
-      {
-        "mistake": "Component testing traktowany jak pełne E2E",
-        "solution": "Testuj komponent w izolacji, a integrację całego flow zostaw E2E/API."
+        "mistake": "Próba uruchomienia testów Playwright CT za pomocą zwykłego runnera npx playwright test",
+        "solution": "Testy komponentowe wymagają dedykowanej konfiguracji i są uruchamiane osobnym skryptem zdefiniowanym przy konfiguracji projektu CT."
       }
     ]
   }
