@@ -1,217 +1,64 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory11_1 from './lesson-11.1.md?raw';
 
 export const lesson11_1: Lesson = {
   "id": "11.1",
   "moduleId": 11,
   "title": "Integracja z GitHub Actions",
-  "description": "Workflowy, strategia matrix, dzielenie testów, cache, artefakty, sekrety, komentarze PR i uruchomienia harmonogramem.",
+  "description": "Zaprojektuj rurociąg CI dla GitHub Actions. Poznaj strukturę zdarzeń wyzwalających (triggers), instalację przeglądarek z zależnościami systemowymi, sekrety oraz upload raportów.",
   "order": 1,
-  "difficulty": "advanced",
-  "tags": [
-    "ci-cd",
-    "playwright",
-    "pipeline",
-    "artefakty"
-  ],
+  "difficulty": "intermediate",
+  "tags": ["CI-CD", "GitHub-Actions", "pipeline", "YAML", "artifacts", "secrets"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować pipeline dla tematu „Integracja z GitHub Actions”, który daje szybki feedback, publikuje artefakty diagnostyczne i bezpiecznie obsługuje konfigurację oraz sekrety.",
+    "objective": "Po ukończeniu tej lekcji potrafisz stworzyć od zera kompletny, produkcyjny plik konfiguracyjny YAML dla GitHub Actions, bezpiecznie wstrzykiwać zmienne i sekrety środowiskowe oraz zarządzać eksportem raportów diagnostycznych.",
     "theory": theory11_1,
     "codeExamples": [
-      "name: e2e\non: [pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    strategy:\n      fail-fast: false\n      matrix:\n        shard: [1, 2, 3, 4]\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 20, cache: 'npm' }\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test --shard=${{ matrix.shard }}/4\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: playwright-report-${{ matrix.shard }}\n          path: playwright-report\n",
-      "# Zestawy uruchomień\npull_request: smoke + affected tests\nschedule nightly: full regression\nworkflow_dispatch: manual release verification\n"
+      `// Przykład wyzwalania i zmiennych w workflow (Książka 2 - Greffier)
+name: Run Playwright
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npx playwright test`
     ],
     "exercises": [
       {
         "id": "ex-11-1-1",
-        "title": "Pipeline podstawowy",
-        "description": "Dla tematu „Integracja z GitHub Actions” zaprojektuj pipeline: install, typecheck/lint, test, artefakty."
-      },
-      {
-        "id": "ex-11-1-2",
-        "title": "Smoke vs full",
-        "description": "Podziel testy na szybki zestaw PR i pełną regresję nocną."
-      },
-      {
-        "id": "ex-11-1-3",
-        "title": "Artefakty",
-        "description": "Dodaj publikację HTML, JUnit, trace i screenshotów nawet przy failed job."
-      },
-      {
-        "id": "ex-11-1-4",
-        "title": "Sekrety",
-        "description": "Wskaż zmienne wrażliwe i opisz, jak przechowywać je w danej platformie CI."
-      },
-      {
-        "id": "ex-11-1-5",
-        "title": "Równoległość",
-        "description": "Zaprojektuj matrix albo sharding i opisz wymagania izolacji danych."
-      },
-      {
-        "id": "ex-11-1-6",
-        "title": "Quality gate",
-        "description": "Zdefiniuj warunki blokujące merge lub release."
+        "title": "Stworzenie pierwszego workflow",
+        "description": "Utwórz w swoim projekcie katalog `.github/workflows/` i zaimplementuj w nim plik `playwright.yml` weryfikujący kod przy zdarzeniu `pull_request`, z automatycznym eksportem raportu HTML."
       }
     ],
     "quiz": [
       {
         "id": "q11-1-1",
-        "question": "Jaki jest główny cel CI dla testów Playwright?",
+        "question": "Które ustawienie kroku upload-artifact w pliku YAML gwarantuje, że raport z testów zostanie pobrany nawet wtedy, gdy testy zakończą się niepowodzeniem?",
         "options": [
-          "Szybka, powtarzalna i diagnostyczna informacja o jakości zmiany",
-          "Uruchamianie losowych testów",
-          "Ukrywanie błędów",
-          "Zastąpienie review"
+          "if: always()",
+          "if: success()",
+          "if: failed()",
+          "always-upload: true"
         ],
         "correctAnswer": 0,
-        "explanation": "CI ma dostarczać wiarygodny sygnał decyzyjny dla zespołu."
-      },
-      {
-        "id": "q11-1-2",
-        "question": "Dlaczego publikujemy artefakty przy failed job?",
-        "options": [
-          "Bez nich diagnoza awarii w CI jest wolniejsza lub niemożliwa",
-          "Bo zwiększają liczbę testów",
-          "Bo zastępują asercje",
-          "Nie należy ich publikować"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Trace i raport HTML są podstawą analizy nieudanego przebiegu."
-      },
-      {
-        "id": "q11-1-3",
-        "question": "Co oznacza matrix strategy?",
-        "options": [
-          "Uruchomienie jobów dla wielu konfiguracji, np. przeglądarek lub shardów",
-          "Tabelę CSS",
-          "Ręczny deploy",
-          "Brak równoległości"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Matrix skaluje wykonanie przez kombinacje parametrów."
-      },
-      {
-        "id": "q11-1-4",
-        "question": "Kiedy sharding ma sens?",
-        "options": [
-          "Gdy suite jest duża i testy są niezależne",
-          "Gdy testy współdzielą dane",
-          "Dla jednego testu",
-          "Zamiast cleanupu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Sharding wymaga niezależnych testów i izolowanych danych."
-      },
-      {
-        "id": "q11-1-5",
-        "question": "Co powinien zawierać quality gate?",
-        "options": [
-          "Warunki pass/fail powiązane z ryzykiem, np. smoke 100%, brak critical failures",
-          "Wyłącznie czas zegara",
-          "Sekret produkcyjny",
-          "Brak kryteriów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Quality gate zamienia wymagania jakościowe w decyzję pipeline."
-      },
-      {
-        "id": "q11-1-6",
-        "question": "Dlaczego cache bywa ryzykowny?",
-        "options": [
-          "Niepoprawny klucz cache może użyć starych zależności",
-          "Bo zawsze spowalnia",
-          "Bo usuwa raport",
-          "Bo zastępuje npm ci"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Cache musi być powiązany z lockfile i wersją środowiska."
-      },
-      {
-        "id": "q11-1-7",
-        "question": "Jak traktować flaky test w CI?",
-        "options": [
-          "Jako defekt wymagający klasyfikacji i naprawy",
-          "Jako normalny stan bez reakcji",
-          "Jako powód do usunięcia CI",
-          "Jako sekret"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Flaky test niszczy zaufanie do pipeline."
-      },
-      {
-        "id": "q11-1-8",
-        "question": "Najważniejsza zasada lekcji „Integracja z GitHub Actions” to:",
-        "options": [
-          "Pipeline ma skracać drogę od zmiany do decyzji bez utraty diagnostyki",
-          "Pipeline powinien być jak najdłuższy",
-          "Niepotrzebne są raporty",
-          "Sekrety można commitować"
-        ],
-        "correctAnswer": 0,
-        "explanation": "CI/CD jest systemem informacji o jakości."
+        "explanation": "Flaga 'if: always()' nakazuje silnikowi GitHub Actions wykonać dany krok bez względu na to, czy poprzednie kroki (np. uruchomienie testów) zakończyły się sukcesem, czy błędem."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
         "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
         "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright CI",
-        "url": "https://playwright.dev/docs/ci",
-        "description": "Oficjalne zalecenia uruchamiania Playwright w CI."
-      },
-      {
-        "title": "GitHub Actions",
-        "url": "https://docs.github.com/en/actions",
-        "description": "Dokumentacja workflow, matrix, artefakty, cache i sekrety."
-      },
-      {
-        "title": "GitLab CI/CD",
-        "url": "https://docs.gitlab.com/ee/ci/",
-        "description": "Dokumentacja stages, jobs, artefakty, cache, pages i parallel."
-      },
-      {
-        "title": "Jenkins Pipeline",
-        "url": "https://www.jenkins.io/doc/book/pipeline/",
-        "description": "Dokumentacja Jenkinsfile i pipeline declarative."
+        "description": "Chapter 7: Integrating Workflows with CI/CD Pipelines (GitHub Actions)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Pipeline jest częścią produktu testowego: powinien być szybki, powtarzalny, diagnostyczny i bezpieczny.",
-      "Najpierw optymalizuj feedback dla PR, dopiero potem pełną regresję.",
-      "Artefakty po porażce są obowiązkowe: raport HTML, JUnit, trace, screenshoty i logi.",
-      "Cache i sharding przyspieszają dopiero wtedy, gdy dane i środowisko są izolowane."
+      "Stosuj workflow_dispatch, aby umożliwić deweloperom i testerom ręczne wywoływanie testów z poziomu panelu graficznego na stronie GitHub."
     ],
     "commonMistakes": [
       {
-        "mistake": "Pipeline uruchamia pełną regresję przy każdym małym PR",
-        "solution": "Podziel testy na smoke, affected/critical, nightly i release."
-      },
-      {
-        "mistake": "Brak artefaktów po failed job",
-        "solution": "Publikuj raporty zawsze, także przy porażce, używając warunku always/when: always."
-      },
-      {
-        "mistake": "Sekrety w YAML lub logach",
-        "solution": "Używaj sekrety/variables platformy i redakcji logów."
-      },
-      {
-        "mistake": "Sharding bez stabilnych danych",
-        "solution": "Najpierw zapewnij izolację użytkowników, tenantów i cleanup."
+        "mistake": "Brak npx playwright install --with-deps w kroku instalacji na Ubuntu",
+        "solution": "Czyste kontenery Linux nie posiadają bibliotek graficznych i dźwiękowych wymaganych przez przeglądarki Chromium/WebKit, dlatego flaga --with-deps jest niezbędna."
       }
     ]
   }
