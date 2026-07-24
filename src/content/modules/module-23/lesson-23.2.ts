@@ -1,213 +1,59 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory23_2 from './lesson-23.2.md?raw';
 
 export const lesson23_2: Lesson = {
   "id": "23.2",
   "moduleId": 23,
   "title": "Identyfikator korelacji w testach",
-  "description": "Identyfikatory korelacji, W3C Trace Context, traceparent, baggage, trace ID vs correlation ID i full stack debugging.",
+  "description": "Opanuj śledzenie rozproszone (Distributed Tracing) i debugowanie Full Stack. Poznaj koncepcję Correlation ID, automatyczne wstrzykiwanie nagłówków X-Correlation-Id w Playwright oraz integrację z Grafana Loki.",
   "order": 2,
   "difficulty": "advanced",
-  "tags": [
-    "correlation-id",
-    "ślady wykonania-id",
-    "diagnostics",
-    "e2e",
-    "headers"
-  ],
+  "tags": ["correlation-ID", "observability", "distributed-tracing", "headers", "CDP", "UUID"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować przepływ correlation ID od testu przez frontend, API, kolejki i logi oraz wykorzystać go do szybkiej analizy awarii w CI.",
+    "objective": "Po ukończeniu tej lekcji potrafisz wygenerować i wstrzykiwać unikalne identyfikatory korelacji w testach Playwright, rejestrować je w adnotacjach testowych oraz przeszukiwać rozproszone logi mikroserwisów w usłudze Grafana Loki.",
     "theory": theory23_2,
     "codeExamples": [
-      "test('checkout exposes correlation id for diagnostics', async ({ page, context }, testInfo) => {\n  const correlationId = `checkout-${Date.now()}`;\n  await context.setExtraHTTPHeaders({ 'x-correlation-id': correlationId });\n\n  await page.goto('/checkout');\n  await page.getByRole('button', { name: 'Zapłać' }).click();\n\n  await testInfo.attach('correlation-id.txt', {\n    body: correlationId,\n    contentType: 'text/plain',\n  });\n});\n",
-      "// Propagacja w komunikacie zdarzeniowym.\nawait eventBus.publish('order.paid', {\n  payload: { orderId },\n  headers: { correlationId, causationId: commandId },\n});\n"
+      `// Przykład automatycznego wstrzykiwania nagłówków (Książka 3 - Uppadhyay)
+await page.route('**/*', async (route) => {
+  const headers = { ...route.request().headers(), 'X-Correlation-ID': correlationId };
+  await route.continue({ headers });
+});`
     ],
     "exercises": [
       {
         "id": "ex-23-2-1",
-        "title": "Mapa sygnałów",
-        "description": "Dla przepływu „Identyfikator korelacji w testach” wypisz logi, metryki i ślady wykonania potrzebne do diagnozy awarii."
-      },
-      {
-        "id": "ex-23-2-2",
-        "title": "Correlation ID",
-        "description": "Zaprojektuj sposób przekazywania correlation ID z testu przez API, kolejki i logi."
-      },
-      {
-        "id": "ex-23-2-3",
-        "title": "Panel diagnostyczny",
-        "description": "Opisz panel Grafany dla krytycznego endpointu: p95, error rate, throughput i saturacja."
-      },
-      {
-        "id": "ex-23-2-4",
-        "title": "Alert użyteczny",
-        "description": "Zaproponuj alert, który oznacza realny problem użytkownika, a nie tylko techniczny szum."
-      },
-      {
-        "id": "ex-23-2-5",
-        "title": "Analiza incydentu",
-        "description": "Na podstawie przykładowej awarii opisz, jak przejdziesz od testu do logów, ślady wykonania i przyczyny."
-      },
-      {
-        "id": "ex-23-2-6",
-        "title": "SLO dla funkcji",
-        "description": "Zdefiniuj SLI, SLO i error budget dla logowania, checkoutu albo eksportu danych."
+        "title": "Wdrożenie fixtury z automatycznym Correlation ID",
+        "description": "Stwórz w swoim projekcie customową fixturę `traceablePage` rozszerzającą bazową stronę Playwright, która automatycznie generuje UUIDv4 i wstrzykuje go jako nagłówek `X-Correlation-Id` do każdego zapytania sieciowego."
       }
     ],
     "quiz": [
       {
         "id": "q23-2-1",
-        "question": "Jakie są trzy klasyczne filary obserwowalności?",
+        "question": "Jaki jest cel wstrzykiwania nagłówka X-Correlation-Id w testach E2E Playwright?",
         "options": [
-          "Logi, metryki i ślady wykonania",
-          "HTML, CSS i JS",
-          "Unit, mock i spy",
-          "Merge, rebase i commit"
+          "Pozwala na jednoznaczne powiązanie awarii konkretnego testu z powiązanymi logami systemowymi ze wszystkich mikroserwisów (np. w Grafana Loki)",
+          "Służy do szyfrowania połączeń sieciowych SSL",
+          "Automatycznie zapobiega powstawaniu błędów 500 na serwerze",
+          "Zastępuje wbudowane asercje Web-First"
         ],
         "correctAnswer": 0,
-        "explanation": "Logi, metryki i ślady rozproszone pokazują różne wymiary zachowania systemu."
-      },
-      {
-        "id": "q23-2-2",
-        "question": "Po co stosować correlation ID?",
-        "options": [
-          "Aby połączyć zdarzenia jednego przepływu w wielu usługach",
-          "Aby przyspieszyć CSS",
-          "Aby zastąpić testy",
-          "Aby ukryć błędy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Correlation ID umożliwia prześledzenie requestu przez frontend, API, kolejki i backend."
-      },
-      {
-        "id": "q23-2-3",
-        "question": "Czym jest SLI?",
-        "options": [
-          "Mierzalnym wskaźnikiem poziomu usługi",
-          "Losowym logiem",
-          "Typem testu manualnego",
-          "Nazwą branchy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "SLI to konkretna miara, np. procent udanych żądań lub p95 czasu odpowiedzi."
-      },
-      {
-        "id": "q23-2-4",
-        "question": "Czym jest SLO?",
-        "options": [
-          "Docelowym poziomem SLI uzgodnionym z biznesem lub zespołem",
-          "Dowolnym screenshotem",
-          "Narzędziem do mocków",
-          "Formatem commita"
-        ],
-        "correctAnswer": 0,
-        "explanation": "SLO określa oczekiwany poziom jakości usługi."
-      },
-      {
-        "id": "q23-2-5",
-        "question": "Co oznacza zmęczenie alertami?",
-        "options": [
-          "Zobojętnienie na zbyt liczne lub mało użyteczne alerty",
-          "Brak testów jednostkowych",
-          "Szybki endpoint",
-          "Udany deploy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zbyt wiele alertów niskiej jakości sprawia, że zespół przestaje reagować."
-      },
-      {
-        "id": "q23-2-6",
-        "question": "Kiedy ślady wykonania rozproszony jest szczególnie przydatny?",
-        "options": [
-          "Gdy request przechodzi przez wiele usług",
-          "Tylko przy lokalnym CSS",
-          "Wyłącznie w README",
-          "Nigdy w mikroserwisach"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Trace pokazuje segmenty przepływu i opóźnienia między usługami."
-      },
-      {
-        "id": "q23-2-7",
-        "question": "Co powinien zrobić test po wykryciu awarii krytycznego przepływu?",
-        "options": [
-          "Zostawić kontekst diagnostyczny: correlation ID, ślady wykonania, screenshot lub logi",
-          "Ukryć błąd",
-          "Usunąć raport",
-          "Zawsze powtórzyć bez zapisu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Dobry test skraca drogę od objawu do przyczyny."
-      },
-      {
-        "id": "q23-2-8",
-        "question": "Najważniejsza idea lekcji „Identyfikator korelacji w testach” to:",
-        "options": [
-          "Jakość trzeba umieć obserwować, nie tylko testować",
-          "Metryki zastępują wymagania",
-          "Alertów powinno być jak najwięcej",
-          "Logi są zbędne"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Obserwowalność rozszerza testowanie o zdolność rozumienia działania systemu."
+        "explanation": "Correlation ID to unikalny identyfikator, który przechodzi przez wszystkie mikroserwisy i jest zapisywany w ich logach, co pozwala w ułamku sekundy odnaleźć pełną ścieżkę logów dla zepsutego testu."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "W3C Trace Context",
-        "url": "https://www.w3.org/TR/trace-context/",
-        "description": "Standard propagacji trace context."
-      },
-      {
-        "title": "OpenTelemetry Context",
-        "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
-        "description": "Propagacja kontekstu."
-      },
-      {
-        "title": "OpenTelemetry Docs",
-        "url": "https://opentelemetry.io/docs/",
-        "description": "Traces, logs i metrics."
+        "description": "Chapter 10: Observability and Governance in Test Automation (Distributed tracing)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Każdy krytyczny test E2E powinien zostawiać identyfikator korelacyjny możliwy do znalezienia w logach backendu.",
-      "Metryka bez kontekstu biznesowego bywa szumem; alert powinien oznaczać potrzebę działania.",
-      "Trace rozproszony jest szczególnie cenny tam, gdzie request przechodzi przez kilka usług i kolejkę.",
-      "SLO powinno wynikać z doświadczenia użytkownika, a nie wyłącznie z wygody infrastruktury."
+      "Dodawaj wygenerowany Correlation ID do adnotacji testInfo.annotations, dzięki czemu deweloperzy badający błąd w raporcie HTML mogą od razu go skopiować do wyszukiwarki logów."
     ],
     "commonMistakes": [
       {
-        "mistake": "Logi bez correlation ID",
-        "solution": "Dodawaj identyfikator przepływu do requestów, zdarzeń, logów i załączników testowych."
-      },
-      {
-        "mistake": "Alerty na każdą drobną anomalię",
-        "solution": "Projektuj alerty wokół SLO i wpływu na użytkownika, aby uniknąć zmęczenie alertami."
-      },
-      {
-        "mistake": "Brak dashboardu dla testowanych przepływów",
-        "solution": "Dla krytycznych scenariuszy przygotuj metryki i widoki diagnostyczne."
-      },
-      {
-        "mistake": "Test kończy się na błędzie bez kontekstu",
-        "solution": "Dołącz ślady wykonania, logi, request/response i dane środowiskowe do raportu testu."
+        "mistake": "Brak wstrzykiwania Correlation ID w zapytaniach API (request fixture) podczas testów hybrydowych",
+        "solution": "Upewnij się, że rozszerzasz również konfigurację APIRequestContext, aby dodawała nagłówek korelacji do wszystkich żądań HTTP."
       }
     ]
   }
