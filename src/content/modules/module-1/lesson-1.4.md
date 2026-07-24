@@ -1,357 +1,155 @@
-# Konfiguracja `playwright.config.ts` — omówienie szczegółowe
+# Głęboka konfiguracja `playwright.config.ts` klasy produkcyjnej
 
-`playwright.config.ts` jest centrum sterowania projektem Playwright. To tutaj określasz, gdzie znajdują się testy, jakie przeglądarki uruchamiać, jak długo czekać na akcje i asercje, kiedy robić screenshoty, kiedy nagrywać trace, ile razy ponawiać testy, jak działać w CI i czy aplikacja ma być uruchamiana automatycznie przed testami.
+Plik `playwright.config.ts` to serce i mózg Twojego frameworka testowego. To tutaj podejmujesz kluczowe decyzje inżynieryjne wpływające na czas wykonania testów, ich stabilność w trudnych warunkach sieciowych, sposób generowania artefaktów diagnostycznych oraz strategię wielowątkowości.
 
-Początkujący często traktują konfigurację jako plik, którego „lepiej nie ruszać”. W profesjonalnym projekcie jest odwrotnie: konfiguracja musi być świadoma, czytelna i uzasadniona, bo wpływa na stabilność, szybkość i diagnostykę całej automatyzacji.
+Ślepe kopiowanie domyślnej konfiguracji to częsty błąd początkujących deweloperów. W tej lekcji przeanalizujemy każdą zaawansowaną opcję konfiguracyjną, abyś potrafił dostosować Playwrighta do rygorystycznych wymagań systemów korporacyjnych.
 
-## 1. Minimalny przykład
+---
 
-```typescript
-import { defineConfig, devices } from '@playwright/test';
+## 1. Architektura limitów czasowych (Timeouts Hierarchy)
 
-export default defineConfig({
-  testDir: './tests',
-  timeout: 30_000,
-  expect: {
-    timeout: 5_000,
-  },
-  use: {
-    baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-  ],
-});
+Stabilność testów zależy od precyzyjnego zarządzania czasem. W Playwright występuje kilka niezależnych limitów czasowych (timeouts), które ściśle ze sobą współpracują. Zrozumienie ich hierarchii zapobiega problemom z fałszywymi awariami.
+
+```
+       +------------------------------------------------+
+       |             Global Timeout (CI Level)          |
+       |  Maksymalny czas na wykonanie całego test suite|
+       +------------------------------------------------+
+                               |
+                               v
+       +------------------------------------------------+
+       |             Test Timeout (30s - 60s)           |
+       |  Maksymalny czas na jeden pojedynczy test      |
+       +------------------------------------------------+
+            /                  |                  \
+           v                   v                   v
++--------------------+ +--------------------+ +--------------------+
+|   Expect Timeout   | |   Action Timeout   | | NavigationTimeout  |
+|  Asercje (5s - 10s)| |   Interakcje (10s) | |page.goto() (15-30s)|
++--------------------+ +--------------------+ +--------------------+
 ```
 
-`defineConfig()` daje typowanie i podpowiedzi. Dzięki temu łatwiej wykryć literówki w nazwach opcji.
-
-## 2. Lokalizacja testów
-
+### A. Test Timeout (Domyślnie 30s)
+Określa maksymalny dopuszczalny czas na wykonanie jednego testu (w tym jego faz setup i teardown). Konfiguracja w pliku:
 ```typescript
-export default defineConfig({
-  testDir: './tests',
-  testMatch: ['**/*.spec.ts', '**/*.e2e.ts'],
-  testIgnore: ['**/*.manual.spec.ts', '**/examples/**'],
-});
+timeout: 30 * 1000 // 30 sekund
 ```
 
-- `testDir` mówi, gdzie Playwright szuka testów.
-- `testMatch` zawęża wzorce plików.
-- `testIgnore` wyklucza pliki, których nie chcesz uruchamiać automatycznie.
-
-Dzięki temu przypadkowe eksperymenty nie trafią do CI.
-
-## 3. Timeouty — nie wszystkie znaczą to samo
-
-W Playwright istnieje kilka poziomów timeoutów:
-
-| Opcja | Co kontroluje | Typowy przykład |
-|---|---|---|
-| `timeout` | maksymalny czas całego testu | `30_000` |
-| `expect.timeout` | czas oczekiwania asercji web-first | `5_000` |
-| `actionTimeout` | czas pojedynczej akcji, np. click/fill | `10_000` |
-| `navigationTimeout` | czas nawigacji | `20_000` |
-| `globalTimeout` | maksymalny czas całego uruchomienia suite | `60 * 60 * 1000` |
-
-Przykład:
-
+### B. Expect Timeout (Domyślnie 5s)
+Czas, przez który asercje Web-First (np. `expect(locator).toBeVisible()`) będą odpytywać (poll) strukturę DOM w poszukiwaniu oczekiwanego stanu przed rzuceniem błędu.
 ```typescript
-export default defineConfig({
-  timeout: 45_000,
-  globalTimeout: 60 * 60 * 1000,
-  expect: { timeout: 7_000 },
-  use: {
-    actionTimeout: 10_000,
-    navigationTimeout: 20_000,
-  },
-});
-```
-
-Nie zwiększaj timeoutów bez diagnozy. Jeśli test losowo nie znajduje elementu, problemem może być zły locator, brak oczekiwania na proces domenowy albo niestabilne środowisko.
-
-## 4. `use` — domyślne opcje przeglądarki i kontekstu
-
-Sekcja `use` ustawia opcje przekazywane do fixtures takich jak `page`, `context` i `request`.
-
-```typescript
-export default defineConfig({
-  use: {
-    baseURL: 'https://staging.example.com',
-    locale: 'pl-PL',
-    timezoneId: 'Europe/Warsaw',
-    viewport: { width: 1440, height: 900 },
-    colorScheme: 'light',
-    ignoreHTTPSErrors: true,
-    permissions: ['clipboard-read', 'clipboard-write'],
-    geolocation: { latitude: 52.2297, longitude: 21.0122 },
-    storageState: 'playwright/.auth/user.json',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
-});
-```
-
-Najważniejsze opcje `use`:
-
-- `baseURL` — pozwala pisać `page.goto('/login')` zamiast pełnego adresu;
-- `storageState` — zapisane cookies/localStorage, często do logowania;
-- `viewport` — rozmiar okna;
-- `locale`, `timezoneId` — testy lokalizacji;
-- `permissions`, `geolocation` — uprawnienia i lokalizacja;
-- `offline` — tryb offline;
-- `httpCredentials` — Basic Auth;
-- `proxy` — testy przez proxy;
-- `trace`, `video`, `screenshot` — artefakty diagnostyczne.
-
-## 5. Projekty, czyli testy w wielu wariantach
-
-`projects` pozwalają uruchamiać te same testy w wielu konfiguracjach.
-
-```typescript
-export default defineConfig({
-  projects: [
-    {
-      name: 'desktop-chrome',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'mobile-safari',
-      use: { ...devices['iPhone 15'] },
-    },
-    {
-      name: 'admin',
-      use: { storageState: 'playwright/.auth/admin.json' },
-    },
-  ],
-});
-```
-
-Projekt może reprezentować:
-
-- przeglądarkę;
-- urządzenie;
-- rolę użytkownika;
-- region;
-- konfigurację feature flag;
-- tryb dark/light;
-- setup zależny od innego projektu.
-
-Nie twórz projektów „na wszelki wypadek”. Każdy projekt zwiększa czas wykonania suite. Powinien wynikać z ryzyka produktowego.
-
-## 6. Setup project i logowanie
-
-Oficjalna dokumentacja rekomenduje przygotowanie logowania przez setup project i `storageState`.
-
-```typescript
-export default defineConfig({
-  projects: [
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json',
-      },
-      dependencies: ['setup'],
-    },
-  ],
-});
-```
-
-Przykład testu setup:
-
-```typescript
-import { test as setup, expect } from '@playwright/test';
-
-setup('authenticate user', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(process.env.E2E_USER!);
-  await page.getByLabel('Password').fill(process.env.E2E_PASSWORD!);
-  await page.getByRole('button', { name: 'Zaloguj' }).click();
-  await expect(page.getByRole('heading', { name: 'Panel' })).toBeVisible();
-  await page.context().storageState({ path: 'playwright/.auth/user.json' });
-});
-```
-
-Pliki `.auth/*.json` z prawdziwą sesją traktuj jak sekrety. Nie commituj ich do repozytorium.
-
-## 7. Retry, workers i `forbidOnly`
-
-```typescript
-export default defineConfig({
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 4 : undefined,
-  fullyParallel: true,
-});
-```
-
-- `forbidOnly` zatrzymuje CI, jeśli ktoś zostawi `test.only`.
-- `retries` pozwala zebrać diagnostykę flaky testów, ale nie powinno maskować problemów.
-- `workers` steruje równoległością.
-- `fullyParallel` uruchamia równolegle także testy z jednego pliku, jeśli są niezależne.
-
-Włączanie `fullyParallel` bez izolacji danych to prosty sposób na losowe awarie.
-
-## 8. Reportery
-
-```typescript
-export default defineConfig({
-  reporter: process.env.CI
-    ? [
-        ['list'],
-        ['html', { open: 'never' }],
-        ['junit', { outputFile: 'test-results/junit.xml' }],
-      ]
-    : [['list'], ['html']],
-});
-```
-
-HTML report jest najlepszy do analizy lokalnej i artefaktów CI. JUnit jest przydatny dla systemów CI, które pokazują wyniki testów w interfejsie pipeline.
-
-## 9. Trace, screenshoty i video
-
-Najczęstsza konfiguracja diagnostyczna:
-
-```typescript
-use: {
-  trace: 'on-first-retry',
-  screenshot: 'only-on-failure',
-  video: 'retain-on-failure',
+expect: {
+  timeout: 5000 // 5 sekund
 }
 ```
 
-Tryby są kompromisem między diagnostyką a kosztem:
+### C. Action i Navigation Timeout
+*   **Action Timeout**: Maksymalny czas, jaki pojedyncza akcja (np. `click()`, `fill()`) może czekać na spełnienie warunków gotowości elementu (actionability checklist). Domyślnie brak limitu (czeka do końca testu), co jest antywzorcem – zawsze ustawiaj jawny limit.
+*   **Navigation Timeout**: Maksymalny czas na załadowanie strony podczas nawigacji (`page.goto()`).
 
-- `trace: 'on'` — bardzo dużo danych, dobre do debugowania, słabe jako domyślne CI;
-- `trace: 'on-first-retry'` — dobry kompromis;
-- `screenshot: 'only-on-failure'` — tani i pomocny;
-- `video: 'retain-on-failure'` — pomocne, ale cięższe niż screenshot.
+Zalecana konfiguracja limitów w bloku `use`:
+```typescript
+use: {
+  actionTimeout: 10 * 1000,     // 10 sekund na kliknięcie/wpisanie
+  navigationTimeout: 20 * 1000, // 20 sekund na załadowanie strony
+}
+```
 
-## 10. Web server
+---
 
-Playwright może uruchomić aplikację przed testami:
+## 2. Wielowątkowość, Workers i Sharding (Parallelism Control)
+
+Playwright jest niesamowicie szybki, ponieważ natywnie potrafi uruchamiać testy współbieżnie przy użyciu wielu procesów roboczych (**Workers**).
+
+### A. Model działania Workerów
+*   Każdy Worker to osobny, niezależny proces systemu operacyjnego.
+*   Workery nie współdzielą ze sobą żadnego stanu ani pamięci (pełna izolacja).
+*   Liczba workerów zależy bezpośrednio od liczby rdzeni procesora maszyny.
+
+Lokalnie chcemy wykorzystać pełną moc procesora, ale w środowisku CI (które często posiada mniejsze zasoby sprzętowe) zbyt duża liczba wątków przeciąży maszynę i wywoła niestabilność testów. Dlatego liczbę wątków konfigurujemy warunkowo:
 
 ```typescript
-export default defineConfig({
-  webServer: {
-    command: 'npm run start:test',
-    url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+// Wykorzystaj połowę dostępnych rdzeni lokalnie, ale w CI ogranicz do 1-2 wątków
+workers: process.env.CI ? 2 : '50%',
+```
+
+### B. Opcja `fullyParallel`
+Domyślnie Playwright uruchamia pliki testowe równolegle, ale testy *wewnątrz* jednego pliku wykonuje sekwencyjnie. Włączenie opcji `fullyParallel: true` sprawia, że absolutnie każdy test (nawet z tego samego pliku) jest uruchamiany w osobnym wątku współbieżnym:
+
+```typescript
+fullyParallel: true,
+```
+
+---
+
+## 3. Projekty i Emulacja Urządzeń (Multi-Project Configurations)
+
+Blok `projects` pozwala zadeklarować matrycę środowisk testowych. Możemy zdefiniować testy dla tradycyjnych przeglądarek biurkowych oraz emulować urządzenia mobilne:
+
+```typescript
+import { devices } from '@playwright/test';
+
+projects: [
+  // 1. Testy na Chromium (Chrome)
+  {
+    name: 'chromium',
+    use: { ...devices['Desktop Chrome'] },
   },
-});
-```
-
-To dobre w projektach frontendowych i demo. W większych systemach aplikację często uruchamia Docker Compose, Kubernetes albo pipeline CI.
-
-## 11. Zmienne środowiskowe i sekrety
-
-Konfiguracja powinna być elastyczna:
-
-```typescript
-const isCI = !!process.env.CI;
-const baseURL = process.env.BASE_URL ?? 'http://localhost:3000';
-
-export default defineConfig({
-  use: { baseURL },
-  retries: isCI ? 2 : 0,
-});
-```
-
-Nie zapisuj haseł, tokenów i sesji w konfiguracji. Używaj sekretów CI, `.env` lokalnie i `.env.example` jako dokumentacji.
-
-## 12. Lokalne nadpisania konfiguracji
-
-Niektóre ustawienia można nadpisać w teście:
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.use({ locale: 'en-US', timezoneId: 'America/New_York' });
-
-test('użytkownik widzi datę w formacie USA', async ({ page }) => {
-  await page.goto('/profile');
-  await expect(page.getByTestId('date-format')).toHaveText('07/09/2026');
-});
-```
-
-Lokalne nadpisania są dobre, gdy test sprawdza konkretny wariant. Nie używaj ich chaotycznie.
-
-## 13. Przykładowa kompletna konfiguracja startowa
-
-```typescript
-import { defineConfig, devices } from '@playwright/test';
-
-const isCI = !!process.env.CI;
-
-export default defineConfig({
-  testDir: './tests',
-  forbidOnly: isCI,
-  retries: isCI ? 2 : 0,
-  workers: isCI ? 4 : undefined,
-  timeout: 30_000,
-  expect: { timeout: 5_000 },
-  reporter: isCI
-    ? [['list'], ['html', { open: 'never' }], ['junit', { outputFile: 'test-results/junit.xml' }]]
-    : [['list'], ['html']],
-  use: {
-    baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+  // 2. Testy na WebKit (Safari)
+  {
+    name: 'webkit',
+    use: { ...devices['Desktop Safari'] },
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-  ],
-  webServer: {
-    command: 'npm run start:test',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !isCI,
-    timeout: 120_000,
+  // 3. Emulacja Mobile Safari (iPhone 14)
+  {
+    name: 'mobile-safari',
+    use: { ...devices['iPhone 14'] },
   },
-});
+]
 ```
 
-## 14. Typowe błędy
+---
 
-- Jedna ogromna konfiguracja z logiką biznesową.
-- Brak `forbidOnly` w CI.
-- Trace i video zawsze włączone bez potrzeby.
-- Projekty uruchamiane dla każdej przeglądarki bez analizy ryzyka.
-- Timeouty zwiększane zamiast diagnozy problemu.
-- Sekrety zapisane w repozytorium.
-- Brak raportów jako artefaktów CI.
+## 4. Strategia Zbierania Diagnostyki (Failure Artifacts)
 
-## 15. Checklista review konfiguracji
+Zbieranie trace, wideo i zrzutów ekranu jest kosztowne wydajnościowo. W środowiskach produkcyjnych stosuje się strategię **diagnozy tylko na błędach**:
 
-- Czy `baseURL` jest jawne i zależne od środowiska?
-- Czy `forbidOnly` działa w CI?
-- Czy retry jest świadomą decyzją?
-- Czy trace/screenshot/video mają rozsądną retencję?
-- Czy projekty odpowiadają realnym wymaganiom?
-- Czy timeouty są uzasadnione?
-- Czy setup logowania nie zapisuje sekretów do repozytorium?
-- Czy raport HTML i JUnit są dostępne w CI?
-- Czy konfiguracja jest czytelna dla nowej osoby w zespole?
+```typescript
+use: {
+  // Wykonaj zrzut ekranu tylko, gdy test nie przejdzie
+  screenshot: 'only-on-failure',
+  
+  // Zachowaj nagranie wideo wyłącznie dla nieudanych testów
+  video: 'retain-on-failure',
+  
+  // Nagraj pełny Trace tylko przy pierwszej próbie ponowienia testu
+  trace: 'on-first-retry',
+}
+```
 
-## Linki
+---
 
-- [Test configuration](https://playwright.dev/docs/test-configuration)
-- [Test use options](https://playwright.dev/docs/test-use-options)
-- [Projects](https://playwright.dev/docs/test-projects)
-- [Authentication](https://playwright.dev/docs/auth)
-- [Reporters](https://playwright.dev/docs/test-reporters)
-- [Web server](https://playwright.dev/docs/test-webserver)
+## 5. Reportery i Publikacja Wyników
+
+Playwright Test posiada bogaty zestaw wbudowanych reporterów. Można ich deklarować wiele jednocześnie w postaci tablicy:
+
+```typescript
+reporter: [
+  // Reporter listowy - idealny do czytania w terminalu CI
+  ['list'],
+  // Reporter HTML - generuje bogaty interaktywny raport lokalny
+  ['html', { open: 'never' }],
+  // Reporter JUnit - generuje plik XML czytelny dla narzędzi CI (np. Azure DevOps, Jenkins)
+  ['junit', { outputFile: 'results/results.xml' }]
+],
+```
+
+---
+
+## 6. Checklista Konfiguracyjna
+Upewnij się, że Twój plik `playwright.config.ts` posiada:
+- [ ] Precyzyjnie określoną hierarchię limitów czasowych (`timeout`, `expect.timeout`, `actionTimeout`, `navigationTimeout`).
+- [ ] Warunkowe przypisywanie liczby wątków roboczych (`workers`) w zależności od środowiska (Local vs CI).
+- [ ] Włączoną współbieżność na poziomie testów (`fullyParallel: true`).
+- [ ] Elastyczne zbieranie artefaktów ograniczające overhead CPU (`only-on-failure` / `on-first-retry`).
+- [ ] Zadeklarowane projekty dla kluczowych przeglądarek biurkowych oraz mobilnych.
