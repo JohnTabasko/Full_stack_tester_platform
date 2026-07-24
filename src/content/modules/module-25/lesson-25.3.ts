@@ -1,151 +1,61 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory25_3 from './lesson-25.3.md?raw';
 
 export const lesson25_3: Lesson = {
   "id": "25.3",
   "moduleId": 25,
   "title": "Docker Compose dla środowisk testowych",
-  "description": "Docker Compose dla testów: services, networks, volumes, environment, healthcheck, seed, migracje, profiles, logi, CI i sekrety.",
+  "description": "Zaprojektuj odizolowane środowiska kontenerowe. Poznaj strukturę docker-compose.yml, sprawdziany gotowości (healthchecks), zmienne środowiskowe, wolumeny oraz uruchamianie Playwright w kontenerze.",
   "order": 3,
-  "difficulty": "intermediate",
-  "tags": [
-    "docker-compose",
-    "containers",
-    "test-environment",
-    "healthcheck",
-    "seed"
-  ],
+  "difficulty": "advanced",
+  "tags": ["DevOps", "Docker", "Docker-Compose", "containers", "healthcheck", "CI-CD"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować środowisko testowe w Docker Compose, dodać healthchecki, kontrolować dane i uruchamiać zależności w sposób powtarzalny lokalnie oraz w CI.",
+    "objective": "Po ukończeniu tej lekcji potrafisz zaprojektować kompletne środowisko testowe (baza + API + makiety usług) w pliku docker-compose.yml, konfigurować sprawdziany gotowości healthcheck w celu stabilnej orkiestracji kontenerów oraz uruchamiać testy Playwright w oficjalnym kontenerze Microsoftu.",
     "theory": theory25_3,
     "codeExamples": [
-      "services:\n  db:\n    image: postgres:16\n    healthcheck:\n      test: ['CMD-SHELL', 'pg_isready -U app']\n      interval: 5s\n      timeout: 3s\n      retries: 20\n  api:\n    build: .\n    depends_on:\n      db:\n        condition: service_healthy"
-],
+      `// Przykład definicji healthcheck w YAML (Książka 3 - Uppadhyay)
+healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U user"]
+  interval: 5s
+  timeout: 5s
+  retries: 3`
+    ],
     "exercises": [
       {
-            "id": "ex-auto-1",
-            "title": "Ćwiczenie 1",
-            "description": "Zaprojektuj scenariusz zgodny z oficjalną dokumentacją narzędzia i opisz cel testu."
-      },
-      {
-            "id": "ex-auto-2",
-            "title": "Ćwiczenie 2",
-            "description": "Dodaj wariant negatywny oraz kryterium sukcesu/fail dla pipeline CI."
-      },
-      {
-            "id": "ex-auto-3",
-            "title": "Ćwiczenie 3",
-            "description": "Przygotuj checklistę diagnostyczną i listę artefaktów potrzebnych po awarii."
-      },
-      {
-            "id": "ex-auto-4",
-            "title": "Ćwiczenie 4",
-            "description": "Wskaż, które elementy powinny zostać zautomatyzowane, a które opisane jako manual/exploratory."
+        "id": "ex-25-3-1",
+        "title": "Zaprojektowanie docker-compose z Mailpitem",
+        "description": "Zaprojektuj kompletny plik `docker-compose.yml` składający się z bazy danych SQLite/Postgres oraz usługi przechwytywania poczty Mailpit. Skonfiguruj warunki depends_on i upewnij się, że całość podnosi się prawidłowo."
       }
-],
+    ],
     "quiz": [
       {
-            "id": "q-auto-1",
-            "question": "Co jest najważniejsze przy użyciu tego narzędzia?",
-            "options": [
-                  "Jasny cel, kontrolowane dane i interpretowalne wyniki",
-                  "Uruchomienie bez asercji",
-                  "Maksymalna liczba opcji",
-                  "Brak raportu"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-2",
-            "question": "Co powinno trafić do CI?",
-            "options": [
-                  "Mały, stabilny zestaw z jasnymi progami i artefaktami",
-                  "Najcięższy test bez limitów",
-                  "Sekrety w logach",
-                  "Testy bez właściciela"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-3",
-            "question": "Co jest antywzorcem?",
-            "options": [
-                  "Ukrywanie problemu zamiast diagnozy",
-                  "Jawne kryteria sukcesu",
-                  "Artefakty po awarii",
-                  "Dokumentacja środowiska"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-4",
-            "question": "Po co aktualne oficjalne źródła?",
-            "options": [
-                  "Aby unikać przestarzałych API i błędnych praktyk",
-                  "Aby zastąpić review",
-                  "Aby nie pisać testów",
-                  "Aby wyłączyć lint"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
+        "id": "q25-3-1",
+        "question": "Dlaczego samo zadeklarowanie depends_on w pliku docker-compose.yml jest niewystarczające, aby zapewnić stabilny start aplikacji backendowej zależnej od bazy danych?",
+        "options": [
+          "depends_on czeka tylko na podniesienie samego kontenera bazy, ale nie wie, czy silnik bazy danych zakończył wewnętrzną inicjalizację i nasłuchuje na porcie. Wymagane jest użycie sekcji healthcheck",
+          "depends_on działa wyłącznie w systemie Windows",
+          "Bazy danych nie wymagają sprawdzania gotowości",
+          "Komenda depends_on jest przestarzała w Docker Compose"
+        ],
+        "correctAnswer": 0,
+        "explanation": "To klasyczny błąd orkiestracji. Kontener bazy może mieć status Running, ale sam silnik (np. Postgres) potrzebuje kilku sekund na gotowość. Dopiero powiązanie depends_on z condition: service_healthy oparte o pg_isready gwarantuje stabilny start."
       }
-],
+    ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Docker Compose",
-        "url": "https://docs.docker.com/compose/",
-        "description": "Oficjalna dokumentacja Compose."
-      },
-      {
-        "title": "Dockerfile Reference",
-        "url": "https://docs.docker.com/reference/dockerfile/",
-        "description": "Budowanie obrazów."
-      },
-      {
-        "title": "Playwright Docker",
-        "url": "https://playwright.dev/docs/docker",
-        "description": "Playwright w kontenerach."
+        "description": "Chapter 9: CI/CD Integration and Test Execution (Docker Compose environments)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Zaczynaj od celu i ryzyka, nie od składni narzędzia.",
-      "Publikuj artefakty diagnostyczne w CI.",
-      "Nie używaj danych produkcyjnych ani sekretów w przykładach.",
-      "Porównuj wyniki z baseline i oficjalną dokumentacją."
-],
+      "Zawsze uruchamiaj testy regresji wizualnej w kontenerze mcr.microsoft.com/playwright, co całkowicie wyeliminuje fałszywe błędy renderowania subpikselowego czcionek między różnymi systemami operacyjnymi."
+    ],
     "commonMistakes": [
       {
-            "mistake": "Brak celu testu",
-            "solution": "Zapisz hipotezę i kryteria sukcesu przed implementacją."
-      },
-      {
-            "mistake": "Brak izolacji danych",
-            "solution": "Użyj runId, osobnych kont lub kontrolowanego datasetu."
-      },
-      {
-            "mistake": "Brak artefaktów",
-            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artefakty."
+        "mistake": "Brak stosowania healthchecków w bazach danych i wynikające z tego błędy connection refused podczas startu API",
+        "solution": "Wdróż rzetelny healthcheck (np. pg_isready) i depends_on z warunkiem service_healthy."
       }
-]
+    ]
   }
 };
