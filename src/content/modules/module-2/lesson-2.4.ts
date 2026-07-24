@@ -4,213 +4,58 @@ import theory2_4 from './lesson-2.4.md?raw';
 export const lesson2_4: Lesson = {
   "id": "2.4",
   "moduleId": 2,
-  "title": "Automatyczne oczekiwanie i limity czasu",
-  "description": "Mechanizm auto-waitingu, sprawdzanie gotowości elementu do akcji, timeouty i stabilne oczekiwanie na stan",
+  "title": "Lokatory i akcje",
+  "description": "Głębokie zrozumienie cyklu życia lokatora. Poznaj leniwą ewaluację (Lazy Evaluation), listę kontrolną gotowości (Actionability Checks) oraz zaawansowane opcje akcji.",
   "order": 4,
   "difficulty": "beginner",
-  "tags": [
-    "playwright",
-    "ui",
-    "automation"
-  ],
+  "tags": ["locators", "actionability", "click-options", "lists", "filtering"],
   "content": {
-    "objective": "Po ukończeniu lekcji rozumiesz temat: Automatyczne oczekiwanie i limity czasu, potrafisz zastosować go w stabilnych testach Playwright oraz wiesz, jak unikać typowych pułapek synchronizacji i selektorów.",
+    "objective": "Po ukończeniu tej lekcji rozumiesz różnicę między deklaracją a ewaluacją lokatora, znasz maszynę stanów gotowości akcji Playwright oraz potrafisz operować na kolekcjach elementów i wysyłać złożone zdarzenia myszy i klawiatury.",
     "theory": theory2_4,
     "codeExamples": [
-      "await page.getByRole('button', { name: 'Zapisz' }).click();\nawait expect(page.getByText('Zapisano zmiany')).toBeVisible();\n",
-      "const [response] = await Promise.all([\n  page.waitForResponse((res) => res.url().includes('/api/orders') && res.status() === 201),\n  page.getByRole('button', { name: 'Złóż zamówienie' }).click(),\n]);\n"
+      `// Wykorzystanie filtrów i leniwej ewaluacji (Książka 1 - Kelhini)
+const deleteButtons = page.getByRole('row')
+  .filter({ hasText: 'Nieaktywny' })
+  .getByRole('button', { name: 'Usuń' });
+  
+// Wyszukanie w DOM i kliknięcie nastąpi dopiero tutaj!
+await deleteButtons.first().click();`
     ],
     "exercises": [
       {
         "id": "ex-2-4-1",
-        "title": "Minimalny scenariusz",
-        "description": "Przygotuj krótki test dla tematu „Automatyczne oczekiwanie i limity czasu”, zawierający akcję i asercję rezultatu."
-      },
-      {
-        "id": "ex-2-4-2",
-        "title": "Wariant negatywny",
-        "description": "Dodaj scenariusz błędu, braku danych, braku uprawnień albo nieprawidłowej interakcji."
-      },
-      {
-        "id": "ex-2-4-3",
-        "title": "Stabilizacja",
-        "description": "Usuń stały timeout i zastąp go oczekiwaniem na konkretny stan interfejsu użytkownika, API lub strony."
-      },
-      {
-        "id": "ex-2-4-4",
-        "title": "Diagnostyka",
-        "description": "Dodaj trace, zrzut ekranu na awarii albo test.step opisujący etapy scenariusza."
-      },
-      {
-        "id": "ex-2-4-5",
-        "title": "Refaktor lokatorów",
-        "description": "Przepisz kruche selektory na lokatory semantyczne lub test id."
-      },
-      {
-        "id": "ex-2-4-6",
-        "title": "Przegląd kodu",
-        "description": "Przygotuj checklistę przeglądu kodu dla testów wykorzystujących tę technikę."
+        "title": "Weryfikacja maszyny stanów gotowości",
+        "description": "Napisz test, w którym przycisk jest początkowo niewidoczny lub zablokowany (disabled). Wywołaj akcję kliknięcia i zaobserwuj, jak Playwright automatycznie czeka na zmianę jego stanu."
       }
     ],
     "quiz": [
       {
         "id": "q2-4-1",
-        "question": "Jaki jest główny cel zagadnienia „Automatyczne oczekiwanie i limity czasu”?",
+        "question": "W którym momencie Playwright fizycznie przeszukuje strukturę DOM w celu zlokalizowania elementu opisanego lokatorem?",
         "options": [
-          "Stabilne i czytelne sterowanie przeglądarką w scenariuszach użytkownika",
-          "Pisanie losowych sleepów",
-          "Zastąpienie wszystkich testów API",
-          "Ignorowanie asercji"
+          "Dopiero w ułamku sekundy, w którym na lokatorze wywoływana jest akcja (np. .click() lub .fill())",
+          "Natychmiast podczas deklarowania zmiennej const locator = page.locator(...)",
+          "Podczas wczytywania pliku testu na poziomie kompilacji TypeScript",
+          "Wyłącznie podczas wywoływania asercji expect"
         ],
         "correctAnswer": 0,
-        "explanation": "Podstawy Playwright służą budowaniu testów, które odtwarzają zachowanie użytkownika i dają wiarygodną informację."
-      },
-      {
-        "id": "q2-4-2",
-        "question": "Który lokator jest zwykle najbardziej zgodny z perspektywą użytkownika?",
-        "options": [
-          "getByRole z nazwą dostępną",
-          "Długi XPath",
-          "Losowa klasa CSS",
-          "nth-child bez kontekstu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Role i nazwy dostępne opisują element tak, jak widzą go użytkownicy i technologie wspomagające."
-      },
-      {
-        "id": "q2-4-3",
-        "question": "Co jest lepsze niż waitForTimeout?",
-        "options": [
-          "Oczekiwanie na widoczny tekst, URL, response lub stan elementu",
-          "Jeszcze dłuższy timeout",
-          "Brak oczekiwania",
-          "Odświeżenie strony"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Czekamy na warunek, który potwierdza postęp scenariusza."
-      },
-      {
-        "id": "q2-4-4",
-        "question": "Po co używać BrowserContext?",
-        "options": [
-          "Do izolowania sesji, cookies i storage między użytkownikami/testami",
-          "Do zmiany koloru przeglądarki",
-          "Do zastąpienia asercji",
-          "Do generowania danych SQL"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Context działa jak odseparowany profil przeglądarki."
-      },
-      {
-        "id": "q2-4-5",
-        "question": "Czym jest actionability check?",
-        "options": [
-          "Sprawdzeniem, czy element nadaje się do wykonania akcji",
-          "Raportem JUnit",
-          "Rodzajem screenshotu",
-          "Typem danych testowych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Playwright przed akcją sprawdza m.in. widoczność, stabilność i możliwość interakcji."
-      },
-      {
-        "id": "q2-4-6",
-        "question": "Co powinno nastąpić po akcji użytkownika w teście?",
-        "options": [
-          "Asercja widocznego lub mierzalnego rezultatu",
-          "Koniec testu bez sprawdzenia",
-          "Losowy sleep",
-          "Zmiana nazwy pliku"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Test ma potwierdzać skutek, nie samo wykonanie akcji."
-      },
-      {
-        "id": "q2-4-7",
-        "question": "Kiedy test wizualny jest kruchy?",
-        "options": [
-          "Gdy obejmuje dynamiczne daty, animacje lub losowe dane bez maskowania",
-          "Gdy ma stabilny viewport",
-          "Gdy maskuje reklamy",
-          "Gdy używa baseline"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Dynamiczne elementy powodują fałszywe regresje wizualne."
-      },
-      {
-        "id": "q2-4-8",
-        "question": "Co jest dobrym nawykiem w podstawowych testach Playwright?",
-        "options": [
-          "Czytelne test.step, stabilne lokatory i diagnostyka awarii",
-          "Brak nazw testów",
-          "Ukrywanie błędów",
-          "Commitowanie raportów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Te praktyki zwiększają utrzymywalność i skracają diagnozę."
+        "explanation": "Lokatory in Playwright są ewaluowane leniwie (lazy-evaluated). Deklaracja lokatora to jedynie przepis, który jest wykonywany dopiero podczas wywołania fizycznej interakcji lub asercji."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
         "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Dokumentacja obiektów Page, Browser i BrowserContext."
-      },
-      {
-        "title": "Playwright Locators",
-        "url": "https://playwright.dev/docs/locators",
-        "description": "Oficjalny przewodnik po lokatorach i strategiach wyszukiwania elementów."
-      },
-      {
-        "title": "Playwright Auto-waiting",
-        "url": "https://playwright.dev/docs/actionability",
-        "description": "Opis mechanizmu sprawdzanie gotowości elementu do akcji i automatycznego oczekiwania."
-      },
-      {
-        "title": "Playwright Screenshots",
-        "url": "https://playwright.dev/docs/zrzuty ekranu",
-        "description": "Dokumentacja screenshotów i testów wizualnych."
+        "description": "Chapter 2: How Playwright ensures actions happen at the right time."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
-      "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",
-      "Każda akcja powinna mieć sensowną asercję skutku — kliknięcie bez weryfikacji nie jest testem.",
-      "Przy interakcjach złożonych zapisuj diagnostykę: screenshot, trace, aktualny URL i stan kluczowych elementów."
+      "Jeśli napotkasz problem z kliknięciem elementu, który jest przysłonięty przez błąd renderowania, unikaj opcji { force: true }. Zamiast tego zlokalizuj element przysłaniający i poczekaj na jego ukrycie."
     ],
     "commonMistakes": [
       {
-        "mistake": "Używanie kruchych selektorów CSS/XPath bez potrzeby",
-        "solution": "Najpierw spróbuj getByRole, getByLabel, getByText lub getByTestId."
-      },
-      {
-        "mistake": "Mylenie obecności elementu w DOM z widocznością i używalnością",
-        "solution": "Używaj asercji i akcji Playwright, które uwzględniają actionability."
-      },
-      {
-        "mistake": "Brak izolacji kontekstu przeglądarki",
-        "solution": "Dla niezależnych użytkowników używaj osobnych BrowserContext."
-      },
-      {
-        "mistake": "Screenshoty porównujące dynamiczne treści",
-        "solution": "Maskuj lub stabilizuj daty, reklamy, animacje i dane losowe."
+        "mistake": "Próba iterowania po elementach za pomocą tradycyjnej pętli for-of bez użycia asynchronicznych metod",
+        "solution": "Wykorzystaj .all() lub asynchroniczne metody filtrowania Playwright do bezpiecznej pracy z listami."
       }
     ]
   }

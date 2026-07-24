@@ -4,208 +4,55 @@ import theory2_9 from './lesson-2.9.md?raw';
 export const lesson2_9: Lesson = {
   "id": "2.9",
   "moduleId": 2,
-  "title": "Zrzuty ekranu i testy wizualne",
-  "description": "Testy wizualne: screenshoty, toHaveScreenshot, maski, tolerancje, stabilizacja danych, ARIA snapshots, CI baseline i review snapshotów.",
+  "title": "Testy regresji wizualnej",
+  "description": "Poznaj podstawy weryfikacji wizualnej z toHaveScreenshot. Dowiedz się, jak zarządzać złotymi wzorcami (baseline), maskować dane dynamiczne i konfigurować progi czułości.",
   "order": 9,
   "difficulty": "beginner",
-  "tags": [
-    "playwright",
-    "ui",
-    "automation"
-  ],
+  "tags": ["visual-testing", "toHaveScreenshot", "masking", "snapshots", "baseline"],
   "content": {
-    "objective": "Po ukończeniu lekcji rozumiesz temat: Zrzuty ekranu i testy wizualne, potrafisz zastosować go w stabilnych testach Playwright oraz wiesz, jak unikać typowych pułapek synchronizacji i selektorów.",
+    "objective": "Po ukończeniu tej lekcji potrafisz pisać podstawowe testy regresji wizualnej w Playwright, stosować opcję maskowania do eliminacji niestabilności oraz dostosowywać progi tolerancji na zmiany pikseli.",
     "theory": theory2_9,
     "codeExamples": [
-      "await expect(page).toHaveScreenshot('home-page.png', {\n  mask: [page.getByTestId('current-date'), page.getByTestId('user-avatar')],\n});\n",
-      "const card = page.getByTestId('product-card').filter({ hasText: 'Laptop Pro' });\nawait expect(card).toHaveScreenshot('product-card.png');\n"
+      `// Przykład asercji wizualnej z maskowaniem (Książka 1 - Kelhini)
+await expect(page).toHaveScreenshot('dashboard.png', {
+  mask: [page.locator('.dynamic-clock-widget')]
+});`
     ],
     "exercises": [
       {
         "id": "ex-2-9-1",
-        "title": "Minimalny scenariusz",
-        "description": "Przygotuj krótki test dla tematu „Zrzuty ekranu i testy wizualne”, zawierający akcję i asercję rezultatu."
-      },
-      {
-        "id": "ex-2-9-2",
-        "title": "Wariant negatywny",
-        "description": "Dodaj scenariusz błędu, braku danych, braku uprawnień albo nieprawidłowej interakcji."
-      },
-      {
-        "id": "ex-2-9-3",
-        "title": "Stabilizacja",
-        "description": "Usuń stały timeout i zastąp go oczekiwaniem na konkretny stan interfejsu użytkownika, API lub strony."
-      },
-      {
-        "id": "ex-2-9-4",
-        "title": "Diagnostyka",
-        "description": "Dodaj trace, zrzut ekranu na awarii albo test.step opisujący etapy scenariusza."
-      },
-      {
-        "id": "ex-2-9-5",
-        "title": "Refaktor lokatorów",
-        "description": "Przepisz kruche selektory na lokatory semantyczne lub test id."
-      },
-      {
-        "id": "ex-2-9-6",
-        "title": "Przegląd kodu",
-        "description": "Przygotuj checklistę przeglądu kodu dla testów wykorzystujących tę technikę."
+        "title": "Pierwszy test wizualny",
+        "description": "Zaimplementuj test wizualny wybranej sekcji nagłówka (Header) swojej strony. Maskuj dynamiczne powitanie użytkownika i zweryfikuj stabilność testu."
       }
     ],
     "quiz": [
       {
         "id": "q2-9-1",
-        "question": "Jaki jest główny cel zagadnienia „Zrzuty ekranu i testy wizualne”?",
+        "question": "W jaki sposób najłatwiej zaktualizować wszystkie złote wzorce (Golden Snapshots) w Playwright?",
         "options": [
-          "Stabilne i czytelne sterowanie przeglądarką w scenariuszach użytkownika",
-          "Pisanie losowych sleepów",
-          "Zastąpienie wszystkich testów API",
-          "Ignorowanie asercji"
+          "Uruchamiając testy z flagą --update-snapshots",
+          "Ręcznie usuwając wszystkie pliki graficzne z dysku",
+          "Zmieniając nazwy zrzutów wewnątrz testów",
+          "Playwright aktualizuje wzorce automatycznie przy każdym przejściu testu"
         ],
         "correctAnswer": 0,
-        "explanation": "Podstawy Playwright służą budowaniu testów, które odtwarzają zachowanie użytkownika i dają wiarygodną informację."
-      },
-      {
-        "id": "q2-9-2",
-        "question": "Który lokator jest zwykle najbardziej zgodny z perspektywą użytkownika?",
-        "options": [
-          "getByRole z nazwą dostępną",
-          "Długi XPath",
-          "Losowa klasa CSS",
-          "nth-child bez kontekstu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Role i nazwy dostępne opisują element tak, jak widzą go użytkownicy i technologie wspomagające."
-      },
-      {
-        "id": "q2-9-3",
-        "question": "Co jest lepsze niż waitForTimeout?",
-        "options": [
-          "Oczekiwanie na widoczny tekst, URL, response lub stan elementu",
-          "Jeszcze dłuższy timeout",
-          "Brak oczekiwania",
-          "Odświeżenie strony"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Czekamy na warunek, który potwierdza postęp scenariusza."
-      },
-      {
-        "id": "q2-9-4",
-        "question": "Po co używać BrowserContext?",
-        "options": [
-          "Do izolowania sesji, cookies i storage między użytkownikami/testami",
-          "Do zmiany koloru przeglądarki",
-          "Do zastąpienia asercji",
-          "Do generowania danych SQL"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Context działa jak odseparowany profil przeglądarki."
-      },
-      {
-        "id": "q2-9-5",
-        "question": "Czym jest actionability check?",
-        "options": [
-          "Sprawdzeniem, czy element nadaje się do wykonania akcji",
-          "Raportem JUnit",
-          "Rodzajem screenshotu",
-          "Typem danych testowych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Playwright przed akcją sprawdza m.in. widoczność, stabilność i możliwość interakcji."
-      },
-      {
-        "id": "q2-9-6",
-        "question": "Co powinno nastąpić po akcji użytkownika w teście?",
-        "options": [
-          "Asercja widocznego lub mierzalnego rezultatu",
-          "Koniec testu bez sprawdzenia",
-          "Losowy sleep",
-          "Zmiana nazwy pliku"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Test ma potwierdzać skutek, nie samo wykonanie akcji."
-      },
-      {
-        "id": "q2-9-7",
-        "question": "Kiedy test wizualny jest kruchy?",
-        "options": [
-          "Gdy obejmuje dynamiczne daty, animacje lub losowe dane bez maskowania",
-          "Gdy ma stabilny viewport",
-          "Gdy maskuje reklamy",
-          "Gdy używa baseline"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Dynamiczne elementy powodują fałszywe regresje wizualne."
-      },
-      {
-        "id": "q2-9-8",
-        "question": "Co jest dobrym nawykiem w podstawowych testach Playwright?",
-        "options": [
-          "Czytelne test.step, stabilne lokatory i diagnostyka awarii",
-          "Brak nazw testów",
-          "Ukrywanie błędów",
-          "Commitowanie raportów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Te praktyki zwiększają utrzymywalność i skracają diagnozę."
+        "explanation": "Flaga --update-snapshots to najszyby i dedykowany sposób na nadpisanie wszystkich bazowych zrzutów ekranu nowym wyglądem aplikacji."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
         "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-            "title": "Screenshots",
-            "url": "https://playwright.dev/docs/zrzuty ekranu",
-            "description": "Screenshoty stron i locatorów."
-      },
-      {
-            "title": "Visual comparisons",
-            "url": "https://playwright.dev/docs/test-snapshots",
-            "description": "Snapshot testing i toHaveScreenshot."
-      },
-      {
-            "title": "ARIA snapshots",
-            "url": "https://playwright.dev/docs/aria-snapshots",
-            "description": "Snapshoty struktury dostępności."
+        "description": "Chapter 10: Setting Up Visual Regression Testing."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Preferuj lokatory opisujące intencję użytkownika: role, label, tekst dostępnościowy i test id.",
-      "Nie zapisuj stałych timeoutów jako rozwiązania problemu synchronizacji; czekaj na znaczący stan.",
-      "Każda akcja powinna mieć sensowną asercję skutku — kliknięcie bez weryfikacji nie jest testem.",
-      "Przy interakcjach złożonych zapisuj diagnostykę: screenshot, trace, aktualny URL i stan kluczowych elementów."
+      "Zalways staraj się uruchamiać testy regresji wizualnej w kontenerach Docker w rurociągu CI, ponieważ silniki renderowania czcionek na Linuxie i macOS różnią się subpikselowo, co powoduje zbędne czerwone testy."
     ],
     "commonMistakes": [
       {
-        "mistake": "Używanie kruchych selektorów CSS/XPath bez potrzeby",
-        "solution": "Najpierw spróbuj getByRole, getByLabel, getByText lub getByTestId."
-      },
-      {
-        "mistake": "Mylenie obecności elementu w DOM z widocznością i używalnością",
-        "solution": "Używaj asercji i akcji Playwright, które uwzględniają actionability."
-      },
-      {
-        "mistake": "Brak izolacji kontekstu przeglądarki",
-        "solution": "Dla niezależnych użytkowników używaj osobnych BrowserContext."
-      },
-      {
-        "mistake": "Screenshoty porównujące dynamiczne treści",
-        "solution": "Maskuj lub stabilizuj daty, reklamy, animacje i dane losowe."
+        "mistake": "Próba testowania wizualnego całych stron bez maskowania dat, banerów i dynamicznych list",
+        "solution": "Zawsze przekaż lokalizatory tych dynamicznych elementów do opcji mask w toHaveScreenshot()."
       }
     ]
   }

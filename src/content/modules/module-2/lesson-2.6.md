@@ -1,221 +1,70 @@
-# Akcje podstawowe — realistyczna symulacja użytkownika
+# Zaawansowana automatyzacja formularzy i elementów interaktywnych
 
-Playwright pozwala wykonywać akcje użytkownika: klikać, wpisywać tekst, używać klawiatury, zaznaczać checkboxy, wybierać opcje i najeżdżać kursorem. Najważniejsze jest jednak to, aby akcje były realistyczne i czytelne. Test automatyczny nie powinien robić rzeczy, których prawdziwy użytkownik nie może zrobić, chyba że świadomie testujesz warstwę techniczną.
+Wprowadzanie danych, obsługa list rozwijanych (dropdowns), zaznaczanie opcji (checkboxes, radio) oraz manipulowanie kalendarzami to serce testów funkcjonalnych aplikacji biznesowych i sklepów e-commerce.
 
-## 1. Kliknięcie
+W tej lekcji dowiesz się, jak poprawnie symulować interakcję z formularzami, w tym z niestandardowymi polami wyboru zbudowanymi w technologiach React/Vue, które nie korzystają z tradycyjnych tagów HTML `<select>`.
 
+---
+
+## 1. Wprowadzanie tekstu: `fill()` vs `pressSequentially()`
+
+Playwright udostępnia dwie metody wprowadzania tekstu do pól `<input>` oraz `<textarea>`:
+
+### A. Metoda `fill()` (Rekomendowana, szybka)
+Błyskawicznie nadpisuje całą wartość pola wejściowego, emulując zachowanie "kopiuj-wklej". Wyzwala wszystkie zdarzenia sieciowe i walidacyjne (`input`, `change`).
 ```typescript
-await page.getByRole('button', { name: 'Zapisz' }).click();
+await page.getByLabel('Imię i nazwisko').fill('Jan Kowalski');
 ```
 
-`click()` korzysta z actionability: Playwright czeka, aż element będzie widoczny, stabilny, aktywny i możliwy do kliknięcia.
-
-Opcje:
-
+### B. Metoda `pressSequentially()` (Powolna, emulacja klawiatury)
+Wpisuje znaki po kolei, jeden po drugim, wyzwalając zdarzenia klawiatury (`keydown`, `keypress`, `keyup`).
+*   **Kiedy stosować?** Używaj wyłącznie przy testowaniu pól z autouzupełnianiem (auto-complete), wyszukiwarek dynamicznych lub specyficznych masek wprowadzania (np. numerów kart kredytowych).
 ```typescript
-await page.getByText('Plik').click({ button: 'right' });
-await page.getByRole('button', { name: 'Otwórz' }).dblclick();
-await page.getByRole('row', { name: /ORD-123/ }).click({ modifiers: ['Control'] });
-await page.getByTestId('canvas').click({ position: { x: 20, y: 30 } });
+// Symuluje fizyczne wciskanie klawiszy na klawiaturze z opóźnieniem 100ms między znakami
+await page.getByPlaceholder('Wyszukaj produkt...').pressSequentially('buty', { delay: 100 });
 ```
 
-Kliknięcie w konkretną pozycję jest przydatne dla canvasów, map i edytorów graficznych. W zwykłym UI preferuj locatory semantyczne.
+---
 
-## 2. `fill()` — domyślny wybór dla pól tekstowych
+## 2. Obsługa list rozwijanych (Dropdowns)
 
+Sposób automatyzacji dropdownu zależy od jego budowy technicznej:
+
+### A. Tradycyjny dropdown oparty o znacznik `<select>`
+Jeśli deweloper użył standardowego znacznika HTML, do wyboru opcji stosujemy dedykowaną metodę `.selectOption()`:
 ```typescript
-await page.getByLabel('Email').fill('user@example.com');
+// Wybierz opcję na podstawie wartości (value), tekstu wyświetlanego lub indeksu
+await page.getByLabel('Wybierz kraj').selectOption({ label: 'Polska' });
+await page.getByLabel('Wybierz kraj').selectOption({ value: 'PL' });
 ```
 
-`fill()` czyści pole i ustawia wartość. Jest szybkie i stabilne. Używaj go w większości formularzy.
-
-Przykład:
-
+### B. Niestandardowy dropdown (React Select / Div-based Dropdowns)
+Współczesne aplikacje często używają bibliotek frontendowych tworzących dropdowny z divów i list. W ich przypadku nie zadziała metoda `.selectOption()`. Musimy zasymulować sekwencję kliknięć prawdziwego użytkownika:
 ```typescript
-await page.getByLabel('Email').fill('user@example.com');
-await page.getByLabel('Hasło').fill('Secret123!');
-await page.getByRole('button', { name: 'Zaloguj' }).click();
+// 1. Kliknij w kontener dropdownu, aby go otworzyć
+await page.getByTestId('custom-dropdown-container').click();
+
+// 2. Kliknij w wybraną opcję z listy, która się wyrenderowała
+await page.getByRole('option', { name: 'Karta Kredytowa' }).click();
 ```
 
-## 3. `pressSequentially()` — znak po znaku
+---
+
+## 3. Checkboxy i przyciski radiowe (Radio Buttons)
+
+Do manipulacji stanem pól wyboru stosujemy bezpieczne metody `.check()` oraz `.uncheck()`. Przed zaznaczeniem, Playwright automatycznie upewni się, czy element nie jest już w wybranym stanie, zapobiegając przypadkowemu odznaczeniu:
 
 ```typescript
-await page.getByLabel('Szukaj').pressSequentially('laptop', { delay: 50 });
+// Zaznacz checkbox (jeśli nie jest zaznaczony)
+await page.getByLabel('Akceptuję regulamin sklepu').check();
+
+// Zweryfikuj stan za pomocą dedykowanej asercji Web-First
+await expect(page.getByLabel('Akceptuję regulamin sklepu')).toBeChecked();
 ```
 
-Używaj, gdy aplikacja reaguje na każde naciśnięcie klawisza:
+---
 
-- autocomplete;
-- maski inputów;
-- walidacja znak po znaku;
-- edytory tekstu;
-- komponenty, które obsługują `keydown`/`keyup`.
-
-Nie używaj `pressSequentially()` wszędzie, bo spowolnisz testy bez potrzeby.
-
-## 4. Klawiatura i skróty
-
-```typescript
-await page.getByLabel('Szukaj').press('Enter');
-await page.keyboard.press('Control+A');
-await page.keyboard.press('Backspace');
-await page.keyboard.press('Escape');
-```
-
-Na macOS często używa się `Meta` zamiast `Control`. Jeśli test ma działać cross-platform, unikaj zależności od skrótów systemowych albo obsłuż warianty.
-
-## 5. Checkboxy i radio buttons
-
-Dla checkboxów używaj metod dedykowanych:
-
-```typescript
-await page.getByLabel('Akceptuję regulamin').check();
-await expect(page.getByLabel('Akceptuję regulamin')).toBeChecked();
-
-await page.getByLabel('Newsletter').uncheck();
-await expect(page.getByLabel('Newsletter')).not.toBeChecked();
-```
-
-`check()` nie odznaczy elementu, jeśli już jest zaznaczony. To bezpieczniejsze niż zwykłe `click()`.
-
-Radio:
-
-```typescript
-await page.getByLabel('Dostawa kurierem').check();
-```
-
-## 6. Hover i focus
-
-```typescript
-await page.getByRole('menuitem', { name: 'Produkty' }).hover();
-await page.getByLabel('Email').focus();
-```
-
-`hover()` jest przydatny dla menu, tooltipów i komponentów pokazujących akcje dopiero po najechaniu.
-
-Po hoverze zwykle dodaj asercję:
-
-```typescript
-await page.getByRole('button', { name: 'Pomoc' }).hover();
-await expect(page.getByRole('tooltip')).toContainText('Centrum pomocy');
-```
-
-## 7. Select
-
-Dla natywnego `<select>`:
-
-```typescript
-await page.getByLabel('Kraj').selectOption('PL');
-await page.getByLabel('Kraj').selectOption({ label: 'Polska' });
-await page.getByLabel('Kraj').selectOption({ index: 2 });
-```
-
-Dla custom selectów z bibliotek UI nie używaj `selectOption`, bo to nie jest prawdziwy element `<select>`:
-
-```typescript
-await page.getByRole('combobox', { name: 'Kraj' }).click();
-await page.getByRole('option', { name: 'Polska' }).click();
-```
-
-## 8. Typowe błędy
-
-- Klikanie `page.locator('button')` przy wielu przyciskach.
-- Używanie `pressSequentially()` zamiast `fill()` bez powodu.
-- Klikanie checkboxa przez `click()` i przypadkowe odznaczenie.
-- Testowanie custom selecta przez `selectOption`.
-- Wymuszanie `force: true`, bo locator wskazuje ukryty input zamiast widocznej kontrolki.
-- Brak asercji po akcji.
-
-## 9. Checklista akcji
-
-- Czy akcja odpowiada temu, co może zrobić użytkownik?
-- Czy locator jest jednoznaczny?
-- Czy po akcji jest asercja rezultatu?
-- Czy użyto dedykowanej metody dla checkboxa/selecta?
-- Czy `pressSequentially()` jest potrzebne?
-- Czy test nie polega na ukrytym elemencie technicznym?
-- Czy brak `force: true` nie maskuje błędu UI?
-
-## Linki
-
-- [Input actions](https://playwright.dev/docs/input)
-- [Actionability](https://playwright.dev/docs/actionability)
-- [Locators](https://playwright.dev/docs/locators)
-
-## 10. Akcja zawsze powinna mieć skutek
-
-Kliknięcie bez asercji nie jest testem. Po każdej ważnej akcji sprawdź rezultat:
-
-```typescript
-await page.getByRole('button', { name: 'Zapisz' }).click();
-await expect(page.getByRole('status')).toHaveText('Zapisano');
-```
-
-Jeśli akcja uruchamia request, możesz dodatkowo poczekać na odpowiedź, ale nadal sprawdzaj UI.
-
-## 11. Realistyczne wprowadzanie danych
-
-`fill()` jest najlepsze dla większości pól, ale nie sprawdza wszystkich zachowań klawiatury. Dla masek, autocomplete i pól reagujących na każde naciśnięcie używaj `pressSequentially`. Dla skrótów klawiszowych używaj `keyboard.press`.
-
-## 12. Focus i accessibility
-
-Akcje podstawowe są też okazją do testów dostępności:
-
-```typescript
-await page.keyboard.press('Tab');
-await expect(page.getByLabel('Email')).toBeFocused();
-```
-
-Jeśli formularz nie da się obsłużyć klawiaturą, to problem jakości produktu, nie tylko testu.
-
-## 13. Akcje myszy a testowanie canvasów i map
-
-Czasem zwykły locator nie wystarczy, np. przy canvasie, mapie albo edytorze graficznym. Wtedy kliknięcie po pozycji jest uzasadnione:
-
-```typescript
-await page.getByTestId('map').click({ position: { x: 120, y: 80 } });
-```
-
-Taki test powinien mieć bardzo czytelną nazwę i komentarz, bo kliknięcie w koordynaty jest mniej odporne na zmianę layoutu niż locator po roli.
-
-## 14. Akcje a walidacja formularzy
-
-Dla formularzy sprawdzaj nie tylko sukces, ale też walidację po interakcji użytkownika:
-
-```typescript
-await page.getByLabel('Email').fill('niepoprawny-email');
-await page.getByRole('button', { name: 'Zapisz' }).click();
-await expect(page.getByRole('alert')).toContainText('Niepoprawny adres e-mail');
-```
-
-To potwierdza, że akcje użytkownika uruchamiają właściwe reguły UI.
-
-## 15. Skróty klawiaturowe
-
-Aplikacje administracyjne często mają skróty: zapis, wyszukiwanie, zamykanie modala. Test może je sprawdzić:
-
-```typescript
-await page.keyboard.press('Control+K');
-await expect(page.getByRole('dialog', { name: 'Wyszukiwarka' })).toBeVisible();
-await page.keyboard.press('Escape');
-await expect(page.getByRole('dialog', { name: 'Wyszukiwarka' })).toBeHidden();
-```
-
-Na macOS może być potrzebny `Meta` zamiast `Control`, więc takie testy wymagają świadomego projektu.
-
-## 16. Antywzorce akcji podstawowych
-
-- Klikanie pierwszego lepszego `button`.
-- Brak asercji po akcji.
-- `force: true` bez wyjaśnienia.
-- Używanie `pressSequentially` wszędzie, mimo że `fill` wystarczy.
-- Testowanie ukrytych inputów zamiast widocznych kontrolek.
-
-## 17. Zasada końcowa
-
-Akcja w teście powinna przypominać zachowanie prawdziwego użytkownika. Jeśli test robi coś, czego użytkownik nie może zrobić, musisz mieć bardzo dobry powód i opisać go w kodzie.
-
-## 📘 Suplement Inżynieryjny 2026: Podstawy Playwright (Locators & Actions)
-*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 2*
-*   **Priorytet Dostępności (A11y)**: Współczesne testy odrzucają surowe selektory CSS i XPath. Zawsze dąż do używania lokalizatorów semantycznych (`getByRole`, `getByLabel`), które imitują interakcję prawdziwego użytkownika i ułatwiają zachowanie standardów dostępności w kodzie produkcyjnym.
-*   **Auto-Waiting State Machine**: Playwright przed kliknięciem elementu automatycznie sprawdza jego stan (czy jest widoczny, stabilny, włączony i klikalny). Zrozumienie tej maszyny stanów zapobiega pisaniu zbędnych oczekiwań (np. `sleep`).
+## 4. Checklista Formularzy
+- [ ] Czy dobrałeś odpowiednią metodę wprowadzania tekstu (`fill` do standardowych pól, `pressSequentially` dla wyszukiwarek/dynamic autocomplete)?
+- [ ] Czy poprawnie obsłużyłeś niestandardowy dropdown symulując sekwencję otwarcia i wyboru elementu z listy?
+- [ ] Czy do weryfikacji stanów pól wyboru stosujesz dedykowaną asercję Web-First `expect(locator).toBeChecked()`?
