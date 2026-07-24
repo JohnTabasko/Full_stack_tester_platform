@@ -1,179 +1,60 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory14_4 from './lesson-14.4.md?raw';
 
 export const lesson14_4: Lesson = {
   "id": "14.4",
   "moduleId": 14,
   "title": "Podstawy testów penetracyjnych",
-  "description": "Podstawy testów penetracyjnych i security testingu QA: OWASP, IDOR, XSS, injection, cookies, nagłówki, rate limiting, ZAP, etyka i raportowanie podatności.",
+  "description": "Wdróż automatyczne testy penetracyjne (Fuzzing). Poznaj techniki wykrywania SQL Injection przez słowniki zapytań oraz weryfikację uprawnień Broken Access Control.",
   "order": 4,
   "difficulty": "advanced",
-  "tags": [
-    "security",
-    "accessibility",
-    "visual",
-    "compliance"
-  ],
+  "tags": ["security", "penetration-testing", "SQL-Injection", "fuzzing", "access-control", "OWASP"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować testy dla obszaru „Podstawy testów penetracyjnych”, łącząc automatyzację z analizą ryzyka, dowodami audytowymi i świadomą interpretacją wyników.",
+    "objective": "Po ukończeniu tej lekcji potrafisz zautomatyzować wykrywanie podatności poziomu wejść (SQLi) za pomocą słowników fuzzujących, pisać testy uprawnień chroniące przed Broken Access Control oraz interpretować anomalie w konsoli przeglądarki.",
     "theory": theory14_4,
     "codeExamples": [
-      "const response = await request.get(`/api/orders/${otherUserOrderId}`, {\n  headers: { Authorization: `Bearer ${regularUserToken}` },\n});\nexpect([403, 404]).toContain(response.status());",
-      "const cookies = await page.context().cookies();\nconst session = cookies.find(cookie => cookie.name === 'session');\nexpect(session?.httpOnly).toBe(true);\nexpect(session?.secure).toBe(true);",
-      "docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\\n  -t https://staging.example.test \\\n  -r zap-report.html"
-],
+      `// Przykład testu Broken Access Control (Książka 3 - Uppadhyay)
+const context = await browser.newContext({ storageState: '.auth/customer.json' });
+const page = await context.newPage();
+await page.goto('/admin-settings');
+await expect(page).not.toHaveURL('/admin-settings');`
+    ],
     "exercises": [
       {
-            "id": "ex-14-4-1",
-            "title": "Ćwiczenie 1",
-            "description": "Zaprojektuj test IDOR dla zasobu zamówienia i opisz oczekiwane statusy."
-      },
-      {
-            "id": "ex-14-4-2",
-            "title": "Ćwiczenie 2",
-            "description": "Sprawdź flagi cookies sesyjnego w Playwright i opisz ryzyko braku HttpOnly/Secure."
-      },
-      {
-            "id": "ex-14-4-3",
-            "title": "Ćwiczenie 3",
-            "description": "Przygotuj checklistę nagłówków bezpieczeństwa dla strony głównej i API."
-      },
-      {
-            "id": "ex-14-4-4",
-            "title": "Ćwiczenie 4",
-            "description": "Opisz bezpieczny zakres testów OWASP ZAP baseline dla stagingu."
-      },
-      {
-            "id": "ex-14-4-5",
-            "title": "Ćwiczenie 5",
-            "description": "Napisz raport podatności zawierający wpływ, dowody, kroki i rekomendację."
+        "id": "ex-14-4-1",
+        "title": "Automatyzacja testu uprawnień API",
+        "description": "Zaimplementuj test sprawdzający, czy wywołanie metody DELETE na endpoint `/api/v1/users/12` z kontekstu posiadającego ciasteczko sesji klienta zwraca kod statusu 403 Forbidden."
       }
-],
+    ],
     "quiz": [
       {
-            "id": "q14-4-1",
-            "question": "Czym różni się pentest od security testingu QA?",
-            "options": [
-                  "Pentest jest głębszą próbą wykorzystania podatności w uzgodnionym zakresie, QA security testing regularnie sprawdza znane ryzyka",
-                  "Niczym",
-                  "QA może atakować dowolną produkcję",
-                  "Pentest nie wymaga zgody"
-            ],
-            "correctAnswer": 0,
-            "explanation": "To sprawdza praktyczne rozumienie podstaw security testingu."
-      },
-      {
-            "id": "q14-4-2",
-            "question": "Co oznacza IDOR?",
-            "options": [
-                  "Dostęp do cudzego zasobu przez manipulację identyfikatorem",
-                  "Błąd koloru UI",
-                  "Brak testów jednostkowych",
-                  "Format raportu"
-            ],
-            "correctAnswer": 0,
-            "explanation": "To sprawdza praktyczne rozumienie podstaw security testingu."
-      },
-      {
-            "id": "q14-4-3",
-            "question": "Co jest ryzykiem XSS?",
-            "options": [
-                  "Wykonanie niechcianego JavaScriptu w kontekście aplikacji",
-                  "Powolny indeks bazy",
-                  "Brak screenshotu",
-                  "Za duży viewport"
-            ],
-            "correctAnswer": 0,
-            "explanation": "To sprawdza praktyczne rozumienie podstaw security testingu."
-      },
-      {
-            "id": "q14-4-4",
-            "question": "Która flaga cookie ogranicza dostęp JavaScriptu do cookie?",
-            "options": [
-                  "HttpOnly",
-                  "Public",
-                  "Readable",
-                  "LocalOnly"
-            ],
-            "correctAnswer": 0,
-            "explanation": "To sprawdza praktyczne rozumienie podstaw security testingu."
-      },
-      {
-            "id": "q14-4-5",
-            "question": "Dlaczego skaner nie zastępuje pentestu?",
-            "options": [
-                  "Nie rozumie pełnego kontekstu biznesowego i autoryzacji",
-                  "Zawsze znajduje wszystko",
-                  "Nie generuje raportów",
-                  "Nie działa w CI"
-            ],
-            "correctAnswer": 0,
-            "explanation": "To sprawdza praktyczne rozumienie podstaw security testingu."
+        "id": "q14-4-1",
+        "question": "W jaki sposób automatyzujemy wykrywanie podatności typu Broken Access Control (Uszkodzona kontrola dostępu) przy użyciu Playwright?",
+        "options": [
+          "Próbując wejść bezpośrednio na prywatne adresy URL z poziomu kontekstu przeglądarki o niskich uprawnieniach i weryfikując odmowę dostępu (np. przekierowanie lub status 403)",
+          "Skanując kod źródłowy aplikacji przed kompilacją",
+          "Wyłączając przeglądarce obsługę stylów CSS",
+          "Playwright nie umożliwia testowania uprawnień"
+        ],
+        "correctAnswer": 0,
+        "explanation": "Broken Access Control weryfikujemy, symulując akcje intruza: powołujemy kontekst zwykłego użytkownika i sprawdzamy, czy aplikacja poprawnie blokuje bezpośrednie próby nawigacji lub żądania API przeznaczone dla administratorów."
       }
-],
+    ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-            "title": "OWASP WSTG",
-            "url": "https://owasp.org/www-project-web-security-testing-guide/",
-            "description": "Oficjalny przewodnik testowania bezpieczeństwa aplikacji webowych."
-      },
-      {
-            "title": "OWASP Top 10",
-            "url": "https://owasp.org/www-project-top-ten/",
-            "description": "Najważniejsze klasy ryzyk aplikacji webowych."
-      },
-      {
-            "title": "OWASP API Security Top 10",
-            "url": "https://owasp.org/www-project-api-security/",
-            "description": "Najważniejsze ryzyka API."
-      },
-      {
-            "title": "OWASP ZAP",
-            "url": "https://www.zaproxy.org/",
-            "description": "Skaner bezpieczeństwa używany do baseline scans i testów pomocniczych."
-      },
-      {
-            "title": "FIRST CVSS",
-            "url": "https://www.first.org/cvss/",
-            "description": "System oceny powagi podatności."
+        "description": "Chapter 5: OWASP top 10 and access control validation."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Nie wykonuj agresywnych testów poza uzgodnionym zakresem.",
-      "Najbardziej wartościowe automatyczne security tests często dotyczą autoryzacji i IDOR.",
-      "Skaner traktuj jako pomoc, nie wyrocznię.",
-      "Raport podatności powinien opisywać wpływ biznesowy i dowody."
-],
+      "Stosuj pętle parametryzowane (parameterized tests) w Playwright do szybkiego przetestowania kilkunastu różnych złośliwych zapytań SQL/XSS na tym samym formularzu."
+    ],
     "commonMistakes": [
       {
-            "mistake": "Testowanie bezpieczeństwa na produkcji bez zgody",
-            "solution": "Ustal pisemny zakres, środowisko i zakazane techniki."
-      },
-      {
-            "mistake": "Poleganie wyłącznie na skanerze",
-            "solution": "Dodaj scenariusze autoryzacji, role, dane i testy manualne."
-      },
-      {
-            "mistake": "Raport bez wpływu biznesowego",
-            "solution": "Opisz, jakie dane lub funkcje są zagrożone i kto może wykorzystać błąd."
+        "mistake": "Brak asercji na zmianę adresu URL lub kod błędu po próbie nieautoryzowanej nawigacji",
+        "solution": "Zawsze po próbie wejścia na zablokowany adres wywołaj expect(page).not.toHaveURL() lub sprawdź obecność komunikatu o odmowie."
       }
-]
+    ]
   }
 };
