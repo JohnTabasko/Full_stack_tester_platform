@@ -1,217 +1,63 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory8_2 from './lesson-8.2.md?raw';
 
 export const lesson8_2: Lesson = {
   "id": "8.2",
   "moduleId": 8,
   "title": "Testowanie GraphQL",
-  "description": "Zapytania GraphQL, mutacje, zmienne, fragmenty, błędy, paginacja i introspekcja.",
+  "description": "Opanuj automatyzację zapytań (Queries) i mutacji (Mutations) GraphQL. Poznaj strukturę variables, obsługę jedynego punktu końcowego oraz unikanie pułapki statusu 200 OK przy błędach.",
   "order": 2,
-  "difficulty": "intermediate",
-  "tags": [
-    "api-testing",
-    "playwright",
-    "contract",
-    "http"
-  ],
+  "difficulty": "advanced",
+  "tags": ["GraphQL", "queries", "mutations", "variables", "errors-trap", "API-testing"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować testy API dla tematu „Testowanie GraphQL”, obejmujące kontrakt, dane, scenariusze negatywne, sprzątanie danych i diagnostykę.",
+    "objective": "Po ukończeniu tej lekcji potrafisz konstruować zapytania i mutacje GraphQL w Playwright, prawidłowo zarządzać zmiennymi, unikać fałszywych sukcesów przy błędach bazy oraz walidować strukturę błędów GraphQL.",
     "theory": theory8_2,
     "codeExamples": [
-      "const response = await request.post('/graphql', {\n  data: {\n    query: `query Order($id: ID!) { order(id: $id) { id status totalGross } }`,\n    variables: { id: 'ord-123' },\n  },\n});\n\nconst body = await response.json();\nexpect(body.errors).toBeUndefined();\nexpect(body.data.order).toMatchObject({ id: 'ord-123', status: 'paid' });\n",
-      "const mutation = await request.post('/graphql', {\n  data: {\n    query: `mutation CreateUser($input: CreateUserInput!) { createUser(input: $input) { id email } }`,\n    variables: { input: { email } },\n  },\n});\n"
+      `// Przykład mutacji GraphQL z zmiennymi (Książka 3 - Uppadhyay)
+const response = await request.post('/graphql', {
+  data: {
+    query: \`mutation Add($name: String!) { add(name: $name) { id } }\`,
+    variables: { name: 'Klawiatura' }
+  }
+});
+const body = await response.json();
+expect(body.errors).toBeUndefined();`
     ],
     "exercises": [
       {
         "id": "ex-8-2-1",
-        "title": "Ścieżka sukcesu kontraktu",
-        "description": "Dla tematu „Testowanie GraphQL” napisz test poprawnej odpowiedzi: status, body i headers."
-      },
-      {
-        "id": "ex-8-2-2",
-        "title": "Negative path",
-        "description": "Dodaj test braku autoryzacji, braku uprawnień, niepoprawnych danych albo konfliktu."
-      },
-      {
-        "id": "ex-8-2-3",
-        "title": "Dane testowe",
-        "description": "Przygotuj dane przez API lub fixture i zaplanuj sprzątanie danych."
-      },
-      {
-        "id": "ex-8-2-4",
-        "title": "Walidacja schematu",
-        "description": "Opisz albo zaimplementuj walidację struktury response względem schematu."
-      },
-      {
-        "id": "ex-8-2-5",
-        "title": "Paginacja lub lista",
-        "description": "Sprawdź limit, sortowanie, cursor/offset i stabilność listy wyników."
-      },
-      {
-        "id": "ex-8-2-6",
-        "title": "Organizacja kodu",
-        "description": "Wydziel klienta API/resource class bez ukrywania sensu asercji."
+        "title": "Wdrożenie walidacji mutacji GraphQL",
+        "description": "Napisz test dla mutacji aktualizującej profil użytkownika. Przekaż zmienne, wykonaj żądanie, upewnij się, że status wynosi 200 OK, tablica `errors` nie istnieje, a dane profilu zostały zaktualizowane."
       }
     ],
     "quiz": [
       {
         "id": "q8-2-1",
-        "question": "Co powinien sprawdzać dobry test API?",
+        "question": "Dlaczego asercja statusu HTTP toBeOK() jest niewystarczająca podczas testowania ścieżki pozytywnej w GraphQL?",
         "options": [
-          "Status, ciało odpowiedzi, nagłówki, kontrakt i semantykę odpowiedzi",
-          "Wyłącznie 200 OK",
-          "Tylko screenshot",
-          "Kolor przycisku"
+          "Ponieważ GraphQL zwraca status 200 OK nawet wtedy, gdy zapytanie nie powiodło się, umieszczając błędy wewnątrz tablicy 'errors' w JSON",
+          "Ponieważ GraphQL nie obsługuje kodów statusu HTTP",
+          "Ponieważ Playwright nie potrafi odczytać statusu zapytań POST",
+          "Ponieważ asercja toBeOK() rzuca błąd przy każdym zapytaniu GraphQL"
         ],
         "correctAnswer": 0,
-        "explanation": "API to kontrakt obejmujący więcej niż sam status."
-      },
-      {
-        "id": "q8-2-2",
-        "question": "Czym różni się 401 od 403?",
-        "options": [
-          "401 oznacza brak/niepoprawne uwierzytelnienie, 403 brak uprawnień",
-          "To zawsze to samo",
-          "403 oznacza brak tokena",
-          "401 oznacza błąd walidacji"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Rozróżnienie jest ważne dla bezpieczeństwa i UX klienta API."
-      },
-      {
-        "id": "q8-2-3",
-        "question": "Dlaczego warto walidować schema response?",
-        "options": [
-          "Aby wykryć regresje kontraktu struktury danych",
-          "Aby zastąpić wszystkie asercje",
-          "Aby ukryć błędy",
-          "Aby uniknąć danych testowych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Schema validation wykrywa zmiany pól, typów i wymaganych struktur."
-      },
-      {
-        "id": "q8-2-4",
-        "question": "Co oznacza idempotentność?",
-        "options": [
-          "Wielokrotne wykonanie tej samej operacji daje ten sam skutek",
-          "Operacja zawsze jest szybka",
-          "Brak autoryzacji",
-          "Losową odpowiedź"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Idempotencja jest kluczowa przy retry, PUT, DELETE i płatnościach."
-      },
-      {
-        "id": "q8-2-5",
-        "question": "Co jest ważne przy testach paginacji?",
-        "options": [
-          "Limit, cursor/offset, sortowanie i brak duplikatów między stronami",
-          "Tylko pierwszy element",
-          "Brak asercji",
-          "Wyłącznie interfejs użytkownika"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Paginacja często psuje się na granicach i przy sortowaniu."
-      },
-      {
-        "id": "q8-2-6",
-        "question": "Po co sprzątanie danych tracker w API tests?",
-        "options": [
-          "Aby usuwać zasoby utworzone w teście",
-          "Aby przyspieszać CSS",
-          "Aby ukrywać tokeny",
-          "Aby zastąpić requesty"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Testy API często tworzą dane, które trzeba bezpiecznie usunąć."
-      },
-      {
-        "id": "q8-2-7",
-        "question": "Jaki jest problem nadmiernie ukrytego API clienta?",
-        "options": [
-          "Test przestaje pokazywać, jaki kontrakt i rezultat sprawdza",
-          "Test staje się zawsze szybszy",
-          "API znika",
-          "Nie da się użyć TypeScript"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Klient ma upraszczać transport, ale asercje powinny być czytelne."
-      },
-      {
-        "id": "q8-2-8",
-        "question": "Najważniejsza zasada lekcji „Testowanie GraphQL” to:",
-        "options": [
-          "API testuje kontrakt i zachowanie usługi, nie tylko techniczne połączenie",
-          "Wystarczy response.ok",
-          "Nie trzeba negatywnych testów",
-          "Dane mogą zostać w środowisku"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wartość testu API wynika z jasnej weryfikacji kontraktu i skutków."
+        "explanation": "To klasyczna pułapka (GraphQL error trap). Jeśli zapytanie dotarło do serwera, serwer zawsze zwróci status 200, a ewentualne błędy walidacji czy uprawnień umieści w polu 'errors' wewnątrz odpowiedzi JSON."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Testowanie API",
-        "url": "https://playwright.dev/docs/api-testing",
-        "description": "Oficjalna dokumentacja testowania API w Playwright."
-      },
-      {
-        "title": "MDN HTTP",
-        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
-        "description": "Dokumentacja metod HTTP, statusów, nagłówków i semantyki protokołu."
-      },
-      {
-        "title": "GraphQL Documentation",
-        "url": "https://graphql.org/learn/",
-        "description": "Podstawy GraphQL: query, mutation, variables, fragments i errors."
-      },
-      {
-        "title": "JSON Schema",
-        "url": "https://json-schema.org/",
-        "description": "Standard opisu i walidacji struktury danych JSON."
+        "description": "Chapter 2: GraphQL queries, mutations, and variables."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Test API powinien weryfikować kontrakt, semantykę i skutki uboczne, nie tylko status HTTP.",
-      "Scenariusze negatywne API są równie ważne jak happy path: auth, validation, forbidden, conflict i not found.",
-      "Dane tworzone przez API muszą mieć sprzątanie danych albo unikalny identyfikator przebiegu.",
-      "Klient API w testach powinien upraszczać requesty, ale nie ukrywać istotnych asercji."
+      "Stosuj szablony tekstu (backticks) w TypeScript do przejrzystego definiowania wielolinijkowych struktur Query i Mutation GraphQL w kodzie."
     ],
     "commonMistakes": [
       {
-        "mistake": "Sprawdzanie wyłącznie response.ok()",
-        "solution": "Dodaj asercje statusu, ciało odpowiedzi, nagłówki, kontraktu i skutku w systemie."
-      },
-      {
-        "mistake": "Brak testów 401/403/404/409/422",
-        "solution": "Projektuj negatywne scenariusze jako część kontraktu API."
-      },
-      {
-        "mistake": "Tworzenie danych bez sprzątanie danychu",
-        "solution": "Używaj sprzątanie danych trackera, run_id albo fixture usuwającej zasoby po teście."
-      },
-      {
-        "mistake": "Wartości wklejane w string GraphQL",
-        "solution": "Używaj variables, aby uniknąć błędów formatowania i injection."
+        "mistake": "Brak sprawdzania obecności pola 'errors' w testach ścieżki sukcesu GraphQL",
+        "solution": "Zawsze dodawaj asercję expect(body.errors).toBeUndefined(), aby uniknąć fałszywie zielonych testów."
       }
     ]
   }
