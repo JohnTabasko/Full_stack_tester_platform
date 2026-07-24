@@ -1,295 +1,87 @@
-# Równoległość, workers i sharding — szybkie testy bez utraty izolacji
+# Zaawansowana współbieżność i Sharding w rurociągach CI/CD
 
-Playwright Test został zaprojektowany z myślą o równoległym uruchamianiu testów. To jedna z jego największych przewag nad starszymi rozwiązaniami. Równoległość może skrócić wykonanie suite z godziny do kilkunastu minut, ale tylko wtedy, gdy testy są niezależne, dane są izolowane, a środowisko potrafi obsłużyć obciążenie.
+Współczesne rurociągi wdrażania oprogramowania (CI/CD Pipelines) wymagają błyskawicznej informacji zwrotnej (Feedback Loop). Uruchamianie kilkuset testów E2E sekwencyjnie na jednej maszynie to marnotrawstwo czasu deweloperów oraz pieniędzy (koszty minut procesora w chmurach CI).
 
-Ta lekcja pokazuje, jak działa równoległość w Playwright, czym są workers, kiedy używać `fullyParallel`, jak działa `serial`, jak dzielić testy na shardy w CI i jak unikać flakiness wynikającego ze współdzielonego stanu.
+Playwright Test to lider wydajności współbieżnej. Udostępnia zaawansowane mechanizmy sterowania procesami roboczymi (Workers) oraz natywny mechanizm **horyzontalnego skalowania (Sharding)**. W tej lekcji nauczysz się optymalizować i skalować współbieżne wykonanie testów do granic możliwości.
 
-## 1. Model wykonania Playwright
+---
 
-Playwright uruchamia testy w procesach zwanych workerami. Worker to osobny proces Node.js, który wykonuje część testów. Każdy test dostaje izolowane fixtures test-zakresd, np. `page` i `context`.
+## 1. Sterowanie współbieżnością na poziomie projektu
 
-Domyślnie Playwright wykonuje pliki testowe równolegle. Testy wewnątrz jednego pliku zwykle wykonują się po kolei, chyba że włączysz pełną równoległość.
-
-```bash
-npx playwright test
-```
-
-Liczbę workerów można ustawić w konfiguracji:
+Liczbą procesów roboczych (Workers) sterujemy w pliku `playwright.config.ts`. Ponieważ zasoby procesora na maszynach lokalnych różnią się od maszyn wirtualnych CI, konfiguracja musi być elastyczna:
 
 ```typescript
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  workers: process.env.CI ? 4 : undefined,
-});
-```
-
-Można też sterować tym z CLI:
-
-```bash
-npx playwright test --workers=4
-```
-
-## 2. Izolacja jako warunek równoległości
-
-Równoległość jest bezpieczna tylko wtedy, gdy testy nie zależą od siebie. Każdy test powinien móc przejść samodzielnie, w dowolnej kolejności i równolegle z innymi.
-
-Złe założenie:
-
-```typescript
-test('tworzy produkt', async ({ page }) => {
-  await page.goto('/admin/products');
-  await page.getByRole('button', { name: 'Dodaj' }).click();
-  await page.getByLabel('Nazwa').fill('Laptop');
-  await page.getByRole('button', { name: 'Zapisz' }).click();
-});
-
-test('usuwa produkt', async ({ page }) => {
-  await page.goto('/admin/products');
-  await page.getByText('Laptop').click();
-  await page.getByRole('button', { name: 'Usuń' }).click();
-});
-```
-
-Drugi test zakłada, że pierwszy wykonał się wcześniej. To antywzorzec.
-
-Lepsze podejście:
-
-```typescript
-test('usuwa produkt', async ({ page, request }) => {
-  const productName = `Laptop ${Date.now()}`;
-  await request.post('/api/products', { data: { name: productName } });
-
-  await page.goto('/admin/products');
-  await page.getByText(productName).click();
-  await page.getByRole('button', { name: 'Usuń' }).click();
-  await expect(page.getByText(productName)).toBeHidden();
-});
-```
-
-Test sam przygotowuje stan, którego potrzebuje.
-
-## 3. `fullyParallel`
-
-Opcja `fullyParallel` pozwala uruchamiać równolegle również testy z tego samego pliku.
-
-```typescript
-export default defineConfig({
+  // Lokalnie wykorzystaj 50% rdzeni procesora, a w CI ogranicz do 2, aby uniknąć przeciążenia pamięci
+  workers: process.env.CI ? 2 : '50%',
+  
+  // Wymuś uruchomienie absolutnie każdego testu w osobnym wątku roboczym
   fullyParallel: true,
 });
 ```
 
-Można ją ustawić również na poziomie projektu:
+---
 
-```typescript
-export default defineConfig({
-  projects: [
-    { name: 'chromium', fullyParallel: true },
-  ],
-});
-```
+## 2. Izolacja danych w testach współbieżnych (Concurrency Safety)
 
-Używaj `fullyParallel`, gdy testy są naprawdę niezależne. Jeśli plik zawiera wspólne zmienne mutowane przez testy, pełna równoległość ujawni błędy architektury.
+Uruchomienie testów w pełnej współbieżności (`fullyParallel: true`) wymaga od inżyniera QA absolutnego przestrzegania zasady **niezależności testów (Test Independence)**.
 
-## 4. `test.describe.configure()`
-
-Na poziomie grupy testów można ustawić tryb wykonania.
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe.configure({ mode: 'parallel' });
-
-test.describe('wyszukiwarka', () => {
-  test('szuka po nazwie', async ({ page }) => {});
-  test('szuka po kategorii', async ({ page }) => {});
-});
-```
-
-Dostępne tryby:
-
-- `default` — standardowe zachowanie;
-- `parallel` — testy w grupie mogą działać równolegle;
-- `serial` — testy działają po kolei i po awarii kolejne mogą zostać pominięte.
-
-`serial` traktuj jako wyjątek. Najczęściej oznacza, że testy są zbyt zależne od siebie. Są jednak sytuacje uzasadnione, np. bardzo kosztowny end-to-end flow demonstracyjny albo test migracji, którego nie da się łatwo rozdzielić.
-
-```typescript
-test.describe.configure({ mode: 'serial' });
-```
-
-## 5. Workers a dane testowe
-
-Playwright udostępnia `testInfo.workerIndex` oraz `testInfo.parallelIndex`, które pomagają izolować dane.
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test('konto przypisane do workera', async ({ page }, testInfo) => {
-  const email = `test-user-${testInfo.parallelIndex}@example.com`;
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
-});
-```
-
-W fixture worker-zakresd można przypisać osobne konto dla każdego workera:
-
-```typescript
-export const test = base.extend<{}, { account: { email: string; password: string } }>({
-  account: [async ({}, use, workerInfo) => {
-    await use({
-      email: `worker-${workerInfo.parallelIndex}@example.com`,
-      password: 'Secret123!',
+### Zasada 1: Unikalne Konta Użytkowników
+Jeśli dwa testy działające równolegle będą korzystać z tego samego konta (np. logować się jako `admin@sklep.pl`), ich sesje będą się nawzajem wylogowywać. 
+*   **Rozwiązanie**: Każdy worker lub test musi operować na odizolowanych kontach testowych (np. generowanych dynamicznie, lub przypisanych do indeksu workera `testInfo.workerIndex`).
+    ```typescript
+    test('dynamiczny użytkownik per worker', async ({ page }, testInfo) => {
+      const email = `test-user-${testInfo.workerIndex}@example.com`;
+      // ... test działa na unikalnym koncie!
     });
-  }, { zakres: 'worker' }],
-});
-```
+    ```
 
-To przydatne, gdy logowanie przez UI jest kosztowne albo gdy backend ogranicza liczbę sesji jednego użytkownika.
+### Zasada 2: Odizolowane Dane w Bazie
+Unikaj modyfikowania tych samych rekordów (np. edycji tej samej nazwy produktu "Buty Adidas") w różnych testach działających współbieżnie. Zawsze twórz nowe, unikalne rekordy (np. dodając UUID lub timestamp do nazwy produktu).
 
-## 6. Równoległość a uwierzytelnianie
+---
 
-Najczęstszy problem: wszystkie testy używają tego samego konta. Wtedy test A zmienia ustawienia profilu, test B oczekuje domyślnego profilu, a test C usuwa dane potrzebne testowi A.
+## 3. Sharding: Horyzontalne Skalowanie w CI
 
-Bezpieczne strategie:
+Gdy dochodzisz do limitów wydajności pojedynczej maszyny CI (np. 4 wątki to maksimum, a testy wciąż trwają 15 minut), jedyną metodą dalszego przyspieszenia jest **Sharding** (dzielenie suity testów na wiele niezależnych maszyn działających równolegle).
 
-1. osobne konto per worker;
-2. osobne konto per test;
-3. osobny tenant/organizacja per suite;
-4. dane z unikalnym `runId`;
-5. cleanup po teście albo po całym runie;
-6. testy read-only na wspólnym koncie tylko wtedy, gdy niczego nie modyfikują.
-
-## 7. Sharding — podział suite między maszyny CI
-
-Workers przyspieszają testy na jednej maszynie. Sharding dzieli testy między kilka maszyn.
+Playwright Test posiada **natywne wsparcie dla shardingu** – nie potrzebujesz żadnych zewnętrznych bibliotek. Podziału dokonuje się prostymi flagami w terminalu:
 
 ```bash
-npx playwright test --shard=1/4
-npx playwright test --shard=2/4
-npx playwright test --shard=3/4
-npx playwright test --shard=4/4
+# Uruchom pierwszą z trzech części testów (Shard 1 z 3)
+npx playwright test --shard=1/3
+
+# Uruchom drugą część testów (Shard 2 z 3)
+npx playwright test --shard=2/3
+
+# Uruchom trzecią część testów (Shard 3 z 3)
+npx playwright test --shard=3/3
 ```
 
-Każdy shard wykonuje część testów. W CI uruchamia się je jako matrix job.
+Każda maszyna CI uruchomi całkowicie inną, odizolowaną część Twoich testów, skracając czas trwania rurociągu dokładnie trzykrotnie!
 
-Przykład GitHub Actions:
+---
 
-```yaml
-strategy:
-  fail-fast: false
-  matrix:
-    shard: [1, 2, 3, 4]
+## 4. Agregacja raportów z wielu Shardów (Blob Reporter)
 
-steps:
-  - uses: actions/checkout@v4
-  - uses: actions/setup-node@v4
-    with:
-      node-version: 22
-  - run: npm ci
-  - run: npx playwright install --with-deps
-  - run: npx playwright test --shard=${{ matrix.shard }}/4
-  - uses: actions/upload-artifact@v4
-    if: always()
-    with:
-      name: playwright-report-${{ matrix.shard }}
-      path: playwright-report
+Podczas korzystania z shardingu, każda maszyna generuje własny fragment raportu. Playwright udostępnia dedykowany reporter **Blob**, który zapisuje wyniki do lekkich plików pośrednich. Następnie, na koniec rurociągu, możemy je scalić w jeden kompletny, piękny raport HTML:
+
+### Krok A: Konfiguracja Blob Reportera w CI
+```bash
+npx playwright test --shard=1/3 --reporter=blob
 ```
 
-Ważne: raporty, trace, screenshoty i video z każdego sharda muszą zostać zapisane jako osobne artefakty albo scalone w późniejszym kroku.
-
-## 8. Równoległość a zasoby środowiska
-
-Więcej workerów nie zawsze znaczy szybciej. Jeśli środowisko testowe ma słaby backend, wolną bazę albo limity API, zbyt duża równoległość zwiększy flakiness.
-
-Objawy przeciążenia:
-
-- losowe timeouty;
-- błędy 429/503;
-- testy przechodzą lokalnie, ale padają w CI;
-- długie czasy odpowiedzi API;
-- problemy z cleanupem danych.
-
-Dobra praktyka: mierz czas suite dla różnych wartości `workers` i wybierz punkt, w którym przyrost szybkości nie powoduje niestabilności.
-
-## 9. Retry a równoległość
-
-Retry pomaga zebrać diagnostykę i rozróżnić test stale padający od flaky testu, ale nie naprawia przyczyny.
-
-```typescript
-export default defineConfig({
-  retries: process.env.CI ? 2 : 0,
-  use: {
-    trace: 'on-first-retry',
-  },
-});
+### Krok B: Scalenie raportów na maszynie głównej
+```bash
+npx playwright merge-reports --reporter=html ./all-blob-reports
 ```
 
-Jeśli test przechodzi dopiero za drugim razem, traktuj to jako sygnał długu technicznego. Analizuj trace i sprawdź, czy problemem jest brak izolacji, zły wait, konflikt danych albo przeciążone środowisko.
+---
 
-## 10. Typowe antywzorce
-
-### Wspólne zmienne globalne
-
-```typescript
-let orderId: string;
-
-test('tworzy zamówienie', async ({ request }) => {
-  orderId = await createOrder(request);
-});
-
-test('opłaca zamówienie', async ({ request }) => {
-  await payOrder(request, orderId);
-});
-```
-
-To nie działa poprawnie przy równoległości. Dane powinny być tworzone wewnątrz testu albo fixture.
-
-### Jeden użytkownik admin do wszystkiego
-
-Wspólne konto admina jest wygodne, ale bardzo ryzykowne dla testów modyfikujących stan.
-
-### `serial` jako plaster na flakiness
-
-Jeśli testy działają tylko w trybie `serial`, to często znak, że nie mają własnego setupu.
-
-### Zbyt duża liczba workerów
-
-Jeśli backend nie wyrabia, zmniejsz workers albo popraw środowisko.
-
-## 11. Checklista bezpiecznej równoległości
-
-- Czy każdy test tworzy własny stan albo korzysta z read-only danych?
-- Czy testy mogą działać w dowolnej kolejności?
-- Czy nie ma globalnych zmiennych mutowanych przez testy?
-- Czy użytkownicy testowi są izolowani per test, worker albo tenant?
-- Czy cleanup działa również po awarii?
-- Czy `fullyParallel` jest włączone tylko dla niezależnych testów?
-- Czy `serial` ma konkretne uzasadnienie?
-- Czy liczba workerów jest dobrana do wydajności środowiska?
-- Czy shardy zapisują artefakty diagnostyczne?
-
-## 12. Ćwiczenie praktyczne
-
-Masz suite checkoutu, która trwa 40 minut i używa jednego konta `admin@example.com`. Zaprojektuj refaktor:
-
-1. osobne konto per worker;
-2. unikalny koszyk per test;
-3. setup produktu przez API;
-4. cleanup zamówień po `runId`;
-5. uruchomienie w 4 workerach lokalnie;
-6. podział na 4 shardy w CI;
-7. zapis trace tylko przy retry.
-
-## Linki
-
-- [Playwright Parallelism](https://playwright.dev/docs/test-parallel)
-- [Playwright Sharding](https://playwright.dev/docs/test-sharding)
-- [Playwright Retries](https://playwright.dev/docs/test-retries)
-- [Playwright Fixtures](https://playwright.dev/docs/test-fixtures)
-- [Playwright CI](https://playwright.dev/docs/ci)
-
-## 📘 Suplement Inżynieryjny 2026: Runner Testów i Fixtury (Fixtures Deep Dive)
-*Inspiracja: „Practical Playwright Test” (2026), Chapter 7*
-*   **Fixtury Zależne i Automatyczne**: Odrzuć kruche bloki `beforeEach`/`afterEach`. Projektuj modularne fixtury, które mogą od siebie zależeć (np. `loggedInAdminPage` polega na `loginPage`). Używaj automatycznych fixtur (`auto: true`) do globalnego zbierania metryk.
-*   **Scope Worker**: Inicjalizuj ciężkie zasoby (np. połączenia DB) na poziomie workera (`scope: 'worker'`), współdzieląc je bezpiecznie między testami w tym samym procesie.
+## 5. Checklista Współbieżności i Shardingu
+- [ ] Czy skonfigurowałeś elastyczną liczbę workerów (mniejszą dla CI, większą dla maszyn lokalnych)?
+- [ ] Czy upewniłeś się, że testy uruchamiane równolegle nie modyfikują tych samych danych w bazie?
+- [ ] Czy wdrożyłeś mechanizm unikalnych nazw (UUID/timestamps) dla tworzonych obiektów testowych?
+- [ ] Czy wykorzystujesz mechanizm Shardingu (`--shard=x/n`) w połączeniu z `merge-reports` w rurociągu CI/CD?
