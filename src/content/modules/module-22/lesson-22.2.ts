@@ -1,214 +1,58 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory22_2 from './lesson-22.2.md?raw';
 
 export const lesson22_2: Lesson = {
   "id": "22.2",
   "moduleId": 22,
   "title": "Testowanie kolejek i zdarzeń",
-  "description": "Mikroserwisy: modele komunikacji, granice usług, outbox pattern, test strategy, kontrakty i ograniczanie dużych E2E.",
+  "description": "Opanuj testowanie asynchronicznych architektur sterowanych zdarzeniami. Poznaj integrację z RabbitMQ/Kafka, wysyłanie i nasłuchiwanie komunikatów oraz asynchroniczne asercje stanu bazy (expect.poll).",
   "order": 2,
   "difficulty": "advanced",
-  "tags": [
-    "kafka",
-    "rabbitmq",
-    "events",
-    "queues",
-    "dlq",
-    "message-testing"
-  ],
+  "tags": ["queues", "RabbitMQ", "Kafka", "events", "expect.poll", "asynchronous"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz projektować testy publikacji i konsumpcji zdarzeń, rozumiesz problem duplikatów, kolejności i DLQ oraz wiesz, jak weryfikować procesy event-driven.",
+    "objective": "Po ukończeniu tej lekcji potrafisz projektować testy integracyjne dla systemów kolejkowych, nawiązywać połączenia z brokerami AMQP, symulować wysyłanie zdarzeń i weryfikować ich asynchroniczne przetwarzanie przy użyciu odpytywania bazy danych.",
     "theory": theory22_2,
     "codeExamples": [
-      "// Pseudokod testu publikacji zdarzenia.\nconst correlationId = `test-${Date.now()}`;\nawait payOrder(orderId, { correlationId });\n\nconst event = await eventProbe.waitFor('order.paid', { correlationId });\nexpect(event.payload).toMatchObject({ orderId, status: 'paid' });\nexpect(event.headers['correlation-id']).toBe(correlationId);\n",
-      "// Test idempotencji konsumenta.\nawait consumer.handle(orderPaidEvent);\nawait consumer.handle(orderPaidEvent);\n\nconst invoices = await db.invoice.findByOrderId(orderId);\nexpect(invoices).toHaveLength(1);\n"
+      `// Przykład wysyłania zdarzenia do RabbitMQ (Książka 3 - Uppadhyay)
+const conn = await amqp.connect('amqp://localhost');
+const ch = await conn.createChannel();
+ch.sendToQueue('orders', Buffer.from(JSON.stringify({ id: 1 })));`
     ],
     "exercises": [
       {
         "id": "ex-22-2-1",
-        "title": "Mapa zależności",
-        "description": "Dla przepływu z lekcji „Testowanie kolejek i zdarzeń” narysuj usługi, komunikaty, kontrakty i miejsca możliwej awarii."
-      },
-      {
-        "id": "ex-22-2-2",
-        "title": "Scenariusz duplikatu",
-        "description": "Zaprojektuj test pokazujący, co stanie się po dwukrotnym dostarczeniu tego samego komunikatu lub webhooka."
-      },
-      {
-        "id": "ex-22-2-3",
-        "title": "Stan końcowy",
-        "description": "Zdefiniuj asercje na stan końcowy procesu asynchronicznego w API, bazie i logach."
-      },
-      {
-        "id": "ex-22-2-4",
-        "title": "Błąd zależności",
-        "description": "Opisz, jak przetestujesz niedostępność jednej usługi bez wyłączania całego środowiska."
-      },
-      {
-        "id": "ex-22-2-5",
-        "title": "Diagnostyka",
-        "description": "Dodaj plan correlation ID, logów i metryk dla przepływu między usługami."
-      },
-      {
-        "id": "ex-22-2-6",
-        "title": "Strategia testów",
-        "description": "Podziel testy na unit, contract, integration, async workflow i E2E. Uzasadnij wybór."
+        "title": "Wdrożenie testu DLQ w RabbitMQ",
+        "description": "Napisz test integracyjny, który celowo wysyła niekompletny komunikat (np. brak id produktu) do kolejki zamówień. Zweryfikuj za pomocą expect.poll, że wiadomość została odrzucona przez konsumenta i trafiła do kolejki błędów (DLQ)."
       }
     ],
     "quiz": [
       {
         "id": "q22-2-1",
-        "question": "Co jest największym wyzwaniem w testowaniu mikroserwisów?",
+        "question": "Dlaczego podczas testowania asynchronicznych systemów kolejkowych tradycyjne, synchroniczne asercje bazy danych (np. expect(dbValue).toBe(...)) są niewskazane?",
         "options": [
-          "Granice między usługami, kontrakty i zachowanie asynchroniczne",
-          "Kolor przycisków",
-          "Brak możliwości pisania testów",
-          "Wyłącznie składnia TypeScript"
+          "Ponieważ przetwarzanie zdarzenia i zapis do bazy trwają kilkadziesiąt/kilkaset milisekund, co wywoła natychmiastowe fałszywe niepowodzenie synchronicznej asercji",
+          "Ponieważ bazy danych nie współpracują z asercjami",
+          "Ponieważ kolejki RabbitMQ blokują połączenia z bazą danych",
+          "Nie ma to żadnego wpływu"
         ],
         "correctAnswer": 0,
-        "explanation": "Mikroserwisy wprowadzają niezależne wdrożenia, sieć, kolejki i spójność ostateczna."
-      },
-      {
-        "id": "q22-2-2",
-        "question": "Czym jest spójność ostateczna?",
-        "options": [
-          "Stan systemu staje się spójny po pewnym czasie",
-          "Natychmiastowa blokada każdego rekordu",
-          "Brak spójności na zawsze",
-          "Rodzaj selektora CSS"
-        ],
-        "correctAnswer": 0,
-        "explanation": "W systemach asynchronicznych spójność może pojawić się dopiero po przetworzeniu zdarzeń."
-      },
-      {
-        "id": "q22-2-3",
-        "question": "Po co stosować correlation ID?",
-        "options": [
-          "Aby prześledzić jeden przepływ przez wiele usług",
-          "Aby zmienić kolor logów",
-          "Aby zastąpić testy",
-          "Aby ukryć błędy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Correlation ID łączy requesty, zdarzenia i logi jednego procesu biznesowego."
-      },
-      {
-        "id": "q22-2-4",
-        "question": "Dlaczego idempotencja jest ważna?",
-        "options": [
-          "Bo ponowienia i duplikaty nie powinny powodować podwójnego skutku",
-          "Bo usuwa potrzebę logów",
-          "Bo przyspiesza CSS",
-          "Bo działa tylko w interfejs użytkownika"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Systemy rozproszone muszą radzić sobie z powtórzeniami komunikatów i żądań."
-      },
-      {
-        "id": "q22-2-5",
-        "question": "Co oznacza DLQ?",
-        "options": [
-          "Dead-letter queue dla komunikatów nieprzetworzonych",
-          "Dynamiczny locator query",
-          "Dokumentację lokalną jakości",
-          "Deployment lock queue"
-        ],
-        "correctAnswer": 0,
-        "explanation": "DLQ przechowuje komunikaty, których nie udało się poprawnie obsłużyć."
-      },
-      {
-        "id": "q22-2-6",
-        "question": "Jak testować proces asynchroniczny?",
-        "options": [
-          "Asercjami na stan końcowy i kontrolowanym oczekiwaniem",
-          "Jednym sleep bez sprawdzania",
-          "Tylko screenshotem",
-          "Bez danych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Test powinien czekać na znaczący rezultat, a nie na arbitralny czas."
-      },
-      {
-        "id": "q22-2-7",
-        "question": "Co jest celem wirtualizacja usług?",
-        "options": [
-          "Kontrolowane zastąpienie zależności w testach integracji",
-          "Usunięcie API",
-          "Zastąpienie bazy fontem",
-          "Wyłączenie CI"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wirtualizacja usług pozwala testować scenariusze trudne lub kosztowne na prawdziwych zależnościach."
-      },
-      {
-        "id": "q22-2-8",
-        "question": "Jaki nawyk jest kluczowy w lekcji „Testowanie kolejek i zdarzeń”?",
-        "options": [
-          "Myślenie o przepływie przez granice usług i awarie pośrednie",
-          "Pisanie tylko E2E",
-          "Ignorowanie kolejek",
-          "Brak obserwowalności"
-        ],
-        "correctAnswer": 0,
-        "explanation": "W systemie rozproszonym jakość zależy od zachowania całego przepływu, nie pojedynczej funkcji."
+        "explanation": "Zdarzenia są konsumowane asynchronicznie w tle. Tradycyjna asercja sprawdzi stan bazy w milisekundę po wysłaniu komunikatu – zanim baza zdąży się zaktualizować. Tylko expect.poll() gwarantuje stabilne odpytywanie w czasie."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Microservices",
-        "url": "https://martinfowler.com/articles/microservices.html",
-        "description": "Klasyczny opis architektury mikroserwisowej."
-      },
-      {
-        "title": "Enterprise Integration Patterns",
-        "url": "https://www.enterpriseintegrationpatterns.com/",
-        "description": "Wzorce integracyjne."
-      },
-      {
-        "title": "AsyncAPI",
-        "url": "https://www.asyncapi.com/docs",
-        "description": "Kontrakty dla komunikacji asynchronicznej."
+        "description": "Chapter 6: Event-driven architectures and Message broker validation."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "W systemach asynchronicznych testuj stan końcowy i zdarzenia pośrednie, nie tylko status pierwszego żądania.",
-      "Każdy przepływ między usługami powinien mieć correlation ID widoczne w logach i komunikatach.",
-      "Retry bez idempotencji jest prostą drogą do duplikatów i niespójności danych.",
-      "W testach mikroserwisów jawnie zapisuj, które zależności są prawdziwe, które zamockowane, a które zwirtualizowane."
+      "Zawsze zamykaj połączenia i kanały AMQP w sekcji afterEach lub afterAll, aby zapobiec wyciekom wątków i blokowaniu procesów roboczych systemu operacyjnego."
     ],
     "commonMistakes": [
       {
-        "mistake": "Testowanie mikroserwisu jak monolitu",
-        "solution": "Oddziel testy kontraktów, integracji, zdarzeń i przepływów end-to-end."
-      },
-      {
-        "mistake": "Brak idempotencji przy ponowienia",
-        "solution": "Stosuj klucze idempotencji i testuj ponowienia oraz duplikaty komunikatów."
-      },
-      {
-        "mistake": "Asercje natychmiast po operacji async",
-        "solution": "Czekaj na obserwowalny stan końcowy z rozsądnym pollingiem i timeoutem."
-      },
-      {
-        "mistake": "Brak dead-letter queue w testach kolejek",
-        "solution": "Sprawdzaj zachowanie dla komunikatów niepoprawnych i nieprzetwarzalnych."
+        "mistake": "Wstawianie twardych opóźnień (page.waitForTimeout) po wysłaniu komunikatu do kolejki w celu 'poczekania na zapis'",
+        "solution": "Zastąp ręczne sleep-y bezpiecznym, asynchronicznym odpytywaniem przy użyciu expect.poll()."
       }
     ]
   }

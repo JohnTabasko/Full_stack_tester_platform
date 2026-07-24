@@ -1,213 +1,59 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory22_3 from './lesson-22.3.md?raw';
 
 export const lesson22_3: Lesson = {
   "id": "22.3",
   "moduleId": 22,
   "title": "Webhooki, ponowienia i idempotencja",
-  "description": "Webhooki: podpisy, timestamp, retry, idempotency key, duplicate delivery, DLQ i bezpieczne callbacki HTTP.",
+  "description": "Opanuj testowanie asynchronicznych powiadomień Webhook. Dowiedz się, jak weryfikować podpisy bezpieczeństwa, testować odporność na duplikaty (Idempotencja) oraz obsługiwać ponowienia (Retries).",
   "order": 3,
   "difficulty": "advanced",
-  "tags": [
-    "webhooks",
-    "ponowienia",
-    "idempotencja",
-    "signatures",
-    "external-integrations"
-  ],
+  "tags": ["webhooks", "idempotency", "retries", "Stripe", "security", "API-testing"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz testować webhooki i integracje zewnętrzne, weryfikować podpisy, obsługę ponowienia, idempotencję oraz bezpieczne zachowanie przy duplikatach i opóźnieniach.",
+    "objective": "Po ukończeniu tej lekcji potrafisz pisać testy bezpieczeństwa i integralności dla punktów końcowych Webhook, weryfikować mechanizmy idempotencji przy użyciu unikalnych kluczy oraz asynchronicznie badać poprawność zapisów w bazie danych.",
     "theory": theory22_3,
     "codeExamples": [
-      "test('rejects webhook with invalid signature', async ({ request }) => {\n  const response = await request.post('/webhooks/payments', {\n    headers: { 'x-signature': 'invalid' },\n    data: { id: 'evt-1', type: 'payment.succeeded' },\n  });\n\n  expect(response.status()).toBe(401);\n});\n",
-      "test('processes duplicated webhook only once', async ({ request }) => {\n  const event = signedPaymentSucceededEvent('evt-duplicate-1');\n\n  await request.post('/webhooks/payments', event);\n  await request.post('/webhooks/payments', event);\n\n  const invoices = await db.invoice.findByPaymentEvent('evt-duplicate-1');\n  expect(invoices).toHaveLength(1);\n});\n"
+      `// Przykład testowania idempotencji Webhooka (Książka 3 - Uppadhyay)
+const payload = { transactionId: 'tx-1' };
+await request.post('/webhook', { data: payload });
+const res2 = await request.post('/webhook', { data: payload });
+expect(res2.status()).toBe(200); // Drugie wywołanie powinno być bezpiecznie zignorowane`
     ],
     "exercises": [
       {
         "id": "ex-22-3-1",
-        "title": "Mapa zależności",
-        "description": "Dla przepływu z lekcji „Webhooki, ponowienia i idempotencja” narysuj usługi, komunikaty, kontrakty i miejsca możliwej awarii."
-      },
-      {
-        "id": "ex-22-3-2",
-        "title": "Scenariusz duplikatu",
-        "description": "Zaprojektuj test pokazujący, co stanie się po dwukrotnym dostarczeniu tego samego komunikatu lub webhooka."
-      },
-      {
-        "id": "ex-22-3-3",
-        "title": "Stan końcowy",
-        "description": "Zdefiniuj asercje na stan końcowy procesu asynchronicznego w API, bazie i logach."
-      },
-      {
-        "id": "ex-22-3-4",
-        "title": "Błąd zależności",
-        "description": "Opisz, jak przetestujesz niedostępność jednej usługi bez wyłączania całego środowiska."
-      },
-      {
-        "id": "ex-22-3-5",
-        "title": "Diagnostyka",
-        "description": "Dodaj plan correlation ID, logów i metryk dla przepływu między usługami."
-      },
-      {
-        "id": "ex-22-3-6",
-        "title": "Strategia testów",
-        "description": "Podziel testy na unit, contract, integration, async workflow i E2E. Uzasadnij wybór."
+        "title": "Weryfikacja podpisu sygnatury Webhooka",
+        "description": "Napisz test bezpieczeństwa dla punktu końcowego `/api/webhooks`. Wyślij poprawne żądanie, ale ze sfałszowanym nagłówkiem sygnatury (`X-Signature`) i upewnij się, że serwer poprawnie odrzuca żądanie ze statusem 401 Unauthorized."
       }
     ],
     "quiz": [
       {
         "id": "q22-3-1",
-        "question": "Co jest największym wyzwaniem w testowaniu mikroserwisów?",
+        "question": "Czym jest Idempotencja w kontekście asynchronicznych zapytaniach Webhook?",
         "options": [
-          "Granice między usługami, kontrakty i zachowanie asynchroniczne",
-          "Kolor przycisków",
-          "Brak możliwości pisania testów",
-          "Wyłącznie składnia TypeScript"
+          "To właściwość sprawiająca, że wielokrotne wywołanie tej samej operacji z identycznym kluczem daje dokładnie ten sam rezultat i nie wywołuje skutków ubocznych (np. duplikowania płatności)",
+          "To metoda szyfrowania danych przesyłanych przez HTTP",
+          "To automatyczne odpytywanie bazy danych w pętli",
+          "To technika testowania responsywności na urządzeniach mobilnych"
         ],
         "correctAnswer": 0,
-        "explanation": "Mikroserwisy wprowadzają niezależne wdrożenia, sieć, kolejki i spójność ostateczna."
-      },
-      {
-        "id": "q22-3-2",
-        "question": "Czym jest spójność ostateczna?",
-        "options": [
-          "Stan systemu staje się spójny po pewnym czasie",
-          "Natychmiastowa blokada każdego rekordu",
-          "Brak spójności na zawsze",
-          "Rodzaj selektora CSS"
-        ],
-        "correctAnswer": 0,
-        "explanation": "W systemach asynchronicznych spójność może pojawić się dopiero po przetworzeniu zdarzeń."
-      },
-      {
-        "id": "q22-3-3",
-        "question": "Po co stosować correlation ID?",
-        "options": [
-          "Aby prześledzić jeden przepływ przez wiele usług",
-          "Aby zmienić kolor logów",
-          "Aby zastąpić testy",
-          "Aby ukryć błędy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Correlation ID łączy requesty, zdarzenia i logi jednego procesu biznesowego."
-      },
-      {
-        "id": "q22-3-4",
-        "question": "Dlaczego idempotencja jest ważna?",
-        "options": [
-          "Bo ponowienia i duplikaty nie powinny powodować podwójnego skutku",
-          "Bo usuwa potrzebę logów",
-          "Bo przyspiesza CSS",
-          "Bo działa tylko w interfejs użytkownika"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Systemy rozproszone muszą radzić sobie z powtórzeniami komunikatów i żądań."
-      },
-      {
-        "id": "q22-3-5",
-        "question": "Co oznacza DLQ?",
-        "options": [
-          "Dead-letter queue dla komunikatów nieprzetworzonych",
-          "Dynamiczny locator query",
-          "Dokumentację lokalną jakości",
-          "Deployment lock queue"
-        ],
-        "correctAnswer": 0,
-        "explanation": "DLQ przechowuje komunikaty, których nie udało się poprawnie obsłużyć."
-      },
-      {
-        "id": "q22-3-6",
-        "question": "Jak testować proces asynchroniczny?",
-        "options": [
-          "Asercjami na stan końcowy i kontrolowanym oczekiwaniem",
-          "Jednym sleep bez sprawdzania",
-          "Tylko screenshotem",
-          "Bez danych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Test powinien czekać na znaczący rezultat, a nie na arbitralny czas."
-      },
-      {
-        "id": "q22-3-7",
-        "question": "Co jest celem wirtualizacja usług?",
-        "options": [
-          "Kontrolowane zastąpienie zależności w testach integracji",
-          "Usunięcie API",
-          "Zastąpienie bazy fontem",
-          "Wyłączenie CI"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wirtualizacja usług pozwala testować scenariusze trudne lub kosztowne na prawdziwych zależnościach."
-      },
-      {
-        "id": "q22-3-8",
-        "question": "Jaki nawyk jest kluczowy w lekcji „Webhooki, ponowienia i idempotencja”?",
-        "options": [
-          "Myślenie o przepływie przez granice usług i awarie pośrednie",
-          "Pisanie tylko E2E",
-          "Ignorowanie kolejek",
-          "Brak obserwowalności"
-        ],
-        "correctAnswer": 0,
-        "explanation": "W systemie rozproszonym jakość zależy od zachowania całego przepływu, nie pojedynczej funkcji."
+        "explanation": "Idempotencja gwarantuje, że jeśli system zewnętrzny (np. Stripe) ponowi wysyłkę tego samego powiadomienia (np. z powodu problemów z siecią), nasz system obsłuży je tylko raz, zabezpieczając dane przed zduplikowaniem."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "CloudEvents",
-        "url": "https://cloudevents.io/",
-        "description": "Standaryzacja eventów."
-      },
-      {
-        "title": "OWASP API Security",
-        "url": "https://owasp.org/www-project-api-security/",
-        "description": "Bezpieczeństwo API i webhooków."
-      },
-      {
-        "title": "AsyncAPI",
-        "url": "https://www.asyncapi.com/docs",
-        "description": "Opis eventów i message contracts."
+        "description": "Chapter 6: Webhooks, retries, and idempotency validation."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "W systemach asynchronicznych testuj stan końcowy i zdarzenia pośrednie, nie tylko status pierwszego żądania.",
-      "Każdy przepływ między usługami powinien mieć correlation ID widoczne w logach i komunikatach.",
-      "Retry bez idempotencji jest prostą drogą do duplikatów i niespójności danych.",
-      "W testach mikroserwisów jawnie zapisuj, które zależności są prawdziwe, które zamockowane, a które zwirtualizowane."
+      "Stosuj unikalne klucze idempotencji (idempotency keys) oparte o UUID transakcji w nagłówkach lub ciele webhooków, aby serwer mógł bezbłędnie namierzyć duplikaty."
     ],
     "commonMistakes": [
       {
-        "mistake": "Testowanie mikroserwisu jak monolitu",
-        "solution": "Oddziel testy kontraktów, integracji, zdarzeń i przepływów end-to-end."
-      },
-      {
-        "mistake": "Brak idempotencji przy ponowienia",
-        "solution": "Stosuj klucze idempotencji i testuj ponowienia oraz duplikaty komunikatów."
-      },
-      {
-        "mistake": "Asercje natychmiast po operacji async",
-        "solution": "Czekaj na obserwowalny stan końcowy z rozsądnym pollingiem i timeoutem."
-      },
-      {
-        "mistake": "Brak dead-letter queue w testach kolejek",
-        "solution": "Sprawdzaj zachowanie dla komunikatów niepoprawnych i nieprzetwarzalnych."
+        "mistake": "Testowanie webhooków bez weryfikacji stanu bazy danych (sprawdzanie tylko statusu HTTP 200)",
+        "solution": "Zawsze po wysłaniu webhooka odpytaj bazę danych i upewnij się, że liczba transakcji i status zamówienia są prawidłowe."
       }
     ]
   }
