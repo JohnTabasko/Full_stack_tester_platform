@@ -1,151 +1,60 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory27_4 from './lesson-27.4.md?raw';
 
 export const lesson27_4: Lesson = {
   "id": "27.4",
   "moduleId": 27,
   "title": "Ryzyka sztucznej inteligencji: prywatność, halucynacje i zarządzanie",
-  "description": "Ryzyka AI: prywatność, halucynacje, prompt injection, insecure output handling, excessive agency, overreliance, NIST AI RMF i governance.",
+  "description": "Opanuj zasady bezpiecznego korzystania z AI (AI Governance). Poznaj ryzyka wycieku danych (Data Leakage), przeciwdziałanie halucynacjom kodu, audyt typowania oraz podatności OWASP Top 10 dla aplikacji LLM.",
   "order": 4,
-  "difficulty": "intermediate",
-  "tags": [
-    "ai-zarządzanie",
-    "privacy",
-    "security",
-    "hallucinations",
-    "responsible-ai"
-  ],
+  "difficulty": "advanced",
+  "tags": ["AI-risks", "privacy", "hallucinations", "OWASP-LLM", "governance", "security"],
   "content": {
-    "objective": "Po ukończeniu lekcji rozumiesz najważniejsze ryzyka użycia AI w testowaniu, potrafisz zaproponować zasady zarządzania i wiesz, jak chronić dane, sekrety oraz jakość decyzji technicznych.",
+    "objective": "Po ukończeniu tej lekcji potrafisz identyfikować i neutralizować ryzyka prawne i techniczne związane ze stosowaniem sztucznej inteligencji, bezpiecznie anonimizować dane testowe, diagnozować halucynacje w kodzie oraz stosować standardy bezpieczeństwa OWASP LLM.",
     "theory": theory27_4,
     "codeExamples": [
-      "const aiPolicy = {\n  noSecretsInPrompts: true,\n  humanReviewRequired: true,\n  destructiveActionsRequireApproval: true,\n  modelOutputIsNotOracle: true,\n};"
-],
+      `// Przykład bezpiecznej anonimizacji danych przed wysyłką (Książka 3 - Uppadhyay)
+const sanitizedPayload = {
+  username: "ANONYMOUS_USER", // Usuń wrażliwe imiona i nazwiska!
+  apiKey: process.env.API_KEY // Nigdy nie przesyłaj rzeczywistego klucza w tekście!
+};`
+    ],
     "exercises": [
       {
-            "id": "ex-auto-1",
-            "title": "Ćwiczenie 1",
-            "description": "Zaprojektuj scenariusz zgodny z oficjalną dokumentacją narzędzia i opisz cel testu."
-      },
-      {
-            "id": "ex-auto-2",
-            "title": "Ćwiczenie 2",
-            "description": "Dodaj wariant negatywny oraz kryterium sukcesu/fail dla pipeline CI."
-      },
-      {
-            "id": "ex-auto-3",
-            "title": "Ćwiczenie 3",
-            "description": "Przygotuj checklistę diagnostyczną i listę artefaktów potrzebnych po awarii."
-      },
-      {
-            "id": "ex-auto-4",
-            "title": "Ćwiczenie 4",
-            "description": "Wskaż, które elementy powinny zostać zautomatyzowane, a które opisane jako manual/exploratory."
+        "id": "ex-27-4-1",
+        "title": "Zaprojektowanie polityki bezpieczeństwa AI",
+        "description": "Zaprojektuj dla swojego zespołu QA rygorystyczny dokument polityki korzystania z asystentów AI (AI Governance Policy) określający, jakie dane (kod, logi, błędy) mogą być przesyłane do zewnętrznych modeli, a jakie wymagają bezwzględnej anonimizacji."
       }
-],
+    ],
     "quiz": [
       {
-            "id": "q-auto-1",
-            "question": "Co jest najważniejsze przy użyciu tego narzędzia?",
-            "options": [
-                  "Jasny cel, kontrolowane dane i interpretowalne wyniki",
-                  "Uruchomienie bez asercji",
-                  "Maksymalna liczba opcji",
-                  "Brak raportu"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-2",
-            "question": "Co powinno trafić do CI?",
-            "options": [
-                  "Mały, stabilny zestaw z jasnymi progami i artefaktami",
-                  "Najcięższy test bez limitów",
-                  "Sekrety w logach",
-                  "Testy bez właściciela"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-3",
-            "question": "Co jest antywzorcem?",
-            "options": [
-                  "Ukrywanie problemu zamiast diagnozy",
-                  "Jawne kryteria sukcesu",
-                  "Artefakty po awarii",
-                  "Dokumentacja środowiska"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-4",
-            "question": "Po co aktualne oficjalne źródła?",
-            "options": [
-                  "Aby unikać przestarzałych API i błędnych praktyk",
-                  "Aby zastąpić review",
-                  "Aby nie pisać testów",
-                  "Aby wyłączyć lint"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
+        "id": "q27-4-1",
+        "question": "Które zjawisko określamy mianem 'halucynacji' w kontekście generowania kodu testów Playwright przez modele sztucznej inteligencji (LLM)?",
+        "options": [
+          "Sytuację, w której model generuje pozornie poprawnie wyglądający kod, ale korzystający z nieistniejących lub przestarzałych metod API oraz zmyślonych selektorów",
+          "Automatyczne tłumaczenie kodu na język hiszpański",
+          "Błąd braku pamięci RAM na serwerze",
+          "Sytuację, w której testy wykonują się zbyt szybko"
+        ],
+        "correctAnswer": 0,
+        "explanation": "Modele LLM działają na bazie prawdopodobieństwa statystycznego i 'przewidują' wygląd kodu, co sprawia, że potrafią wymyślać nieistniejące metody lub przestarzałe interfejsy, które nie przejdą kompilacji TypeScript."
       }
-],
+    ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "OWASP LLM Top 10",
-        "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
-        "description": "Najważniejsze ryzyka aplikacji LLM."
-      },
-      {
-        "title": "OWASP GenAI Security",
-        "url": "https://genai.owasp.org/",
-        "description": "Projekt bezpieczeństwa GenAI."
-      },
-      {
-        "title": "NIST AI RMF",
-        "url": "https://www.nist.gov/itl/ai-risk-management-framework",
-        "description": "Govern, map, measure, manage dla AI risk."
+        "description": "Chapter 12: Reflections on Test Automation (AI risks & data privacy)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Zaczynaj od celu i ryzyka, nie od składni narzędzia.",
-      "Publikuj artefakty diagnostyczne w CI.",
-      "Nie używaj danych produkcyjnych ani sekretów w przykładach.",
-      "Porównuj wyniki z baseline i oficjalną dokumentacją."
-],
+      "Korzystaj z oficjalnych rozszerzeń Copilot for Business lub kont Enterprise, które gwarantują w umowie, że przesyłany kod aplikacji jest odizolowany i nigdy nie posłuży do trenowania publicznych modeli."
+    ],
     "commonMistakes": [
       {
-            "mistake": "Brak celu testu",
-            "solution": "Zapisz hipotezę i kryteria sukcesu przed implementacją."
-      },
-      {
-            "mistake": "Brak izolacji danych",
-            "solution": "Użyj runId, osobnych kont lub kontrolowanego datasetu."
-      },
-      {
-            "mistake": "Brak artefaktów",
-            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artefakty."
+        "mistake": "Wklejanie rzeczywistych logów produkcyjnych z danymi osobowymi klientów (RODO) do darmowych, publicznych wersji czatów AI",
+        "solution": "Bezwzględnie usuń wszelkie dane osobowe (imiona, e-maile, IP) przed wysłaniem logów do analizy przez model LLM."
       }
-]
+    ]
   }
 };
