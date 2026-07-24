@@ -5,212 +5,52 @@ export const lesson4_5: Lesson = {
   "id": "4.5",
   "moduleId": 4,
   "title": "Strategie uwierzytelniania",
-  "description": "storageState, JWT, OAuth, MFA, SSO, konfiguracja globalna, izolacja kont i testowanie scenariuszy uwierzytelniania.",
+  "description": "Zoptymalizuj proces uwierzytelniania w projektach. Poznaj mechanizm zapisu i ponownego użycia sesji (storageState) przy użyciu Setup Projects oraz strategie wielorolowe.",
   "order": 5,
-  "difficulty": "intermediate",
-  "tags": [
-    "playwright",
-    "advanced-interactions",
-    "ui-testing"
-  ],
+  "difficulty": "advanced",
+  "tags": ["authentication", "storageState", "setup-project", "security", "multi-role"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz stosować technikę: Strategie uwierzytelniania, rozumiesz jej ryzyka i umiesz projektować stabilne testy z diagnostyką oraz izolacją stanu.",
+    "objective": "Po ukończeniu tej lekcji potrafisz wyeliminować powtarzalny proces logowania przez UI, zaimplementować jednokrotne uwierzytelnianie przy użyciu projektu przygotowawczego Setup, zarządzać wieloma rolami oraz zabezpieczać zapisane stany przed wyciekiem.",
     "theory": theory4_5,
     "codeExamples": [
-      "// global-setup.ts\nimport { chromium } from '@playwright/test';\n\nexport default async function globalSetup() {\n  const browser = await chromium.launch();\n  const page = await browser.newPage();\n  await page.goto('/login');\n  await page.getByLabel('E-mail').fill(process.env.ADMIN_EMAIL!);\n  await page.getByLabel('Hasło').fill(process.env.ADMIN_PASSWORD!);\n  await page.getByRole('button', { name: 'Zaloguj' }).click();\n  await page.context().storageState({ path: 'auth/admin.json' });\n  await browser.close();\n}\n",
-      "// playwright.config.ts\nprojects: [\n  { name: 'admin', use: { storageState: 'auth/admin.json' } },\n  { name: 'customer', use: { storageState: 'auth/customer.json' } },\n]\n"
+      `// Przykład zapisu stanu sesji (Książka 1 - Kelhini)
+await page.context().storageState({ path: '.auth/admin.json' });`
     ],
     "exercises": [
       {
         "id": "ex-4-5-1",
-        "title": "Scenariusz podstawowy",
-        "description": "Napisz test wykorzystujący technikę „Strategie uwierzytelniania” i sprawdzający widoczny rezultat."
-      },
-      {
-        "id": "ex-4-5-2",
-        "title": "Scenariusz negatywny",
-        "description": "Dodaj wariant błędu: brak uprawnienia, błąd sieci, zamknięty popup, niedostępny frame albo niepoprawny stan."
-      },
-      {
-        "id": "ex-4-5-3",
-        "title": "Diagnostyka",
-        "description": "Dodaj test.step, screenshot lub attachment pokazujący stan przed i po interakcji."
-      },
-      {
-        "id": "ex-4-5-4",
-        "title": "Izolacja",
-        "description": "Wyjaśnij, jak odizolujesz kontekst, mock, storageState albo uprawnienia między testami."
-      },
-      {
-        "id": "ex-4-5-5",
-        "title": "Refaktor",
-        "description": "Przenieś powtarzalny fragment do helpera, ale zostaw w teście czytelną intencję."
-      },
-      {
-        "id": "ex-4-5-6",
-        "title": "Review ryzyka",
-        "description": "Wypisz ryzyka tej techniki i wskaż, które powinny być pokryte testem API/integration zamiast E2E."
+        "title": "Konfiguracja globalnego logowania dla klienta",
+        "description": "Zaimplementuj plik `global.setup.ts` logujący klienta i zapisujący jego stan sesji do folderu `.auth/`. Skonfiguruj plik `playwright.config.ts` tak, aby projekt 'chromium' zależał od projektu 'setup'."
       }
     ],
     "quiz": [
       {
         "id": "q4-5-1",
-        "question": "Co jest najważniejsze przy technice „Strategie uwierzytelniania”?",
+        "question": "Jaka jest główna zaleta stosowania mechanizmu storageState w Playwright Test?",
         "options": [
-          "Kontrolowanie zdarzenia, stanu i asercji rezultatu",
-          "Dodanie stałego sleep",
-          "Brak cleanupu",
-          "Ignorowanie błędów"
+          "Radykalnie skraca czas wykonania zestawów testowych, eliminując potrzebę ponownego logowania przez UI na początku każdego testu",
+          "Automatycznie szyfruje hasła w kodzie testów",
+          "Zastępuje bazę danych aplikacji",
+          "Uruchamia testy wyłącznie na urządzeniach mobilnych"
         ],
         "correctAnswer": 0,
-        "explanation": "Zaawansowane interakcje wymagają jawnej kontroli warunków i skutków."
-      },
-      {
-        "id": "q4-5-2",
-        "question": "Dlaczego zdarzenie trzeba często rejestrować przed akcją?",
-        "options": [
-          "Bo może zajść szybciej, niż test zacznie na nie czekać",
-          "Bo Playwright nie obsługuje zdarzeń",
-          "Bo to spowalnia test",
-          "Nie ma takiej potrzeby"
-        ],
-        "correctAnswer": 0,
-        "explanation": "To klasyczna ochrona przed race condition."
-      },
-      {
-        "id": "q4-5-3",
-        "question": "Co jest właściwą asercją po mocku API?",
-        "options": [
-          "Widoczna reakcja interfejs użytkownika lub sprawdzony request/response",
-          "Sam fakt wywołania route",
-          "Brak expect",
-          "Dowolny timeout"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Mock ma wspierać scenariusz, ale nadal weryfikujemy zachowanie systemu."
-      },
-      {
-        "id": "q4-5-4",
-        "question": "Po co izolować stan w zaawansowanych interakcjach?",
-        "options": [
-          "Aby testy równoległe nie wpływały na siebie",
-          "Aby ukryć defekty",
-          "Aby pominąć asercje",
-          "Aby skrócić nazwy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Izolacja chroni przed zależnością od kolejności i poprzednich testów."
-      },
-      {
-        "id": "q4-5-5",
-        "question": "Co jest antywzorcem w auth testach?",
-        "options": [
-          "Logowanie przez interfejs użytkownika w każdym scenariuszu niebędącym testem logowania",
-          "storageState w setupie",
-          "osobny test logowania",
-          "izolowane konta"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Powtarzane logowanie spowalnia suite i zwiększa flaky rate."
-      },
-      {
-        "id": "q4-5-6",
-        "question": "Kiedy mock sieciowy jest ryzykowny?",
-        "options": [
-          "Gdy zastępuje jedyny test prawdziwego kontraktu",
-          "Gdy jest lokalny i jawny",
-          "Gdy ma asercje",
-          "Gdy testuje błąd 500"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Mock nie dowodzi, że realne API nadal spełnia kontrakt."
-      },
-      {
-        "id": "q4-5-7",
-        "question": "Co powinno znaleźć się w raporcie awarii takiego testu?",
-        "options": [
-          "URL, screenshot/trace, stan kontekstu i kluczowe dane",
-          "Tylko nazwa testu",
-          "Brak logów",
-          "Losowy komentarz"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zaawansowane interakcje bywają trudne w diagnozie bez kontekstu."
-      },
-      {
-        "id": "q4-5-8",
-        "question": "Jak wybrać, czy testować technikę przez interfejs użytkownika czy niżej?",
-        "options": [
-          "Na podstawie ryzyka i kosztu utrzymania",
-          "Zawsze przez interfejs użytkownika",
-          "Zawsze przez mock",
-          "Losowo"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Poziom testu powinien wynikać z wartości informacji i kosztu."
+        "explanation": "Zamiast logować się przez interfejs graficzny przy każdym teście, Playwright jednorazowo zapisuje pliki cookie i localStorage do pliku JSON, wstrzykując je natychmiast do nowych sesji."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
         "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Obsługa wielu stron, wyskakujących okien i kontekstów."
-      },
-      {
-        "title": "Playwright Frames",
-        "url": "https://playwright.dev/docs/frames",
-        "description": "Praca z iframe i frame locatorami."
-      },
-      {
-        "title": "Playwright Network",
-        "url": "https://playwright.dev/docs/network",
-        "description": "Intercepting, mocking i obserwacja ruchu sieciowego."
-      },
-      {
-        "title": "Playwright Authentication",
-        "url": "https://playwright.dev/docs/auth",
-        "description": "Rekomendowane strategie logowania i storageState."
+        "description": "Chapter 14: Security and Authentication (Saving authentication data)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Zaawansowane interakcje testuj przez rezultat biznesowy, nie samo użycie API Playwright.",
-      "Zdarzenia takie jak popup, download czy response rejestruj przed akcją, która je wywołuje.",
-      "Mock sieciowy powinien być jawny i lokalny dla testu; globalne mocki łatwo ukrywają prawdziwe regresje.",
-      "Stan uwierzytelnienia, uprawnienia i emulację urządzenia traktuj jak dane testowe: ustawiaj jawnie i izoluj."
+      "Zawsze zabezpieczaj folder ze stanami sesji .auth/ dodając go do pliku .gitignore. Te pliki zawierają aktywne tokeny sesyjne, które dają natychmiastowy dostęp do Twoich kont testowych."
     ],
     "commonMistakes": [
       {
-        "mistake": "Czekanie na popup po kliknięciu",
-        "solution": "Użyj Promise.all lub page.waitForEvent przed akcją wyzwalającą popup."
-      },
-      {
-        "mistake": "Testowanie iframe zwykłym page.locator",
-        "solution": "Używaj frameLocator i traktuj ramkę jako osobny kontekst DOM."
-      },
-      {
-        "mistake": "Nadmierne mockowanie API",
-        "solution": "Mockuj tylko zależność istotną dla scenariusza i zostaw osobne testy integracyjne kontraktu."
-      },
-      {
-        "mistake": "Logowanie przez interfejs użytkownika w każdym teście",
-        "solution": "Użyj storageState przygotowanego w setupie i testuj samo logowanie osobno."
+        "mistake": "Zapisywanie stanu sesji bez wcześniejszego poczekania na pełne załadowanie strony po zalogowaniu",
+        "solution": "Zawsze przed zapisem wywołaj page.waitForURL() lub expect().toBeVisible() na elemencie kokpitu, aby upewnić się, że cookies zostały prawidłowo wygenerowane przez serwer."
       }
     ]
   }

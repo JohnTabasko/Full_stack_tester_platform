@@ -1,292 +1,105 @@
-# Strategie uwierzytelniania — storageState, role i stabilne logowanie
+# Globalne uwierzytelnianie i wielorolowość w testach (Authentication)
 
-Uwierzytelnianie jest jednym z najczęstszych źródeł wolnych i niestabilnych testów E2E. Logowanie przez UI jest ważnym scenariuszem, ale nie powinno być powtarzane w każdym teście. Jeśli 300 testów zaczyna się od wpisania emaila i hasła, awaria formularza logowania albo chwilowy problem SSO zepsuje cały pakiet, nawet jeśli testowana funkcja nie ma nic wspólnego z logowaniem.
+W systemach komercyjnych większość testów wymaga zalogowanego użytkownika. Powtarzanie tradycyjnego logowania przez interfejs graficzny (UI) – wpisywanie e-maila, hasła i klikanie przycisku – na początku każdego z 200 testów to potężna strata czasu (logowanie przez UI trwa średnio 2-5 sekund, co przy 200 testach daje ponad **10 minut marnowanych na sam proces uwierzytelniania**).
 
-Celem tej lekcji jest pokazanie, jak w Playwright projektować logowanie przez `storageState`, setup project, role użytkowników, API authentication i per-worker accounts.
+Playwright Test rozwiązuje ten problem systemowo, udostępniając zaawansowany mechanizm **zapisu i ponownego użycia stanu sesji (Storage State)**. W tej lekcji nauczysz się, jak zaimplementować jednokrotne logowanie oraz symulować zaawansowane scenariusze wielorolowe (Multi-Role Authentication).
 
-## 1. Kiedy logować się przez UI
+---
 
-Logowanie przez UI testuj wtedy, gdy celem testu jest sam mechanizm logowania:
+## 1. Koncepcja zapisu stanu sesji (`storageState`)
 
-- poprawne dane logowania;
-- błędne hasło;
-- zablokowane konto;
-- walidacja pól;
-- MFA;
-- wylogowanie;
-- przekierowanie po logowaniu;
-- wygasła sesja.
+Po poprawnym zalogowaniu się użytkownika, przeglądarka zapisuje dane sesji w postaci plików cookie (cookies) oraz pamięci lokalnej (`localStorage`/`sessionStorage`). 
 
-Nie loguj się przez UI w każdym teście koszyka, profilu, faktur czy panelu admina. Dla nich logowanie jest warunkiem wstępnym, nie celem.
+Playwright potrafi wyeksportować cały ten stan do lekkiego pliku JSON na dysku, a następnie automatycznie wstrzyknąć go do nowo powoływanych kontekstów przeglądarki na samym starcie testu. Dzięki temu każdy kolejny test uruchamia się jako **już zalogowany użytkownik** w ułamku milisekund!
 
-## 2. `storageState` — zapis sesji
-
-Playwright może zapisać cookies, localStorage i IndexedDB kontekstu:
-
-```typescript
-await page.context().storageState({ path: 'playwright/.auth/user.json' });
+```
++-------------------------------------------------------------+
+|    TEST SETUP: Wykonaj logowanie przez UI i zapisz sesję    |
+|               do pliku .auth/user.json                      |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|    TESTY FUNKCJONALNE: Automatycznie wczytują user.json     |
+|               na starcie kontekstu (błyskawiczny start)      |
++-------------------------------------------------------------+
 ```
 
-Potem używasz tego stanu w konfiguracji:
+---
 
-```typescript
-use: {
-  storageState: 'playwright/.auth/user.json',
-}
-```
+## 2. Implementacja krok po kroku: Setup Project
 
-Pliki `.auth/*.json` mogą zawierać tokeny i cookies. Nie commituj ich do repozytorium.
+Najbardziej eleganckim i bezpiecznym sposobem automatyzacji tego procesu jest wydzielenie logowania do osobnego **projektu przygotowawczego (Setup Project)** w pliku `playwright.config.ts`.
 
-`.gitignore`:
-
-```gitignore
-playwright/.auth/*.json
-```
-
-## 3. Setup project — rekomendowany wzorzec
-
-W Playwright najczytelniejszy wzorzec to osobny projekt przygotowujący sesję.
-
+### Krok A: Konfiguracja projektów w `playwright.config.ts`
 ```typescript
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   projects: [
+    // 1. Definiujemy dedykowany projekt przygotowawczy (Setup)
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
+      testMatch: /global\.setup\.ts/,
     },
+    // 2. Standardowy projekt testowy, który ZALEŻY od projektu setup
     {
-      name: 'chromium-user',
+      name: 'chromium',
+      dependencies: ['setup'], // Wymuś wykonanie projektu setup najpierw!
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json',
+        // Automatycznie wstrzykuj zapisany stan sesji do każdego testu
+        storageState: '.auth/user.json',
       },
-      dependencies: ['setup'],
     },
   ],
 });
 ```
 
-Test setup:
-
+### Krok B: Kod pliku przygotowawczego (`tests/global.setup.ts`)
 ```typescript
-// tests/auth.setup.ts
-import { test as setup, expect } from '@playwright/test';
+import { test as setup } from '@playwright/test';
 
-setup('authenticate user', async ({ page }) => {
+setup('logowanie globalne użytkownika', async ({ page }) => {
   await page.goto('/login');
-  await page.getByLabel('Email').fill(process.env.E2E_USER!);
-  await page.getByLabel('Hasło').fill(process.env.E2E_PASSWORD!);
+  await page.getByLabel('E-mail').fill('user@example.com');
+  await page.getByLabel('Hasło').fill('SecretPassword123!');
   await page.getByRole('button', { name: 'Zaloguj' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Panel' })).toBeVisible();
-  await page.context().storageState({ path: 'playwright/.auth/user.json' });
+  // Poczekaj, aż strona załaduje panel użytkownika (potwierdzenie zalogowania)
+  await page.waitForURL('/dashboard');
+
+  // Zapisz cookies i localStorage do pliku JSON
+  await page.context().storageState({ path: '.auth/user.json' });
 });
 ```
 
-To uruchamia logowanie raz, a właściwe testy startują już w stanie zalogowanym.
+---
 
-## 4. Wiele ról użytkowników
+## 3. Scenariusze wielorolowe w jednym projekcie (Multi-Role Support)
 
-Systemy komercyjne zwykle mają role: admin, manager, klient, użytkownik read-only, użytkownik bez uprawnień.
+Jeśli Twoja aplikacja posiada różne uprawnienia (np. `Admin`, `Editor`, `Customer`), możesz skonfigurować globalny setup tak, aby logował się na trzy różne konta i zapisywał odpowiednio pliki `.auth/admin.json`, `.auth/editor.json` oraz `.auth/customer.json`.
 
-```typescript
-projects: [
-  { name: 'setup', testMatch: /.*\.setup\.ts/ },
-  {
-    name: 'admin',
-    use: { storageState: 'playwright/.auth/admin.json' },
-    dependencies: ['setup'],
-  },
-  {
-    name: 'customer',
-    use: { storageState: 'playwright/.auth/customer.json' },
-    dependencies: ['setup'],
-  },
-]
-```
-
-W setup możesz zapisać kilka sesji:
+Następnie w konkretnym pliku testowym możesz nadpisać domyślny stan sesji za pomocą bloku `test.use()`:
 
 ```typescript
-async function loginAndSave(page: Page, email: string, password: string, path: string) {
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Hasło').fill(password);
-  await page.getByRole('button', { name: 'Zaloguj' }).click();
-  await expect(page.getByRole('heading')).toBeVisible();
-  await page.context().storageState({ path });
-}
-```
+import { test, expect } from '@playwright/test';
 
-Każda rola powinna mieć osobne konto i osobny storage state.
+test.describe('Panel Administratora', () => {
+  // Nadpisz domyślny stan sesji dla wszystkich testów w tym bloku
+  test.use({ storageState: '.auth/admin.json' });
 
-## 5. Per-worker authentication
-
-Jeśli testy działają równolegle i modyfikują dane użytkownika, jedno konto na całą suite jest ryzykowne. Lepszy wzorzec: konto per worker.
-
-```typescript
-import { test as base } from '@playwright/test';
-
-export const test = base.extend<{}, { workerStorageState: string }>({
-  workerStorageState: [async ({ browser }, use, workerInfo) => {
-    const id = workerInfo.parallelIndex;
-    const page = await browser.newPage();
-
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(`user-${id}@example.com`);
-    await page.getByLabel('Hasło').fill(process.env.E2E_PASSWORD!);
-    await page.getByRole('button', { name: 'Zaloguj' }).click();
-
-    const path = `playwright/.auth/user-${id}.json`;
-    await page.context().storageState({ path });
-    await page.close();
-
-    await use(path);
-  }, { zakres: 'worker' }],
+  test('admin widzi opcje usuwania użytkowników', async ({ page }) => {
+    await page.goto('/users-list');
+    await expect(page.getByRole('button', { name: 'Usuń użytkownika' })).toBeVisible();
+  });
 });
 ```
 
-Ten wzorzec ogranicza konflikty między testami działającymi równolegle.
+---
 
-## 6. Logowanie przez API
-
-Czasem UI logowania jest wolne, zależne od SSO albo nieistotne dla testu. Możesz przygotować sesję przez API, jeśli aplikacja na to pozwala.
-
-```typescript
-const response = await request.post('/api/auth/login', {
-  data: {
-    email: process.env.E2E_USER,
-    password: process.env.E2E_PASSWORD,
-  },
-});
-expect(response.status()).toBe(200);
-```
-
-Następnie możesz zapisać cookies albo tokeny zgodnie z architekturą aplikacji. Rób to świadomie: ręczne wkładanie tokena do localStorage może ominąć realny mechanizm bezpieczeństwa.
-
-## 7. APIRequestContext z autoryzacją
-
-Do setupu danych często używa się osobnego klienta API:
-
-```typescript
-const api = await playwright.request.newContext({
-  baseURL: process.env.BASE_URL,
-  extraHTTPHeaders: {
-    Authorization: `Bearer ${process.env.ADMIN_API_TOKEN}`,
-  },
-});
-
-const user = await (await api.post('/api/users', {
-  data: { email: `test-${Date.now()}@example.com` },
-})).json();
-
-await api.dispose();
-```
-
-Nie mieszaj bez potrzeby tokenów administracyjnych z testami UI użytkownika. Setup danych może wymagać uprawnień admina, ale scenariusz UI powinien działać na właściwej roli.
-
-## 8. SessionStorage
-
-Playwright `storageState` nie zapisuje sessionStorage w standardowy sposób, ponieważ sessionStorage jest specyficzny dla konkretnej domeny i karty. Jeśli aplikacja przechowuje sesję w sessionStorage, możesz zapisać i odtworzyć ją przez `page.evaluate`, ale lepiej zapytać zespół, czy to świadoma decyzja architektoniczna.
-
-Przykład odczytu:
-
-```typescript
-const session = await page.evaluate(() => JSON.stringify(sessionStorage));
-```
-
-Taki workaround powinien być opisany w projekcie, bo jest bardziej kruchy niż cookies/localStorage.
-
-## 9. SSO, OAuth i MFA
-
-Zewnętrzne logowanie często ma ograniczenia:
-
-- CAPTCHA;
-- MFA;
-- rate limiting;
-- polityki bezpieczeństwa;
-- niestabilne środowisko dostawcy;
-- blokady automatyzacji.
-
-Strategie:
-
-1. testuj SSO w małej liczbie dedykowanych scenariuszy;
-2. dla reszty suite używaj przygotowanego `storageState`;
-3. używaj testowego dostawcy lub bypassu w środowisku testowym;
-4. nie używaj prywatnych kont pracowników;
-5. nie zapisuj sekretów w repozytorium.
-
-## 10. Scenariusze negatywne auth
-
-Pokryj nie tylko sukces:
-
-```typescript
-await page.goto('/admin');
-await expect(page).toHaveURL(/\/login/);
-
-await page.goto('/login');
-await page.getByLabel('Email').fill('user@example.com');
-await page.getByLabel('Hasło').fill('wrong-password');
-await page.getByRole('button', { name: 'Zaloguj' }).click();
-await expect(page.getByRole('alert')).toContainText(/niepoprawne/i);
-```
-
-Ważne przypadki:
-
-- brak sesji;
-- wygasła sesja;
-- brak uprawnień;
-- próba dostępu do cudzego zasobu;
-- zablokowane konto;
-- błędne hasło;
-- wylogowanie i back button.
-
-## 11. Diagnostyka auth
-
-Przy awarii auth zbieraj:
-
-- aktualny URL;
-- screenshot;
-- trace;
-- cookies/storage, jeśli bezpieczne;
-- status odpowiedzi login API;
-- komunikaty konsoli;
-- identyfikator korelacji requestu.
-
-Nie dołączaj tokenów i cookies do publicznych raportów bez maskowania.
-
-## 12. Antywzorce
-
-- Logowanie przez UI w każdym teście.
-- Jedno konto do wszystkich testów równoległych.
-- Commitowanie plików `storageState`.
-- Testy zależne od prywatnego konta pracownika.
-- Brak testów negatywnych auth.
-- Ręczne wkładanie tokena bez zrozumienia mechanizmu sesji.
-- Brak rozdzielenia ról admin/customer/read-only.
-
-## 13. Checklista strategii auth
-
-- Czy logowanie przez UI jest celem testu, czy tylko setupem?
-- Czy sesje są przygotowywane przez setup project?
-- Czy role mają osobne storage state?
-- Czy testy równoległe mają izolowane konta lub dane?
-- Czy sekrety są w zmiennych środowiskowych / sekretach CI?
-- Czy scenariusze negatywne auth są pokryte?
-- Czy trace i raport nie ujawniają tokenów?
-- Czy SSO/MFA jest testowane świadomie, a nie przypadkowo w każdej ścieżce?
-
-## Linki
-
-- [Authentication](https://playwright.dev/docs/auth)
-- [Test projects](https://playwright.dev/docs/test-projects)
-- [Fixtures](https://playwright.dev/docs/test-fixtures)
-- [API testing](https://playwright.dev/docs/api-testing)
-- [Browser contexts](https://playwright.dev/docs/browser-contexts)
-
-## 📘 Suplement Inżynieryjny 2026: Mechanizmy Zaawansowane (Dialogs & Interception)
-*Inspiracja: „Hands-On Automated Testing with Playwright” (2026), Chapter 11 & 12*
-*   **Event-First Pattern dla Dialogów**: Playwright automatycznie odrzuca systemowe dialogi (`alert`, `confirm`). Jeśli chcesz je zatwierdzić, musisz zarejestrować subskrypcję zdarzenia *przed* wywołaniem akcji wyzwalającej: `page.once('dialog', dialog => dialog.accept())`.
-*   **Intercepcja Sieciowa (`route.fallback`)**: Nowoczesne mockowanie API opiera się na elastycznych regułach przechwytywania, umożliwiających przekazywanie żądań do rzeczywistego serwera lub nadpisywanie nagłówków w locie.
+## 4. Checklista Strategii Uwierzytelniania
+- [ ] Czy wydzieliłeś proces logowania do dedykowanego projektu typu `setup` w konfiguracji?
+- [ ] Czy dodałeś folder `.auth/` do pliku `.gitignore`, aby zapobiec wyciekowi wrażliwych ciasteczek sesyjnych do Git?
+- [ ] Czy poprawnie nadpisujesz stany sesji (`storageState`) dla różnych ról użytkowników za pomocą bloku `test.use()`?
+- [ ] Czy upewniłeś się, że testy przygotowawcze (setup) czekają na pełne załadowanie strony (np. `waitForURL`) przed wywołaniem zapisu stanu?

@@ -5,212 +5,58 @@ export const lesson4_4: Lesson = {
   "id": "4.4",
   "moduleId": 4,
   "title": "Przechwytywanie sieci i mockowanie",
-  "description": "page.route, mockowanie API, blokowanie zasobów, modyfikowanie żądań i odpowiedzi oraz testowanie błędów sieciowych.",
+  "description": "Opanuj zaawansowane mockowanie warstwy sieciowej. Poznaj metody page.route, route.fulfill, route.abort, modyfikowanie nagłówków i obsługę błędów sieciowych.",
   "order": 4,
-  "difficulty": "intermediate",
-  "tags": [
-    "playwright",
-    "advanced-interactions",
-    "ui-testing"
-  ],
+  "difficulty": "advanced",
+  "tags": ["network", "mocking", "page.route", "fulfill", "abort", "intercept"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz stosować technikę: Przechwytywanie sieci i mockowanie, rozumiesz jej ryzyka i umiesz projektować stabilne testy z diagnostyką oraz izolacją stanu.",
+    "objective": "Po ukończeniu tej lekcji potrafisz konfigurować przechwytywanie żądań sieciowych w Playwright, symulować gotowe odpowiedzi API (JSON/XML), testować odporność interfejsu na awarie serwerów (route.abort) oraz modyfikować parametry zapytań w locie.",
     "theory": theory4_4,
     "codeExamples": [
-      "await page.route('**/api/users', async (route) => {\n  await route.fulfill({\n    status: 200,\n    contentType: 'application/json',\n    body: JSON.stringify([{ id: 'u1', name: 'Anna' }]),\n  });\n});\n\nawait page.goto('/users');\nawait expect(page.getByText('Anna')).toBeVisible();\n",
-      "await page.route('**/api/orders', (route) => route.fulfill({ status: 500, body: 'Server error' }));\nawait page.goto('/orders');\nawait expect(page.getByText(/nie udało się pobrać zamówień/i)).toBeVisible();\n"
+      `// Przykład mockowania odpowiedzi API (Książka 2 - Greffier)
+await page.route('**/api/user', route => {
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ name: 'Jan', role: 'admin' })
+  });
+});`
     ],
     "exercises": [
       {
         "id": "ex-4-4-1",
-        "title": "Scenariusz podstawowy",
-        "description": "Napisz test wykorzystujący technikę „Przechwytywanie sieci i mockowanie” i sprawdzający widoczny rezultat."
-      },
-      {
-        "id": "ex-4-4-2",
-        "title": "Scenariusz negatywny",
-        "description": "Dodaj wariant błędu: brak uprawnienia, błąd sieci, zamknięty popup, niedostępny frame albo niepoprawny stan."
-      },
-      {
-        "id": "ex-4-4-3",
-        "title": "Diagnostyka",
-        "description": "Dodaj test.step, screenshot lub attachment pokazujący stan przed i po interakcji."
-      },
-      {
-        "id": "ex-4-4-4",
-        "title": "Izolacja",
-        "description": "Wyjaśnij, jak odizolujesz kontekst, mock, storageState albo uprawnienia między testami."
-      },
-      {
-        "id": "ex-4-4-5",
-        "title": "Refaktor",
-        "description": "Przenieś powtarzalny fragment do helpera, ale zostaw w teście czytelną intencję."
-      },
-      {
-        "id": "ex-4-4-6",
-        "title": "Review ryzyka",
-        "description": "Wypisz ryzyka tej techniki i wskaż, które powinny być pokryte testem API/integration zamiast E2E."
+        "title": "Symulowanie awarii serwera API",
+        "description": "Napisz test dla formularza wyszukiwania produktów, w którym przechwycisz zapytanie wyszukiwania i zwrócisz kod statusu 500 (Internal Server Error) z pustym body, weryfikując poprawność obsługi błędów na UI."
       }
     ],
     "quiz": [
       {
         "id": "q4-4-1",
-        "question": "Co jest najważniejsze przy technice „Przechwytywanie sieci i mockowanie”?",
+        "question": "Która metoda obiektu Route w Playwright służy do symulowania błędu fizycznego zerwania połączenia sieciowego (np. błędu TCP/IP)?",
         "options": [
-          "Kontrolowanie zdarzenia, stanu i asercji rezultatu",
-          "Dodanie stałego sleep",
-          "Brak cleanupu",
-          "Ignorowanie błędów"
+          "route.abort('failed')",
+          "route.fulfill({ status: 500 })",
+          "route.continue()",
+          "route.fallback()"
         ],
         "correctAnswer": 0,
-        "explanation": "Zaawansowane interakcje wymagają jawnej kontroli warunków i skutków."
-      },
-      {
-        "id": "q4-4-2",
-        "question": "Dlaczego zdarzenie trzeba często rejestrować przed akcją?",
-        "options": [
-          "Bo może zajść szybciej, niż test zacznie na nie czekać",
-          "Bo Playwright nie obsługuje zdarzeń",
-          "Bo to spowalnia test",
-          "Nie ma takiej potrzeby"
-        ],
-        "correctAnswer": 0,
-        "explanation": "To klasyczna ochrona przed race condition."
-      },
-      {
-        "id": "q4-4-3",
-        "question": "Co jest właściwą asercją po mocku API?",
-        "options": [
-          "Widoczna reakcja interfejs użytkownika lub sprawdzony request/response",
-          "Sam fakt wywołania route",
-          "Brak expect",
-          "Dowolny timeout"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Mock ma wspierać scenariusz, ale nadal weryfikujemy zachowanie systemu."
-      },
-      {
-        "id": "q4-4-4",
-        "question": "Po co izolować stan w zaawansowanych interakcjach?",
-        "options": [
-          "Aby testy równoległe nie wpływały na siebie",
-          "Aby ukryć defekty",
-          "Aby pominąć asercje",
-          "Aby skrócić nazwy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Izolacja chroni przed zależnością od kolejności i poprzednich testów."
-      },
-      {
-        "id": "q4-4-5",
-        "question": "Co jest antywzorcem w auth testach?",
-        "options": [
-          "Logowanie przez interfejs użytkownika w każdym scenariuszu niebędącym testem logowania",
-          "storageState w setupie",
-          "osobny test logowania",
-          "izolowane konta"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Powtarzane logowanie spowalnia suite i zwiększa flaky rate."
-      },
-      {
-        "id": "q4-4-6",
-        "question": "Kiedy mock sieciowy jest ryzykowny?",
-        "options": [
-          "Gdy zastępuje jedyny test prawdziwego kontraktu",
-          "Gdy jest lokalny i jawny",
-          "Gdy ma asercje",
-          "Gdy testuje błąd 500"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Mock nie dowodzi, że realne API nadal spełnia kontrakt."
-      },
-      {
-        "id": "q4-4-7",
-        "question": "Co powinno znaleźć się w raporcie awarii takiego testu?",
-        "options": [
-          "URL, screenshot/trace, stan kontekstu i kluczowe dane",
-          "Tylko nazwa testu",
-          "Brak logów",
-          "Losowy komentarz"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Zaawansowane interakcje bywają trudne w diagnozie bez kontekstu."
-      },
-      {
-        "id": "q4-4-8",
-        "question": "Jak wybrać, czy testować technikę przez interfejs użytkownika czy niżej?",
-        "options": [
-          "Na podstawie ryzyka i kosztu utrzymania",
-          "Zawsze przez interfejs użytkownika",
-          "Zawsze przez mock",
-          "Losowo"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Poziom testu powinien wynikać z wartości informacji i kosztu."
+        "explanation": "route.abort() pozwala na symulowanie rzeczywistych awarii sieciowych poziomu gniazd (sockets) bez generowania jakiejkolwiek odpowiedzi HTTP z serwera, co jest idealne do testów odporności."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
         "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Pages",
-        "url": "https://playwright.dev/docs/pages",
-        "description": "Obsługa wielu stron, wyskakujących okien i kontekstów."
-      },
-      {
-        "title": "Playwright Frames",
-        "url": "https://playwright.dev/docs/frames",
-        "description": "Praca z iframe i frame locatorami."
-      },
-      {
-        "title": "Playwright Network",
-        "url": "https://playwright.dev/docs/network",
-        "description": "Intercepting, mocking i obserwacja ruchu sieciowego."
-      },
-      {
-        "title": "Playwright Authentication",
-        "url": "https://playwright.dev/docs/auth",
-        "description": "Rekomendowane strategie logowania i storageState."
+        "description": "Chapter 15: Mocking APIs to control external data."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Zaawansowane interakcje testuj przez rezultat biznesowy, nie samo użycie API Playwright.",
-      "Zdarzenia takie jak popup, download czy response rejestruj przed akcją, która je wywołuje.",
-      "Mock sieciowy powinien być jawny i lokalny dla testu; globalne mocki łatwo ukrywają prawdziwe regresje.",
-      "Stan uwierzytelnienia, uprawnienia i emulację urządzenia traktuj jak dane testowe: ustawiaj jawnie i izoluj."
+      "Deklaruj reguły page.route() na poziomie beforeEach lub na samym początku testu przed jakąkolwiek nawigacją, aby upewnić się, że nie utracisz pierwszych zapytań sieciowych."
     ],
     "commonMistakes": [
       {
-        "mistake": "Czekanie na popup po kliknięciu",
-        "solution": "Użyj Promise.all lub page.waitForEvent przed akcją wyzwalającą popup."
-      },
-      {
-        "mistake": "Testowanie iframe zwykłym page.locator",
-        "solution": "Używaj frameLocator i traktuj ramkę jako osobny kontekst DOM."
-      },
-      {
-        "mistake": "Nadmierne mockowanie API",
-        "solution": "Mockuj tylko zależność istotną dla scenariusza i zostaw osobne testy integracyjne kontraktu."
-      },
-      {
-        "mistake": "Logowanie przez interfejs użytkownika w każdym teście",
-        "solution": "Użyj storageState przygotowanego w setupie i testuj samo logowanie osobno."
+        "mistake": "Brak wywołania route.continue() dla żądań, które nie pasują do warunków testu w filtrze ogólnym",
+        "solution": "Jeśli przechwytujesz szeroki wzorzec adresów (np. '**/*'), upewnij się, że wywołujesz route.continue() dla wszystkich żądań, których nie chcesz modyfikować, w przeciwnym razie zawisną one w nieskończoność."
       }
     ]
   }
