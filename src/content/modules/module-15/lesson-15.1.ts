@@ -1,217 +1,59 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory15_1 from './lesson-15.1.md?raw';
 
 export const lesson15_1: Lesson = {
   "id": "15.1",
   "moduleId": 15,
-  "title": "Projekt testowania aplikacji e-commerce",
-  "description": "Kompletny projekt e-commerce: uwierzytelnianie, produkty, koszyk, checkout, API, testy wizualne, bezpieczeństwo i raportowanie.",
+  "title": "Projekt praktyczny 1: E-commerce",
+  "description": "Zaprojektuj i zaimplementuj kompletny framework testowy dla platformy e-commerce. Wdróż zaawansowane wzorce POM, kompozycję komponentów, fabryki stron, wstrzykiwanie fixtur oraz dynamiczne dane testowe.",
   "order": 1,
-  "difficulty": "expert",
-  "tags": [
-    "real-world",
-    "portfolio",
-    "capstone",
-    "qa-automation"
-  ],
+  "difficulty": "advanced",
+  "tags": ["e-commerce", "project", "architecture", "POM", "composition", "Faker"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować i ocenić projekt „Projekt testowania aplikacji e-commerce” jako spójny system testów full stack z danymi, CI, raportowaniem i dokumentacją.",
+    "objective": "Po ukończeniu tego projektu praktycznego potrafisz zaprojektować od zera kompletną architekturę automatyzacji dla systemów e-commerce, łączyć klasy stron z komponentami, wstrzykiwać zalogowane sesje przez fixtury oraz eliminować kruchość testów.",
     "theory": theory15_1,
     "codeExamples": [
-      "# Minimalny zakres testów\n- @smoke E2E: guest checkout\n- API: produkty search, create order, forbidden admin access\n- baza danych: orders + order_items + audit_events\n- Visual: product card / checkout summary\n- Bezpieczeństwo: IDOR order access\n- CI: HTML/JUnit/trace artefakty\n",
-      "test('guest can complete checkout @smoke @critical', async ({ page, ordersClient }, testInfo) => {\n  const runId = `checkout-${Date.now()}`;\n  testInfo.annotations.push({ type: 'runId', description: runId });\n  // setup product -> interfejs użytkownika checkout -> API/baza danych verification\n});\n"
+      `// Przykład kompletnej struktury testu e-commerce (Książka 3 - Uppadhyay)
+test('zakup produktu', async ({ loggedInCustomerPage, productsPage, checkoutPage }) => {
+  await productsPage.addProductToCart('Backpack');
+  await checkoutPage.buy();
+});`
     ],
     "exercises": [
       {
         "id": "ex-15-1-1",
-        "title": "Mapa zakresu",
-        "description": "Dla projektu „Projekt testowania aplikacji e-commerce” zapisz moduły funkcjonalne, ryzyka i poziomy testów."
-      },
-      {
-        "id": "ex-15-1-2",
-        "title": "Architektura frameworka",
-        "description": "Zaprojektuj foldery: pages, clients, builders, fixtures, assertions, config i tests."
-      },
-      {
-        "id": "ex-15-1-3",
-        "title": "Dane testowe",
-        "description": "Opisz strategię danych, izolacji i cleanupu dla krytycznych scenariuszy."
-      },
-      {
-        "id": "ex-15-1-4",
-        "title": "Pipeline",
-        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artefakty i quality gate."
-      },
-      {
-        "id": "ex-15-1-5",
-        "title": "Raport portfolio",
-        "description": "Przygotuj fragment README opisujący cel, zakres, uruchomienie i interpretację wyników."
-      },
-      {
-        "id": "ex-15-1-6",
-        "title": "Ocena projektu",
-        "description": "Stwórz checklistę odbioru projektu: stabilność, czytelność, diagnostyka, pokrycie ryzyk."
+        "title": "Implementacja kompletnego procesu zakupu",
+        "description": "Utwórz klasy `ProductsPage` oraz `CheckoutPage` i zintegruj je z custom runnerem. Napisz działający test, który loguje użytkownika, dodaje produkt do koszyka, przechodzi proces kasy i weryfikuje sukces."
       }
     ],
     "quiz": [
       {
         "id": "q15-1-1",
-        "question": "Co powinien udowadniać projekt real-world?",
+        "question": "Które podejście jest uważane za najlepszą praktykę inżynieryjną przy automatyzacji procesu kasy (checkout) wymagającego danych adresowych klienta?",
         "options": [
-          "Umiejętność zaprojektowania systemu testów wokół ryzyka i utrzymania",
-          "Wyłącznie znajomość jednego lokatora",
-          "Liczbę plików",
-          "Brak README"
+          "Wykorzystanie Test Data Buildera w połączeniu z biblioteką Faker do dynamicznego generowania unikalnych i realistycznych danych adresowych per test",
+          "Twarde kodowanie stałego adresu w kodzie testu",
+          "Pominięcie kroku wprowadzania adresu",
+          "Wprowadzanie losowego ciągu losowych liter"
         ],
         "correctAnswer": 0,
-        "explanation": "Projekt ma pokazać sposób myślenia, architekturę i jakość decyzji."
-      },
-      {
-        "id": "q15-1-2",
-        "question": "Dlaczego projekt powinien mieć testy na różnych poziomach?",
-        "options": [
-          "Bo różne ryzyka najtaniej sprawdza się na różnych warstwach",
-          "Bo E2E zawsze wystarczy",
-          "Bo API jest zbędne",
-          "Bo SQL nie dotyczy testów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Full stack testing oznacza dobór poziomu testu do ryzyka."
-      },
-      {
-        "id": "q15-1-3",
-        "question": "Co jest ważne w projekcie portfolio?",
-        "options": [
-          "Instrukcja uruchomienia, raporty, decyzje architektoniczne i przykładowe wyniki",
-          "Ukrycie konfiguracji",
-          "Brak CI",
-          "Same screeny"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Portfolio musi być czytelne i możliwe do zweryfikowania."
-      },
-      {
-        "id": "q15-1-4",
-        "question": "Co powinien robić quality gate projektu?",
-        "options": [
-          "Blokować merge/release przy naruszeniu ustalonych kryteriów jakości",
-          "Zawsze przepuszczać zmiany",
-          "Ukrywać flaky testy",
-          "Pomijać raporty"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Quality gate zamienia wymagania jakościowe w decyzję pipeline."
-      },
-      {
-        "id": "q15-1-5",
-        "question": "Dlaczego warto opisać kompromisy?",
-        "options": [
-          "Pokazują świadomość ograniczeń i dojrzałość inżynierską",
-          "Obniżają wartość projektu",
-          "Są zbędne",
-          "Ukrywają błędy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Świadomy kompromis jest lepszy niż pozorna kompletność."
-      },
-      {
-        "id": "q15-1-6",
-        "question": "Co jest antywzorcem projektu końcowego?",
-        "options": [
-          "Dużo testów bez strategii, danych i raportów",
-          "Jasny zakres",
-          "CI z artefaktami",
-          "README"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Liczba testów bez spójnej architektury nie dowodzi kompetencji."
-      },
-      {
-        "id": "q15-1-7",
-        "question": "Co powinno znaleźć się w README?",
-        "options": [
-          "Cel, zakres, instalacja, komendy, struktura, raporty i decyzje",
-          "Tylko nazwa repo",
-          "Sekrety",
-          "Brak wymagań"
-        ],
-        "correctAnswer": 0,
-        "explanation": "README jest interfejsem projektu dla osoby oceniającej."
-      },
-      {
-        "id": "q15-1-8",
-        "question": "Najważniejsza zasada lekcji „Projekt testowania aplikacji e-commerce” to:",
-        "options": [
-          "Projekt ma być spójny, uruchamialny i diagnostyczny",
-          "Ma być jak największy",
-          "Nie musi działać",
-          "Nie wymaga testów API"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Real-world project jest dowodem praktycznej kompetencji."
+        "explanation": "Używanie Test Data Buildera i biblioteki Faker zapewnia pełną unikalność danych przy testach współbieżnych, chroniąc przed konfliktami w bazie i symulując realistyczne zachowania użytkowników."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Best Practices",
-        "url": "https://playwright.dev/docs/best-practices",
-        "description": "Dobre praktyki przy projektowaniu stabilnych testów E2E."
-      },
-      {
-        "title": "GitHub Actions",
-        "url": "https://docs.github.com/en/actions",
-        "description": "Automatyzacja CI/CD dla projektu portfolio."
-      },
-      {
-        "title": "OWASP Testing Guide",
-        "url": "https://owasp.org/www-project-web-bezpieczeństwo-testing-guide/",
-        "description": "Źródło inspiracji dla scenariuszy bezpieczeństwa w projektach końcowych."
-      },
-      {
-        "title": "Testing Library Guiding Principles",
-        "url": "https://testing-library.com/docs/guiding-principles/",
-        "description": "Zasady testowania z perspektywy użytkownika."
+        "description": "Chapter 3: Building a Scalable UI Framework (E-commerce case study)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Projekt real-world powinien pokazywać decyzje, kompromisy i ryzyka, nie tylko dużą liczbę testów.",
-      "Każdy projekt portfolio potrzebuje README, komend uruchomieniowych, raportów i przykładowej awarii z diagnostyką.",
-      "Zakres projektu dobieraj tak, aby dało się go utrzymać; pełny stack w małej skali jest lepszy niż ogromny chaos.",
-      "W projekcie końcowym pokaż interfejs użytkownika, API, dane, CI i raportowanie jako jeden spójny system jakości."
+      "Wydziel nagłówek koszyka (cart badge, przycisk koszyka) jako osobny komponent wspólny, ponieważ pojawia się on na każdej podstronie sklepu."
     ],
     "commonMistakes": [
       {
-        "mistake": "Projekt jest zbiorem przypadkowych testów",
-        "solution": "Zacznij od strategii: zakres, ryzyka, poziomy testów i kryteria zaliczenia."
-      },
-      {
-        "mistake": "Brak danych i cleanupu",
-        "solution": "Użyj builderów, API setup, run_id i cleanup trackera."
-      },
-      {
-        "mistake": "Brak dokumentacji uruchomienia",
-        "solution": "README musi pozwalać uruchomić projekt od zera."
-      },
-      {
-        "mistake": "CI bez artefaktów",
-        "solution": "Publikuj HTML/JUnit/trace/screenshoty, szczególnie przy awarii."
+        "mistake": "Tworzenie jednego, gigantycznego Page Objectu zawierającego katalog produktów, filtry, koszyk i płatności",
+        "solution": "Podziel system na mniejsze, wyspecjalizowane klasy stron i niezależne obiekty komponentów."
       }
     ]
   }

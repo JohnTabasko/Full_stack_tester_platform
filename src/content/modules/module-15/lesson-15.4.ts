@@ -1,217 +1,59 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory15_4 from './lesson-15.4.md?raw';
 
 export const lesson15_4: Lesson = {
   "id": "15.4",
   "moduleId": 15,
-  "title": "Projekt końcowy i ocena finalna",
-  "description": "Projekt capstone, kryteria certyfikacji, ścieżki kariery, ciągła nauka, portfolio i ocena końcowa.",
+  "title": "Zarządzanie dużym zestawem testów",
+  "description": "Dowiedz się, jak zarządzać i utrzymywać suity testowe zawierające ponad 500 testów E2E. Poznaj podział na poziomy (Suite Tiering), śledzenie metryki Flaky Rate oraz zasady kwarantanny testów.",
   "order": 4,
-  "difficulty": "expert",
-  "tags": [
-    "real-world",
-    "portfolio",
-    "capstone",
-    "qa-automation"
-  ],
+  "difficulty": "advanced",
+  "tags": ["suite-tiering", "flaky-rate", "quarantine", "CI-optimization", "best-practices", "scale"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować i ocenić projekt „Projekt końcowy i ocena finalna” jako spójny system testów full stack z danymi, CI, raportowaniem i dokumentacją.",
+    "objective": "Po ukończeniu tej lekcji potrafisz projektować architekturę testów regresyjnych skali enterprise, kategoryzować testy na Smoke i Regression, wdrażać zasady kwarantanny dla niestabilnych testów oraz optymalizować czas trwania całej suity w CI/CD.",
     "theory": theory15_4,
     "codeExamples": [
-      "type FinalAssessment = {\n  ui: boolean;\n  api: boolean;\n  db: boolean;\n  ci: boolean;\n  reports: boolean;\n  dokumentacja: boolean;\n  practicalExamPassed: boolean;\n};\n\nfunction passed(a: FinalAssessment) {\n  return Object.values(a).every(Boolean);\n}\n",
-      "# Struktura prezentacji projektu\n1. Problem i zakres\n2. Strategia testów\n3. Architektura frameworka\n4. Demo testu interfejsu użytkownika/API/baza danych\n5. CI i raport\n6. Kompromisy i dalszy rozwój\n"
+      `// Przykład oznaczania testu w kwarantannie (Książka 3 - Uppadhyay)
+test('niestabilny test kasy - kwarantanna', async ({ page }) => {
+  test.fixme(true, 'BUG-1204: Niestabilne ładowanie bramki Stripe');
+  await page.goto('/checkout');
+});`
     ],
     "exercises": [
       {
         "id": "ex-15-4-1",
-        "title": "Mapa zakresu",
-        "description": "Dla projektu „Projekt końcowy i ocena finalna” zapisz moduły funkcjonalne, ryzyka i poziomy testów."
-      },
-      {
-        "id": "ex-15-4-2",
-        "title": "Architektura frameworka",
-        "description": "Zaprojektuj foldery: pages, clients, builders, fixtures, assertions, config i tests."
-      },
-      {
-        "id": "ex-15-4-3",
-        "title": "Dane testowe",
-        "description": "Opisz strategię danych, izolacji i cleanupu dla krytycznych scenariuszy."
-      },
-      {
-        "id": "ex-15-4-4",
-        "title": "Pipeline",
-        "description": "Zaprojektuj CI: lint, typecheck, smoke, full regression, artefakty i quality gate."
-      },
-      {
-        "id": "ex-15-4-5",
-        "title": "Raport portfolio",
-        "description": "Przygotuj fragment README opisujący cel, zakres, uruchomienie i interpretację wyników."
-      },
-      {
-        "id": "ex-15-4-6",
-        "title": "Ocena projektu",
-        "description": "Stwórz checklistę odbioru projektu: stabilność, czytelność, diagnostyka, pokrycie ryzyk."
+        "title": "Zaprojektowanie polityki kwarantanny",
+        "description": "Zaprojektuj i opisz standard operacyjny (SOP) dla Twojego zespołu QA określający: kiedy test trafia do kwarantanny, kto odpowiada za jego naprawę i na jakich zasadach jest przywracany do głównego rurociągu CI/CD."
       }
     ],
     "quiz": [
       {
         "id": "q15-4-1",
-        "question": "Co powinien udowadniać projekt real-world?",
+        "question": "Jaka jest rekomendowana reakcja na wykrycie niestabilnego testu (Flaky Test) w głównym rurociągu produkcyjnym?",
         "options": [
-          "Umiejętność zaprojektowania systemu testów wokół ryzyka i utrzymania",
-          "Wyłącznie znajomość jednego lokatora",
-          "Liczbę plików",
-          "Brak README"
+          "Oznaczenie testu jako fixme (kwarantanna) i przeniesienie go do backlogu naprawczego deweloperów, aby nie blokował rurociągu zdrowych testów",
+          "Całkowite usunięcie pliku testu z Git bez zgłoszenia błędu",
+          "Pozostawienie testu bez zmian i ignorowanie jego czerwonych wyników w CI",
+          "Zwiększenie liczby ponowień (retries) do 10"
         ],
         "correctAnswer": 0,
-        "explanation": "Projekt ma pokazać sposób myślenia, architekturę i jakość decyzji."
-      },
-      {
-        "id": "q15-4-2",
-        "question": "Dlaczego projekt powinien mieć testy na różnych poziomach?",
-        "options": [
-          "Bo różne ryzyka najtaniej sprawdza się na różnych warstwach",
-          "Bo E2E zawsze wystarczy",
-          "Bo API jest zbędne",
-          "Bo SQL nie dotyczy testów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Full stack testing oznacza dobór poziomu testu do ryzyka."
-      },
-      {
-        "id": "q15-4-3",
-        "question": "Co jest ważne w projekcie portfolio?",
-        "options": [
-          "Instrukcja uruchomienia, raporty, decyzje architektoniczne i przykładowe wyniki",
-          "Ukrycie konfiguracji",
-          "Brak CI",
-          "Same screeny"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Portfolio musi być czytelne i możliwe do zweryfikowania."
-      },
-      {
-        "id": "q15-4-4",
-        "question": "Co powinien robić quality gate projektu?",
-        "options": [
-          "Blokować merge/release przy naruszeniu ustalonych kryteriów jakości",
-          "Zawsze przepuszczać zmiany",
-          "Ukrywać flaky testy",
-          "Pomijać raporty"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Quality gate zamienia wymagania jakościowe w decyzję pipeline."
-      },
-      {
-        "id": "q15-4-5",
-        "question": "Dlaczego warto opisać kompromisy?",
-        "options": [
-          "Pokazują świadomość ograniczeń i dojrzałość inżynierską",
-          "Obniżają wartość projektu",
-          "Są zbędne",
-          "Ukrywają błędy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Świadomy kompromis jest lepszy niż pozorna kompletność."
-      },
-      {
-        "id": "q15-4-6",
-        "question": "Co jest antywzorcem projektu końcowego?",
-        "options": [
-          "Dużo testów bez strategii, danych i raportów",
-          "Jasny zakres",
-          "CI z artefaktami",
-          "README"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Liczba testów bez spójnej architektury nie dowodzi kompetencji."
-      },
-      {
-        "id": "q15-4-7",
-        "question": "Co powinno znaleźć się w README?",
-        "options": [
-          "Cel, zakres, instalacja, komendy, struktura, raporty i decyzje",
-          "Tylko nazwa repo",
-          "Sekrety",
-          "Brak wymagań"
-        ],
-        "correctAnswer": 0,
-        "explanation": "README jest interfejsem projektu dla osoby oceniającej."
-      },
-      {
-        "id": "q15-4-8",
-        "question": "Najważniejsza zasada lekcji „Projekt końcowy i ocena finalna” to:",
-        "options": [
-          "Projekt ma być spójny, uruchamialny i diagnostyczny",
-          "Ma być jak największy",
-          "Nie musi działać",
-          "Nie wymaga testów API"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Real-world project jest dowodem praktycznej kompetencji."
+        "explanation": "Zasada kwarantanny to kluczowy standard inżynieryjny: niestabilny test musi zostać odizolowany (np. oznaczony jako fixme), aby nie paraliżował pracy zespołu, i naprawiony w dedykowanym zadaniu technicznym."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Best Practices",
-        "url": "https://playwright.dev/docs/best-practices",
-        "description": "Dobre praktyki przy projektowaniu stabilnych testów E2E."
-      },
-      {
-        "title": "GitHub Actions",
-        "url": "https://docs.github.com/en/actions",
-        "description": "Automatyzacja CI/CD dla projektu portfolio."
-      },
-      {
-        "title": "OWASP Testing Guide",
-        "url": "https://owasp.org/www-project-web-bezpieczeństwo-testing-guide/",
-        "description": "Źródło inspiracji dla scenariuszy bezpieczeństwa w projektach końcowych."
-      },
-      {
-        "title": "Testing Library Guiding Principles",
-        "url": "https://testing-library.com/docs/guiding-principles/",
-        "description": "Zasady testowania z perspektywy użytkownika."
+        "description": "Chapter 11: Advanced Test Maintenance and Optimization Strategies."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Projekt real-world powinien pokazywać decyzje, kompromisy i ryzyka, nie tylko dużą liczbę testów.",
-      "Każdy projekt portfolio potrzebuje README, komend uruchomieniowych, raportów i przykładowej awarii z diagnostyką.",
-      "Zakres projektu dobieraj tak, aby dało się go utrzymać; pełny stack w małej skali jest lepszy niż ogromny chaos.",
-      "W projekcie końcowym pokaż interfejs użytkownika, API, dane, CI i raportowanie jako jeden spójny system jakości."
+      "Utrzymuj wskaźnik Flaky Rate poniżej 2%. Wyższy wskaźnik oznacza, że zespół przestanie wierzyć wynikom testów, co zrujnuje sens automatyzacji."
     ],
     "commonMistakes": [
       {
-        "mistake": "Projekt jest zbiorem przypadkowych testów",
-        "solution": "Zacznij od strategii: zakres, ryzyka, poziomy testów i kryteria zaliczenia."
-      },
-      {
-        "mistake": "Brak danych i cleanupu",
-        "solution": "Użyj builderów, API setup, run_id i cleanup trackera."
-      },
-      {
-        "mistake": "Brak dokumentacji uruchomienia",
-        "solution": "README musi pozwalać uruchomić projekt od zera."
-      },
-      {
-        "mistake": "CI bez artefaktów",
-        "solution": "Publikuj HTML/JUnit/trace/screenshoty, szczególnie przy awarii."
+        "mistake": "Uruchamianie wszystkich 500+ testów regresyjnych przy każdym pojedynczym komicie (Push) w rurociągu PR",
+        "solution": "W PR uruchamiaj wyłącznie szybkie i krytyczne testy dymne (@smoke), a pełną regresję wykonuj raz na dobę (nightly build)."
       }
     ]
   }
