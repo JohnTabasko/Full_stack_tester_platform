@@ -1,214 +1,58 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory20_4 from './lesson-20.4.md?raw';
 
 export const lesson20_4: Lesson = {
   "id": "20.4",
   "moduleId": 20,
   "title": "Migracje, seedowanie i sprzątanie danych",
-  "description": "Migracje, seed i cleanup: forward-only migrations, rollback, rolling deploy compatibility, maskowanie danych i snapshoty testowe.",
+  "description": "Opanuj higienę bazy danych (Test Database Hygiene). Poznaj techniki czyszczenia danych (Truncate, Rollbacks, selektywne usuwanie po run_id), migracje schematów oraz bezpieczne seedowanie bazy.",
   "order": 4,
-  "difficulty": "intermediate",
-  "tags": [
-    "migrations",
-    "seed",
-    "sprzątanie danych",
-    "fixtures",
-    "rollback",
-    "test-data"
-  ],
+  "difficulty": "advanced",
+  "tags": ["migrations", "seeding", "cleanup", "database-hygiene", "UUID", "teardown"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaplanować bezpieczne migracje bazy, przygotować deterministyczne seedowanie i sprzątanie danych testowych oraz włączyć kontrolę migracji do pipeline’u jakości.",
+    "objective": "Po ukończeniu tej lekcji potrafisz projektować spójną politykę sprzątania i higieny bazy danych, stosować unikalne identyfikatory UUID w celach izolacji, przeprowadzać selektywny cleanup danych oraz integrować procesy seedowania z testami.",
     "theory": theory20_4,
     "codeExamples": [
-      "-- Cleanup danych konkretnego przebiegu testów.\nDELETE FROM audit_events WHERE correlation_id = :run_id;\nDELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE external_id = :run_id);\nDELETE FROM orders WHERE external_id = :run_id;\n",
-      "-- Migracja wieloetapowa, przykład koncepcyjny.\n-- 1. Dodaj kolumnę nullable.\nALTER TABLE orders ADD COLUMN tenant_id Uinterfejs użytkownikaD;\n\n-- 2. Uzupełnij dane historyczne.\nUPDATE orders SET tenant_id = customers.tenant_id\nFROM customers\nWHERE customers.id = orders.customer_id;\n\n-- 3. Dopiero po weryfikacji wymuś NOT NULL i indeks.\nALTER TABLE orders ALTER COLUMN tenant_id SET NOT NULL;\nCREATE INDEX idx_orders_tenant_external ON orders (tenant_id, external_id);\n"
+      `// Przykład selektywnego usuwania po runId (Książka 3 - Uppadhyay)
+test.afterAll(async () => {
+  await db.query('DELETE FROM users WHERE email LIKE $1', [\`%\${runId}@test.pl\`]);
+});`
     ],
     "exercises": [
       {
         "id": "ex-20-4-1",
-        "title": "Plan migracji",
-        "description": "Zaprojektuj migrację dodającą tenant_id do istniejącej tabeli orders."
-      },
-      {
-        "id": "ex-20-4-2",
-        "title": "Seed minimalny",
-        "description": "Przygotuj minimalny zestaw danych startowych dla testów koszyka."
-      },
-      {
-        "id": "ex-20-4-3",
-        "title": "Cleanup po run_id",
-        "description": "Napisz zapytania usuwające dane testowe powiązane z jednym run_id."
-      },
-      {
-        "id": "ex-20-4-4",
-        "title": "Test rollbacku",
-        "description": "Opisz, jak sprawdzisz plan awaryjny dla migracji usuwającej kolumnę."
-      },
-      {
-        "id": "ex-20-4-5",
-        "title": "Dane produkcyjnie podobne",
-        "description": "Wskaż, jakie dane są potrzebne do testu migracji dużej tabeli zamówień."
-      },
-      {
-        "id": "ex-20-4-6",
-        "title": "Review migracji",
-        "description": "Przygotuj checklistę review dla migracji bazy danych."
+        "title": "Implementacja transakcyjnego rollbacku",
+        "description": "Napisz integracyjny test zapisu zamówienia, w którym w fazie `beforeEach` rozpoczniesz transakcję bazy `BEGIN`, wykonasz akcje zapisu, a w fazie `afterEach` wywołasz `ROLLBACK` w celu przywrócenia bazy do czystości."
       }
     ],
     "quiz": [
       {
         "id": "q20-4-1",
-        "question": "Dlaczego migracje są kodem?",
+        "question": "Która technika czyszczenia bazy danych jest uznawana za najszybszą i najbardziej wydajną w testach integracyjnych, o ile nie testujemy procesów asynchronicznych?",
         "options": [
-          "Zmieniają zachowanie systemu i muszą być wersjonowane oraz reviewowane",
-          "Bo są napisane w HTML",
-          "Bo nie wpływają na dane",
-          "Bo służą tylko testerom"
+          "Transaction Rollback (wykonywanie testu w transakcji i wycofanie jej poleceniem ROLLBACK na koniec)",
+          "TRUNCATE na wszystkich tabelach bazy danych przed każdym testem",
+          "Ręczne kasowanie bazy danych i odtwarzanie jej z pliku SQL dump",
+          "Playwright nie umożliwia czyszczenia baz danych"
         ],
         "correctAnswer": 0,
-        "explanation": "Migracja może zepsuć produkcję tak samo jak błąd aplikacji."
-      },
-      {
-        "id": "q20-4-2",
-        "question": "Jaki powinien być dobry seed testowy?",
-        "options": [
-          "Minimalny i deterministyczny",
-          "Ogromny i nieopisany",
-          "Losowy bez kontroli",
-          "Taki sam jak produkcja z danymi osobowymi"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Seed powinien wspierać testy, nie tworzyć ukryte zależności."
-      },
-      {
-        "id": "q20-4-3",
-        "question": "Jak bezpiecznie sprzątać dane w środowisku współdzielonym?",
-        "options": [
-          "Po run_id lub innym jednoznacznym filtrze",
-          "DELETE FROM users bez WHERE",
-          "Ręcznie raz w miesiącu",
-          "Nie sprzątać"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Cleanup musi usuwać wyłącznie dane danego testu."
-      },
-      {
-        "id": "q20-4-4",
-        "question": "Co testować przy migracji istniejących danych?",
-        "options": [
-          "Pustą bazę i bazę z realistycznymi danymi",
-          "Tylko nowy interfejs użytkownika",
-          "Wyłącznie lint",
-          "Nic"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Migracja często działa na pustej bazie, a pada na danych historycznych."
-      },
-      {
-        "id": "q20-4-5",
-        "question": "Kiedy migracja powinna być wieloetapowa?",
-        "options": [
-          "Gdy zmiana może złamać kompatybilność lub dotyczy dużych danych",
-          "Zawsze dla literówki",
-          "Nigdy",
-          "Tylko w CSS"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wieloetapowość zmniejsza ryzyko wdrożenia."
-      },
-      {
-        "id": "q20-4-6",
-        "question": "Co jest antywzorcem sprzątanie danychu?",
-        "options": [
-          "Szeroki DELETE bez filtra",
-          "Usuwanie po run_id",
-          "Rollback transakcji",
-          "Kontener efemeryczny"
-        ],
-        "correctAnswer": 0,
-        "explanation": "DELETE bez filtra może zniszczyć cudze dane."
-      },
-      {
-        "id": "q20-4-7",
-        "question": "Dlaczego testować czas migracji?",
-        "options": [
-          "Duże tabele mogą blokować wdrożenie lub aplikację",
-          "Bo każdy test musi mierzyć czas interfejs użytkownika",
-          "To nie ma znaczenia",
-          "Tylko dla aplikacji mobilnych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Długa migracja może być ryzykiem operacyjnym."
-      },
-      {
-        "id": "q20-4-8",
-        "question": "Co powinno znaleźć się w review migracji?",
-        "options": [
-          "Rollback, wpływ na dane, indeksy, constraints i kompatybilność",
-          "Tylko nazwa pliku",
-          "Kolor terminala",
-          "Lista testerów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Review migracji musi uwzględniać bezpieczeństwo danych i wdrożenia."
+        "explanation": "Transakcyjny rollback trwa zaledwie kilka milisekund i nie pozostawia żadnych śladów na dysku bazy, co gwarantuje błyskawiczne wykonanie testu i pełną higienę środowiska."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "PostgreSQL Docs",
-        "url": "https://www.postgresql.org/docs/current/",
-        "description": "Dokumentacja PostgreSQL."
-      },
-      {
-        "title": "Flyway Docs",
-        "url": "https://documentation.red-gate.com/fd",
-        "description": "Migracje baz danych."
-      },
-      {
-        "title": "Liquibase Docs",
-        "url": "https://docs.liquibase.com/",
-        "description": "Zarządzanie zmianami schematu."
+        "description": "Chapter 7: Managing Test Data, Environments, and Configuration (Data hygiene)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Migrację testuj na danych istniejących, nie tylko na pustej bazie.",
-      "Seed powinien być mały i jawny; resztę danych twórz w testach.",
-      "Cleanup bez filtra jest defektem bezpieczeństwa środowiska.",
-      "Przy dużych zmianach schematu myśl o kompatybilności starej i nowej wersji aplikacji."
+      "Używaj unikalnych identyfikatorów (np. UUID) jako przyrostków dla nazw i loginów tworzonych w testach, co ułatwi ich selektywne usuwanie po zakończeniu pracy."
     ],
     "commonMistakes": [
       {
-        "mistake": "Migracje bez rollbacku lub planu awaryjnego",
-        "solution": "Opisz, jak cofnąć zmianę albo jak bezpiecznie przejść przez wdrożenie."
-      },
-      {
-        "mistake": "Zbyt duży seed",
-        "solution": "Utrzymuj minimalne dane bazowe i twórz resztę per test."
-      },
-      {
-        "mistake": "Cleanup usuwający cudze dane",
-        "solution": "Filtruj po run_id, tenant_id lub danych utworzonych przez test."
-      },
-      {
-        "mistake": "Brak testu na danych historycznych",
-        "solution": "Uruchamiaj migrację na reprezentatywnej kopii danych."
+        "mistake": "Brak sprzątania danych wygenerowanych w testach (Database Leaks), co z czasem zapycha bazę i spowalnia działanie środowiska testowego",
+        "solution": "Zawsze wdrażaj rygorystyczny Teardown (czyszczenie) w sekcjach afterEach / afterAll."
       }
     ]
   }
