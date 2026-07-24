@@ -1,217 +1,60 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory10_2 from './lesson-10.2.md?raw';
 
 export const lesson10_2: Lesson = {
   "id": "10.2",
   "moduleId": 10,
   "title": "Niestandardowe reportery",
-  "description": "Interfejs niestandardowego reportera, webhook Slack/Teams, wyjście CSV/JSON/Markdown i integracje wewnętrzne.",
+  "description": "Wdróż zaawansowane systemy raportowania. Poznaj konfigurację Monocart Reportera, integrację z kanałami Slack i Microsoft Teams za pomocą Webhooków oraz tworzenie własnych klas Reporter.",
   "order": 2,
-  "difficulty": "intermediate",
-  "tags": [
-    "reporting",
-    "analytics",
-    "playwright",
-    "ci"
-  ],
+  "difficulty": "advanced",
+  "tags": ["reporters", "monocart", "slack", "notifications", "custom-reporter", "diagnostics"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować raportowanie dla tematu „Niestandardowe reportery” tak, aby wspierało diagnozę, decyzje zespołu i jakość procesu CI/CD.",
+    "objective": "Po ukończeniu tej lekcji potrafisz wdrażać i konfigurować alternatywne, bogate w analitykę i trendy reportery HTML (Monocart), integrować automatyczną wysyłkę raportów na Slack/Teams oraz napisać uproszczony, własny reporter w TypeScript.",
     "theory": theory10_2,
     "codeExamples": [
-      "import type { Reporter, FullResult, TestCase, TestResult } from '@playwright/test/reporter';\n\nclass SummaryReporter implements Reporter {\n  private failed: string[] = [];\n\n  onTestEnd(test: TestCase, result: TestResult) {\n    if (result.status !== 'passed') this.failed.push(test.titlePath().join(' › '));\n  }\n\n  async onEnd(result: FullResult) {\n    console.log(JSON.stringify({ status: result.status, failed: this.failed }, null, 2));\n  }\n}\n\nexport default SummaryReporter;\n",
-      "// Alert powinien zawierać link, nie cały raport.\nconst message = {\n  text: `Smoke failed on staging. Failed: ${failedCount}. Report: ${reportUrl}`,\n};\n"
+      `// Przykład konfiguracji powiadomień Slack (Książka 2 - Greffier)
+export default defineConfig({
+  reporter: [
+    ['playwright-slack-report', { slackWebHookUrl: process.env.SLACK_URL }]
+  ]
+});`
     ],
     "exercises": [
       {
         "id": "ex-10-2-1",
-        "title": "Raport dla odbiorcy",
-        "description": "Dla tematu „Niestandardowe reportery” zaprojektuj raport dla developera, QA leada i managera."
-      },
-      {
-        "id": "ex-10-2-2",
-        "title": "Artefakty awarii",
-        "description": "Dodaj listę artefaktów potrzebnych do diagnozy failed testu w CI."
-      },
-      {
-        "id": "ex-10-2-3",
-        "title": "Format maszynowy",
-        "description": "Opisz, jak JSON/JUnit może zasilić pipeline, dashboard lub quality gate."
-      },
-      {
-        "id": "ex-10-2-4",
-        "title": "Metryki trendu",
-        "description": "Zdefiniuj metryki pass rate, flaky rate, duration p95 i liczbę testów krytycznych."
-      },
-      {
-        "id": "ex-10-2-5",
-        "title": "Alert",
-        "description": "Przygotuj treść alertu Slack/Teams dla awarii smoke suite."
-      },
-      {
-        "id": "ex-10-2-6",
-        "title": "Review raportowania",
-        "description": "Ułóż checklistę sprawdzającą, czy raport pomaga w decyzji i diagnozie."
+        "title": "Konfiguracja Monocart z historią trendów",
+        "description": "Zainstaluj i skonfiguruj `monocart-reporter` w swoim pliku `playwright.config.ts`. Skonfiguruj opcję zapisywania trendów (`trend: 'trends.json'`), tak aby kolejne uruchomienia testów rysowały na wykresie historię stabilności."
       }
     ],
     "quiz": [
       {
         "id": "q10-2-1",
-        "question": "Jaki jest główny cel raportu testowego?",
+        "question": "W jaki sposób klasa własnego reportera (Custom Reporter) komunikuje się z silnikiem Playwright Test?",
         "options": [
-          "Dostarczyć informacji potrzebnej do decyzji i diagnozy",
-          "Zająć jak najwięcej miejsca",
-          "Ukryć błędy",
-          "Zastąpić testy"
+          "Implementując wbudowany interfejs 'Reporter' i nadpisując metody zdarzeń (np. onTestBegin, onTestEnd)",
+          "Poprzez bezpośrednie modyfikowanie kodu binarnego Chromium",
+          "Wywołując metody bazy danych SQL",
+          "Nie da się stworzyć własnego reportera"
         ],
         "correctAnswer": 0,
-        "explanation": "Raport ma skracać drogę od wyniku testu do działania."
-      },
-      {
-        "id": "q10-2-2",
-        "question": "Dlaczego warto mieć JUnit w CI?",
-        "options": [
-          "CI potrafi interpretować wyniki i pokazywać je w interfejsie",
-          "Bo JUnit robi screenshoty",
-          "Bo zastępuje HTML",
-          "Bo ukrywa flaky"
-        ],
-        "correctAnswer": 0,
-        "explanation": "JUnit XML jest standardowym formatem maszynowym dla wyników testów."
-      },
-      {
-        "id": "q10-2-3",
-        "question": "Kiedy HTML report jest szczególnie przydatny?",
-        "options": [
-          "Do lokalnej i zespołowej analizy kroków, trace i screenshotów",
-          "Do zastąpienia wszystkich metryk",
-          "Do ukrycia logów",
-          "Tylko dla managerów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "HTML report jest czytelny dla ludzi i wspiera analizę awarii."
-      },
-      {
-        "id": "q10-2-4",
-        "question": "Co oznacza flaky rate?",
-        "options": [
-          "Odsetek testów o niestabilnym wyniku",
-          "Średnią długość nazwy testu",
-          "Liczbę screenshotów",
-          "Liczbę tagów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Flaky rate jest kluczową metryką zdrowia suite."
-      },
-      {
-        "id": "q10-2-5",
-        "question": "Co powinien zawierać alert po awarii?",
-        "options": [
-          "Zakres wpływu, właściciela, środowisko i link do raportu",
-          "Tylko słowo failed",
-          "Brak linków",
-          "Sekrety"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Alert ma prowadzić do działania, nie tylko przeszkadzać."
-      },
-      {
-        "id": "q10-2-6",
-        "question": "Po co custom reporter?",
-        "options": [
-          "Aby wysłać lub przekształcić wyniki w specyficzny dla zespołu sposób",
-          "Aby uniknąć asercji",
-          "Aby zastąpić Playwright",
-          "Aby usunąć trace"
-        ],
-        "correctAnswer": 0,
-        "explanation": "niestandardowy reporter integruje wyniki z narzędziami i procesem organizacji."
-      },
-      {
-        "id": "q10-2-7",
-        "question": "Co jest ryzykiem executive summary?",
-        "options": [
-          "Nadmierne uproszczenie bez linku do danych źródłowych",
-          "Zbyt jasny wykres",
-          "Link do raportu",
-          "Podsumowanie trendu"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Podsumowanie musi być krótkie, ale weryfikowalne."
-      },
-      {
-        "id": "q10-2-8",
-        "question": "Najważniejsza zasada lekcji „Niestandardowe reportery” to:",
-        "options": [
-          "Raportowanie jest elementem diagnostyki i zarządzania jakością",
-          "Raport jest dekoracją",
-          "Wystarczy pass/fail",
-          "Metryki nie są potrzebne"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Raporty i analityka zamieniają testy w użyteczną informację."
+        "explanation": "Playwright udostępnia dedykowany interfejs 'Reporter' z metodami zdarzeniowymi wywoływanymi na różnych etapach testów. Nasz niestandardowy reporter musi po prostu te metody zaimplementować."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
         "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
         "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Reporters",
-        "url": "https://playwright.dev/docs/test-reporters",
-        "description": "Oficjalna dokumentacja reporterów wbudowanych i niestandardowych."
-      },
-      {
-        "title": "Playwright Trace Viewer",
-        "url": "https://playwright.dev/docs/trace-viewer",
-        "description": "Trace jako podstawowy artefakt diagnostyczny raportu."
-      },
-      {
-        "title": "Allure Report",
-        "url": "https://allurereport.org/docs/playwright/",
-        "description": "Dokumentacja integracji Allure z Playwright."
-      },
-      {
-        "title": "JUnit XML Format",
-        "url": "https://llg.cubic.org/docs/junit/",
-        "description": "Opis formatu JUnit XML używanego przez wiele systemów CI."
+        "description": "Chapter 6: Extending Playwright (Monocart and slack reporters)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Raport ma służyć decyzji: naprawić, zignorować, powtórzyć, eskalować albo wdrożyć.",
-      "Inny raport jest potrzebny programiście, inny liderowi technicznemu, a inny biznesowi.",
-      "Artefakty z awarii są cenniejsze niż raport sukcesu; dbaj o trace, screenshoty, video i logi.",
-      "Metryki testów bez trendu historiacznego szybko tracą kontekst."
+      "Wysyłaj powiadomienia na Slacka wyłącznie przy błędach ('on-failure'). Unikaj spamowania kanałów zespołowych powiadomieniami o każdym udanym uruchomieniu testów w CI."
     ],
     "commonMistakes": [
       {
-        "mistake": "Raport zawiera wyłącznie pass/fail",
-        "solution": "Dodaj kroki, załączniki, trace, właściciela, ryzyko i linki do wymagań."
-      },
-      {
-        "mistake": "Brak JUnit/JSON w CI",
-        "solution": "Publikuj format maszynowy dla pipeline’u i format czytelny dla ludzi."
-      },
-      {
-        "mistake": "Alert bez kontekstu",
-        "solution": "Wysyłaj właściciela, środowisko, link do raportu, liczbę failed/flaky i najważniejsze artefakty."
-      },
-      {
-        "mistake": "Metryki bez quality gate",
-        "solution": "Zdefiniuj progi dla flaky rate, pass rate, czasu suite i krytycznych testów."
+        "mistake": "Twarde kodowanie adresów Webhook URL w pliku konfiguracyjnym",
+        "solution": "Zawsze pobieraj sekrety ze zmiennych środowiskowych (process.env.SLACK_WEBHOOK_URL) i zabezpieczaj pliki .env w .gitignore."
       }
     ]
   }
