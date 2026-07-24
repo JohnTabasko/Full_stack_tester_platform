@@ -1,212 +1,56 @@
-import type { Lesson } from "../../../renderer/types";
-import theory9_4 from './lesson-9.4.md?raw';
+import type { Lesson } from '../../../renderer/types';
+import theory5_9_4 from './lesson-9.4.md?raw'; // Note: reuse same theory binder name safely
 
-export const lesson9_4: Lesson = {
+export const lesson5_9_4: Lesson = {
   "id": "9.4",
   "moduleId": 9,
   "title": "Stabilność i niezawodność testów",
-  "description": "Stabilność testów: deterministyczność, izolacja danych, race conditions, retry, mockowanie z umiarem, health checks i Playwright Clock.",
+  "description": "Zwalczaj niestabilność (flakiness) testów E2E. Poznaj przyczyny wyścigów stanów, zasady ścisłej izolacji danych, bezpieczne timouty oraz obsługę ponowień (Retries).",
   "order": 4,
-  "difficulty": "intermediate",
-  "tags": [
-    "debugging",
-    "troubleshooting",
-    "stability",
-    "observability"
-  ],
+  "difficulty": "advanced",
+  "tags": ["flakiness", "stability", "retries", "race-conditions", "isolation"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz diagnozować problemy z obszaru „Stabilność i niezawodność testów”, zbierać właściwe artefakty i projektować testy bardziej odporne na niestabilność.",
-    "theory": theory9_4,
+    "objective": "Po ukończeniu tej lekcji potrafisz bezbłędnie diagnozować i usuwać przyczyny niestabilności testów, eliminować wyścigi stanów za pomocą asercji Web-First, poprawnie konfigurować ponowienia (retries) i dbać o 100% niezależność środowiskową testów.",
+    "theory": theory5_9_4,
     "codeExamples": [
-      "// Unikalne dane per test.\nconst runId = `test-${testInfo.workerIndex}-${Date.now()}`;\nconst email = `qa+${runId}@example.test`;\n",
-      "// Zamiast zależności od testu tworzącego produkt wcześniej:\nconst product = await productsApi.create({ name: `Product ${runId}` });\nawait page.goto(`/products/${product.id}`);\n"
+      `// Przykład elastycznego timeoutu asercji (Książka 2 - Greffier)
+await expect(page.locator('.status-box')).toHaveText('Gotowe', { timeout: 15000 });`
     ],
     "exercises": [
       {
         "id": "ex-9-4-1",
-        "title": "Hipotezy diagnostyczne",
-        "description": "Dla awarii z obszaru „Stabilność i niezawodność testów” wypisz trzy hipotezy i artefakt, który je potwierdzi lub obali."
-      },
-      {
-        "id": "ex-9-4-2",
-        "title": "Trace analysis",
-        "description": "Przeanalizuj trace nieudanego testu i opisz ostatni poprawny stan, akcję wywołującą błąd i brakującą asercję."
-      },
-      {
-        "id": "ex-9-4-3",
-        "title": "Console i network logs",
-        "description": "Dodaj zbieranie console, pageerror i requestfailed do testu diagnostycznego."
-      },
-      {
-        "id": "ex-9-4-4",
-        "title": "Flaky classification",
-        "description": "Sklasyfikuj flaky test jako problem danych, selektora, synchronizacji, środowiska albo zależności."
-      },
-      {
-        "id": "ex-9-4-5",
-        "title": "Cleanup i recovery",
-        "description": "Dodaj finally lub fixture cleanup gwarantujące usunięcie danych nawet przy awarii."
-      },
-      {
-        "id": "ex-9-4-6",
-        "title": "Alert użyteczny",
-        "description": "Zaprojektuj alert dla regresji testów, który zawiera właściciela, link do raportu i zakres wpływu."
+        "title": "Diagnostyka i naprawa flaky testu",
+        "description": "Zidentyfikuj niestabilny test w projekcie, który okazjonalnie zawodzi w CI z powodu asynchronicznego renderowania. Przeanalizuj plik Trace, zastąp kruchą asercję wersją Web-First i zweryfikuj stabilność testu."
       }
     ],
     "quiz": [
       {
         "id": "q9-4-1",
-        "question": "Co jest pierwszym krokiem dobrej diagnozy?",
+        "question": "W jaki sposób Playwright Test oznacza w końcowych raportach test, który nie przeszedł za pierwszym razem, ale zaliczył pozytywnie próbę ponowienia (Retry)?",
         "options": [
-          "Postawienie hipotezy i zebranie artefaktów",
-          "Zwiększenie timeoutu",
-          "Usunięcie testu",
-          "Ignorowanie CI"
+          "Jako test niestabilny (Flaky)",
+          "Jako test udany (Passed)",
+          "Jako błąd krytyczny (Failed)",
+          "Jako test pominięty (Skipped)"
         ],
         "correctAnswer": 0,
-        "explanation": "Diagnoza powinna być kierowana pytaniem i dowodem."
-      },
-      {
-        "id": "q9-4-2",
-        "question": "Co najlepiej pokazuje Trace Viewer?",
-        "options": [
-          "Kolejność akcji, snapshoty DOM, network i moment awarii",
-          "Tylko coverage",
-          "Sekrety użytkownika",
-          "Historię Git"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Trace pozwala odtworzyć przebieg testu bez lokalnej reprodukcji."
-      },
-      {
-        "id": "q9-4-3",
-        "question": "Dlaczego retry nie jest naprawą flaky testu?",
-        "options": [
-          "Bo maskuje objaw, jeśli nie analizujemy przyczyny",
-          "Bo zawsze jest zakazany",
-          "Bo działa tylko lokalnie",
-          "Bo usuwa trace"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Retry może dać czasową odporność, ale źródło niestabilności nadal istnieje."
-      },
-      {
-        "id": "q9-4-4",
-        "question": "Co powinien zrobić catch w teście?",
-        "options": [
-          "Dodać kontekst i ponownie rzucić błąd",
-          "Połknąć wyjątek",
-          "Zawsze oznaczyć test jako passed",
-          "Usunąć screenshot"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Błędu nie wolno ukrywać; diagnostyka ma go wzbogacić."
-      },
-      {
-        "id": "q9-4-5",
-        "question": "Co jest typową przyczyną strict mode violation?",
-        "options": [
-          "Lokator znajduje więcej niż jeden element",
-          "Brak internetu",
-          "Błąd TypeScriptu",
-          "Niepoprawny commit"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Playwright wymaga jednoznacznego lokatora dla wielu akcji."
-      },
-      {
-        "id": "q9-4-6",
-        "question": "Jaki alert jest użyteczny?",
-        "options": [
-          "Taki, który wskazuje wpływ, właściciela i link do diagnostyki",
-          "Każdy pojedynczy log",
-          "Alert bez kontekstu",
-          "Tylko wiadomość 'failed'"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Alert musi prowadzić do działania i skracać triage."
-      },
-      {
-        "id": "q9-4-7",
-        "question": "Co oznacza test independence?",
-        "options": [
-          "Test nie zależy od kolejności ani danych zostawionych przez inne testy",
-          "Test działa tylko po innym teście",
-          "Test nie ma asercji",
-          "Test używa jednego konta globalnego"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Niezależność jest warunkiem równoległości i wiarygodności."
-      },
-      {
-        "id": "q9-4-8",
-        "question": "Najważniejsza zasada lekcji „Stabilność i niezawodność testów” to:",
-        "options": [
-          "Awaria testu ma prowadzić do przyczyny, nie tylko do czerwonego statusu",
-          "Najważniejszy jest długi timeout",
-          "Brak artefaktów jest zaletą",
-          "Flaky testy są normalne i nie wymagają reakcji"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Debugging i troubleshooting mają skracać czas od objawu do decyzji."
+        "explanation": "Playwright oznacza takie testy jako Flaky (niestabilne). To ważna informacja dla zespołu - test ostatecznie przeszedł, ale jego kod wymaga rzetelnego przeanalizowania i stabilizacji."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
         "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
         "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Best Practices",
-        "url": "https://playwright.dev/docs/best-practices",
-        "description": "Oficjalne zasady stabilnych testów."
-      },
-      {
-        "title": "Parallelism",
-        "url": "https://playwright.dev/docs/test-parallel",
-        "description": "Izolacja przy równoległości."
-      },
-      {
-        "title": "Clock",
-        "url": "https://playwright.dev/docs/clock",
-        "description": "Kontrola czasu w testach."
+        "description": "Chapter 9: Gain Confidence Thanks to Reliable Tests (Zwalczanie flakiness)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Diagnozę zaczynaj od hipotezy: co dokładnie mogło zawieść i jaki artefakt to potwierdzi?",
-      "Trace jest najcenniejszy wtedy, gdy jest dostępny z nieudanego przebiegu CI, nie tylko lokalnie.",
-      "Flaky test traktuj jak błąd produktu testowego, nie jak irytujący przypadek losowy.",
-      "Alerty testowe powinny prowadzić do działania; zbyt głośne alerty szybko przestają być czytane."
+      "Nigdy nie ignoruj testów oznaczonych jako Flaky. Wykorzystaj Trace Viewer, aby przeanalizować historię sieci i DOM w ułamku sekundy, w którym test nie przeszedł przy pierwszej próbie."
     ],
     "commonMistakes": [
       {
-        "mistake": "Naprawianie timeoutu przez zwiększanie timeoutu",
-        "solution": "Najpierw ustal, jaki stan nie pojawił się w czasie i dlaczego."
-      },
-      {
-        "mistake": "Brak artefaktów z CI",
-        "solution": "Zbieraj trace, screenshot, video, console logs i network logs co najmniej dla porażek."
-      },
-      {
-        "mistake": "Retry bez analizy flaky rate",
-        "solution": "Mierz ponowienia, klasyfikuj przyczyny i usuwaj źródła niestabilności."
-      },
-      {
-        "mistake": "Try/catch ukrywający błąd",
-        "solution": "Dodaj kontekst diagnostyczny i ponownie rzuć wyjątek."
+        "mistake": "Zwiększanie domyślnego limitu czasu (timeout) globalnie w konfiguracji dla wszystkich testów z powodu jednego powolnego kroku",
+        "solution": "Pozostaw globalny timeout na poziomie 30s, a dla tego jednego powolnego wywołania nadpisz lokalnie opcję { timeout: 15000 } wewnątrz asercji expect."
       }
     ]
   }
