@@ -5,208 +5,56 @@ export const lesson7_2: Lesson = {
   "id": "7.2",
   "moduleId": 7,
   "title": "Budowniczowie danych i fabryki",
-  "description": "Budowniczowie danych, factory, warianty domenowe, unikalność, zgodność z kontraktem API i review danych testowych.",
+  "description": "Zarządzaj złożonością danych testowych. Poznaj wzorzec Budowniczego Danych (Test Data Builder) z Fluent API, projektowanie Fabryk Danych (Data Factories) oraz ochronę przed zmianami modeli.",
   "order": 2,
-  "difficulty": "intermediate",
-  "tags": [
-    "test-data",
-    "data-management",
-    "fixtures",
-    "builders"
-  ],
+  "difficulty": "advanced",
+  "tags": ["test-data", "builders", "factories", "Fluent-API", "clean-code", "SOLID"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz zaprojektować i utrzymywać dane testowe dla tematu „Budowniczowie danych i fabryki”, z uwzględnieniem izolacji, powtarzalności, prywatności i sprzątania danych.",
+    "objective": "Po ukończeniu tej lekcji potrafisz wyeliminować powtarzalny i kruchy kod obiektów JSON z plików testowych, wdrożyć silnie otypowany wzorzec Test Data Builder z Fluent API oraz budować gotowe stany danych za pomocą Fabryk Danych.",
     "theory": theory7_2,
     "codeExamples": [
-      "type User = { email: string; role: 'admin' | 'customer'; active: boolean };\n\nclass UserBuilder {\n  private user: User = { email: `qa-${Date.now()}@example.test`, role: 'customer', active: true };\n  asAdmin() { this.user.role = 'admin'; return this; }\n  inactive() { this.user.active = false; return this; }\n  withEmail(email: string) { this.user.email = email; return this; }\n  build(): User { return { ...this.user }; }\n}\n",
-      "const Users = {\n  admin: () => new UserBuilder().asAdmin().build(),\n  inactiveCustomer: () => new UserBuilder().inactive().build(),\n};\n"
+      `// Przykład wdrożenia Test Data Buildera (Książka 3 - Uppadhyay)
+export class ProductBuilder {
+  private product = { name: 'Buty', price: 150 };
+  withPrice(price: number) { this.product.price = price; return this; }
+  build() { return this.product; }
+}`
     ],
     "exercises": [
       {
         "id": "ex-7-2-1",
-        "title": "Strategia danych",
-        "description": "Dla tematu „Budowniczowie danych i fabryki” wybierz strategię danych i uzasadnij ją przez ryzyko, koszt i powtarzalność."
-      },
-      {
-        "id": "ex-7-2-2",
-        "title": "Builder lub factory",
-        "description": "Zaprojektuj builder/factory dla użytkownika, produktu albo zamówienia."
-      },
-      {
-        "id": "ex-7-2-3",
-        "title": "Cleanup",
-        "description": "Opisz, jak usuniesz lub odizolujesz dane po teście równoległym."
-      },
-      {
-        "id": "ex-7-2-4",
-        "title": "Scenariusz negatywny",
-        "description": "Przygotuj dane niepoprawne lub brzegowe i sprawdź odpowiedni błąd systemu."
-      },
-      {
-        "id": "ex-7-2-5",
-        "title": "Prywatność",
-        "description": "Wskaż, które dane są wrażliwe i jak je zastąpić danymi syntetycznymi."
-      },
-      {
-        "id": "ex-7-2-6",
-        "title": "Walidacja danych",
-        "description": "Dodaj walidację schematu lub typu dla danych testowych używanych w scenariuszu."
+        "title": "Projektowanie budowniczego zamówień",
+        "description": "Stwórz budowniczego danych dla obiektu zamówienia (`OrderBuilder`), który domyślnie zawiera unikalne id, listę produktów oraz adres dostawy. Umożliw elastyczną zmianę statusu zamówienia i adresu."
       }
     ],
     "quiz": [
       {
         "id": "q7-2-1",
-        "question": "Jaka cecha danych testowych jest najważniejsza w CI?",
+        "question": "W jaki sposób wzorzec Test Data Builder zabezpiecza testy przed zmianami w modelach danych deweloperskich?",
         "options": [
-          "Powtarzalność i izolacja",
-          "Losowość bez kontroli",
-          "Wspólne konto dla wszystkich",
-          "Brak sprzątania danych"
+          "Ponieważ domyślne wartości są zadeklarowane w jednym centralnym punkcie (budowniczym). Dodanie nowego pola wymaga zmiany tylko w klasie budowniczego, a nie we wszystkich testach",
+          "Automatycznie synchronizuje bazę z kodem JavaScript",
+          "Usuwa asynchroniczność z kodu",
+          "Nie ma wpływu na podatność testów na zmiany modeli"
         ],
         "correctAnswer": 0,
-        "explanation": "CI uruchamia testy równolegle i często; dane muszą być deterministyczne oraz niezależne."
-      },
-      {
-        "id": "q7-2-2",
-        "question": "Po co używać run_id?",
-        "options": [
-          "Aby powiązać dane z konkretnym przebiegiem testów",
-          "Aby ukryć dane",
-          "Aby zastąpić asercje",
-          "Aby zwiększyć flakiness"
-        ],
-        "correctAnswer": 0,
-        "explanation": "run_id ułatwia filtrowanie, diagnostykę i sprzątanie danych danych."
-      },
-      {
-        "id": "q7-2-3",
-        "question": "Kiedy builder jest lepszy niż hard-coded object?",
-        "options": [
-          "Gdy obiekt ma wiele pól, a test chce nadpisać tylko istotne",
-          "Nigdy",
-          "Tylko w CSS",
-          "Gdy nie potrzebujemy typów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Builder tworzy kompletne, czytelne dane z lokalnymi nadpisaniami."
-      },
-      {
-        "id": "q7-2-4",
-        "question": "Co oznacza seed w generatorze danych?",
-        "options": [
-          "Ustawienie powtarzalnego źródła losowości",
-          "Usunięcie danych",
-          "Szyfrowanie hasła",
-          "Uruchomienie przeglądarki"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Seed pozwala odtworzyć te same dane w kolejnym przebiegu."
-      },
-      {
-        "id": "q7-2-5",
-        "question": "Dlaczego dane produkcyjne są ryzykowne w testach?",
-        "options": [
-          "Mogą zawierać dane osobowe, sekrety i niekontrolowany stan",
-          "Zawsze są zbyt małe",
-          "Nie da się ich czytać",
-          "Zastępują testy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Dane produkcyjne wymagają anonimizacji i kontroli prawnej oraz technicznej."
-      },
-      {
-        "id": "q7-2-6",
-        "question": "Co jest dobrą strategią sprzątania danych?",
-        "options": [
-          "Usuwanie zasobów po ID zebranych w teście lub rollback transakcji",
-          "DELETE bez WHERE",
-          "Ręczne czyszczenie raz w miesiącu",
-          "Brak sprzątania"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Cleanup musi być precyzyjny i bezpieczny dla innych testów."
-      },
-      {
-        "id": "q7-2-7",
-        "question": "Po co walidować dane testowe schematem?",
-        "options": [
-          "Aby wykrywać błędy w fixture zanim dotrą do testu",
-          "Aby spowolnić pipeline",
-          "Aby ukryć wartości",
-          "Aby zastąpić API"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Walidacja danych wejściowych skraca diagnozę błędów testowych."
-      },
-      {
-        "id": "q7-2-8",
-        "question": "Najważniejsza zasada lekcji „Budowniczowie danych i fabryki” to:",
-        "options": [
-          "Dane są częścią architektury testu i muszą być projektowane świadomie",
-          "Dane można traktować przypadkowo",
-          "Cleanup jest opcjonalny",
-          "Produkcja to najlepszy seed"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Test jest wiarygodny tylko wtedy, gdy kontroluje swoje dane."
+        "explanation": "Dzięki budowniczemu, testy nadpisują wyłącznie te pola, które ich interesują. Jeśli do modelu wejdą nowe pola, zmieniasz tylko definicję domyślną w budowniczym, chroniąc setki testów przed błędami kompilacji."
       }
     ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Fixtures",
-        "url": "https://playwright.dev/docs/test-fixtures",
-        "description": "Fixtures jako miejsce setupu i teardownu danych testowych."
-      },
-      {
-        "title": "API testing",
-        "url": "https://playwright.dev/docs/api-testing",
-        "description": "Tworzenie stanu przez API i weryfikacja odpowiedzi."
-      },
-      {
-        "title": "Test Data Builder",
-        "url": "https://martinfowler.com/bliki/TestDataBuilder.html",
-        "description": "Klasyczny opis wzorca Test Data Builder."
+        "description": "Chapter 7: Managing Test Data, Environments, and Configuration."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Dane testowe powinny być jawne, izolowane i możliwe do posprzątania po przebiegu.",
-      "Nie używaj danych produkcyjnych, jeśli nie są zanonimizowane i zgodne z polityką organizacji.",
-      "Buildery i factory mają zwiększać czytelność scenariusza, a nie ukrywać ryzyko testowe.",
-      "Każdy test tworzący dane powinien mieć strategię sprzątania danych albo działać w izolowanym środowisku."
+      "Stosuj Fluent API (zwracanie słowa kluczowego this) w metodach budowniczego, aby umożliwić niezwykle czytelne i płynne łączenie metod w jedną linię kodu."
     ],
     "commonMistakes": [
       {
-        "mistake": "Współdzielone konto testowe dla wielu równoległych testów",
-        "solution": "Używaj unikalnych użytkowników, tenantów, run_id albo izolowanych storageState."
-      },
-      {
-        "mistake": "Losowe dane bez seed i bez zapisu kontekstu",
-        "solution": "Ustawiaj seed lub zapisuj wygenerowane dane w raporcie testu."
-      },
-      {
-        "mistake": "Brak sprzątania danych danych tworzonych przez API",
-        "solution": "Zbieraj identyfikatory utworzonych zasobów i usuwaj je w afterEach albo fixture."
-      },
-      {
-        "mistake": "Dane testowe zaszyte w wielu testach",
-        "solution": "Wydziel buildery, factory i scenariusze danych, aby zmiany były lokalne."
+        "mistake": "Ręczne definiowanie gigantycznych obiektów JSON bezpośrednio w plikach testowych",
+        "solution": "Wykorzystaj Test Data Builder i statyczne metody fabrykujące klasy DataFactory."
       }
     ]
   }

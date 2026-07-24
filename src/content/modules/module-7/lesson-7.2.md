@@ -1,249 +1,133 @@
-# Budowniczowie danych i fabryki
+# Wzorzec Budowniczego i Fabryki Danych Testowych (Test Data Builders)
 
-Dane testowe powinny mówić, jaki wariant biznesowy sprawdza test. Jeśli w każdym teście ręcznie tworzysz obiekt użytkownika z dwudziestoma polami, po kilku tygodniach nikt nie wie, które pola są istotne, a które są tylko technicznym szumem. Builder i factory rozwiązują ten problem: tworzą poprawny obiekt domyślnie, a test nadpisuje tylko to, co jest ważne dla scenariusza.
+W komercyjnych testach automatycznych, scenariusze biznesowe wymagają zasilenia wieloma złożonymi strukturami danych (np. obiektami użytkowników, parametrami produktów, zamówieniami czy koszykami). Twarde kodowanie tych obiektów bezpośrednio w ciele testu wywołuje poważne konsekwencje:
+*   **Ogromna powtarzalność kodu (Boilerplate)**: Każdy test musi od nowa definiować te same, rozbudowane obiekty JSON.
+*   **Kruchość testów**: Jeśli deweloperzy dodadzą nowe wymagane pole do modelu bazy danych (np. pole `zipCode` w adresie), będziesz musiał edytować setki plików testowych, które tego pola nie posiadają.
+*   **Brak jasności intencji**: Ciężko odczytać, który parametr w gigantycznym obiekcie JSON jest kluczowy dla danego scenariusza testowego.
 
-## 1. Builder vs factory
+Rozwiązaniem tych problemów są wzorce inżynierii danych: **Test Data Builder (Budowniczy Danych)** oraz **Fabryki Danych (Data Factories)**.
 
-**Builder** tworzy dane w pamięci:
+---
+
+## 1. Wzorzec Budowniczego (Fluent Test Data Builder)
+
+Wzorzec Budowniczego pozwala na sekwencyjne tworzenie otypowanych obiektów za pomocą czytelnego, łańcuchowego API (Fluent API). Klasa budowniczego posiada domyślne, poprawne wartości wszystkich pól, a test nadpisuje wyłącznie te parametry, które są istotne dla danego scenariusza.
+
+Stwórzmy budowniczego danych użytkownika w TypeScript:
 
 ```typescript
-type User = {
+// src/data/UserBuilder.ts
+export interface User {
+  id?: string;
   email: string;
-  password: string;
+  firstName: string;
+  lastName: string;
   role: 'customer' | 'admin';
-  marketingConsent: boolean;
-};
+  isActive: boolean;
+}
 
-export function buildUser(overrides: Partial<User> = {}): User {
-  return {
-    email: `qa+${crypto.randomUUID()}@example.test`,
-    password: 'Correct-Horse-Battery-7!',
+export class UserBuilder {
+  // Domyślne, bezpieczne wartości parametrów (Default State)
+  private user: User = {
+    email: 'test-user@mycommerce.pl',
+    firstName: 'Jan',
+    lastName: 'Kowalski',
     role: 'customer',
-    marketingConsent: false,
-    ...overrides,
+    isActive: true,
   };
+
+  // Metody do dynamicznego nadpisywania poszczególnych pól
+  public withEmail(email: string): this {
+    this.user.email = email;
+    return this;
+  }
+
+  public withRole(role: 'customer' | 'admin'): this {
+    this.user.role = role;
+    return this;
+  }
+
+  public makeInactive(): this {
+    this.user.isActive = false;
+    return this;
+  }
+
+  /**
+   * Zwraca ostatecznie zbudowany, silnie otypowany obiekt.
+   */
+  public build(): User {
+    return this.user;
+  }
 }
 ```
 
-**Factory** tworzy stan w systemie, np. przez API:
+Użycie Budowniczego w teście jest niesamowicie przejrzyste:
+```typescript
+// Tworzy nieaktywnego administratora
+const inactiveAdmin = new UserBuilder()
+  .withEmail('admin-block@sklep.pl')
+  .withRole('admin')
+  .makeInactive()
+  .build();
+```
+
+---
+
+## 2. Wzorzec Fabryki Danych (Data Factory)
+
+Gdy dany stan danych jest powtarzalny (np. stale potrzebujesz "zablokowanego użytkownika" lub "użytkownika z niepoprawnym hasłem"), wywoływanie budowniczego w każdym teście wciąż może tworzyć zbędny szum.
+
+**Fabryka Danych** to zbiór statycznych metod pomocniczych, które zwracają prekonfigurowane obiekty z budowniczego dla konkretnych stanów biznesowych:
 
 ```typescript
-export async function createUser(request: APIRequestContext, overrides: Partial<User> = {}) {
-  const user = buildUser(overrides);
-  const response = await request.post('/api/users', { data: user });
-  expect(response.status()).toBe(201);
-  return response.json();
+// src/data/UserFactory.ts
+import { UserBuilder, User } from './UserBuilder';
+
+export class UserFactory {
+  public static createDefaultCustomer(): User {
+    return new UserBuilder().build();
+  }
+
+  public static createBlockedAdmin(): User {
+    return new UserBuilder()
+      .withEmail('blocked-admin@sklep.pl')
+      .withRole('admin')
+      .makeInactive()
+      .build();
+  }
+
+  public static createInvalidEmailUser(): User {
+    return new UserBuilder()
+      .withEmail('bad-email-format')
+      .build();
+  }
 }
 ```
 
-Różnica jest ważna: builder nie ma skutków ubocznych, factory je ma.
+---
 
-## 2. Test pokazuje tylko istotne dane
+## 3. Integracja Fabryk z testami Playwright
+
+W testach wystarczy wywołać statyczną metodę fabryki, co czyni kod krystalicznie czystym i zabezpiecza go przed jakimikolwiek przyszłymi zmianami w strukturze modelu `User`:
 
 ```typescript
-const blockedUser = buildUser({
-  role: 'customer',
-  marketingConsent: true,
+import { test, expect } from '@playwright/test';
+import { UserFactory } from '../src/data/UserFactory';
+
+test('zablokowany administrator nie może wejść do panelu', async ({ page }) => {
+  // 1. Arrange: Pobierz prekonfigurowane dane fabryki
+  const blockedAdmin = UserFactory.createBlockedAdmin();
+
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill(blockedAdmin.email);
+  // ...
 });
 ```
 
-Jeżeli test sprawdza marketing consent, tylko to pole powinno być wyróżnione. Reszta może zostać domyślna.
+---
 
-## 3. Unikalność i równoległość
-
-Dane muszą działać równolegle. Nie używaj stałego emaila:
-
-```typescript
-email: 'test@example.com' // źle dla równoległości
-```
-
-Lepsze:
-
-```typescript
-email: `qa+${process.env.TEST_RUN_ID ?? 'local'}-${crypto.randomUUID()}@example.test`
-```
-
-Możesz też uwzględnić `testInfo.parallelIndex`:
-
-```typescript
-export function buildWorkerUser(workerIndex: number): User {
-  return buildUser({
-    email: `qa+worker-${workerIndex}-${crypto.randomUUID()}@example.test`,
-  });
-}
-```
-
-## 4. Object Mother — ostrożnie
-
-Object Mother to katalog nazwanych wariantów:
-
-```typescript
-export const Users = {
-  admin: () => buildUser({ role: 'admin' }),
-  customer: () => buildUser({ role: 'customer' }),
-  withoutConsent: () => buildUser({ marketingConsent: false }),
-};
-```
-
-To jest dobre dla kilku znanych wariantów. Jeśli plik ma 100 metod typu `user27()`, stał się śmietnikiem.
-
-## 5. Zagnieżdżone buildery
-
-Zamówienie składa się z klienta, adresu i pozycji:
-
-```typescript
-type Order = {
-  customer: User;
-  shippingAddress: Address;
-  items: OrderItem[];
-  currency: 'PLN' | 'EUR';
-};
-
-export function buildOrder(overrides: Partial<Order> = {}): Order {
-  return {
-    customer: buildUser(),
-    shippingAddress: buildAddress(),
-    items: [buildOrderItem()],
-    currency: 'PLN',
-    ...overrides,
-  };
-}
-```
-
-Dzięki temu test może mówić:
-
-```typescript
-const order = buildOrder({
-  items: [buildOrderItem({ sku: 'OUT-OF-STOCK' })],
-});
-```
-
-## 6. Builder nie powinien ukrywać logiki testu
-
-Jeśli builder ma 20 warunków, wykonuje requesty, czyta bazę i ustawia sesję, to nie jest builder. Rozdziel odpowiedzialności:
-
-- builder — tworzy obiekt;
-- factory — zapisuje obiekt w systemie;
-- client API — wykonuje request;
-- cleanup tracker — usuwa zasób;
-- fixture — dostarcza gotowy zasób testowi.
-
-## 7. Checklista
-
-- Czy dane domyślne są poprawne biznesowo?
-- Czy test nadpisuje tylko pola istotne dla scenariusza?
-- Czy generowane wartości są unikalne dla równoległości?
-- Czy builder nie ma skutków ubocznych?
-- Czy factory jasno komunikuje, że tworzy stan w systemie?
-- Czy typy TypeScript opisują kontrakt danych?
-
-## Linki
-
-- [Playwright fixtures](https://playwright.dev/docs/test-fixtures)
-- [API testing](https://playwright.dev/docs/api-testing)
-- [Best practices](https://playwright.dev/docs/best-practices)
-
-## 8. Przykład pełnego przepływu builder + factory + cleanup
-
-```typescript
-export async function createOrderForTest(request: APIRequestContext, overrides: Partial<Order> = {}) {
-  const payload = buildOrder(overrides);
-  const response = await request.post('/api/orders', { data: payload });
-  expect(response.status()).toBe(201);
-  return response.json();
-}
-
-test('klient widzi zamówienie utworzone przez API', async ({ request, page }) => {
-  const order = await createOrderForTest(request, {
-    items: [buildOrderItem({ sku: 'BOOK-1' })],
-  });
-
-  await page.goto(`/orders/${order.id}`);
-  await expect(page.getByText(order.id)).toBeVisible();
-});
-```
-
-Ten wzorzec jest czytelny: test pokazuje wariant danych, factory tworzy stan, a Page Object lub UI sprawdza rezultat.
-
-## 9. Czego nie wkładać do buildera
-
-Builder nie powinien:
-
-- czytać zmiennych środowiskowych poza prostym `runId`;
-- wykonywać requestów;
-- czytać bazy;
-- losowo wybierać krytycznych wariantów biznesowych;
-- ukrywać zależności od roli użytkownika;
-- tworzyć danych niezgodnych z walidacją API.
-
-Jeśli test wymaga produktu wyprzedanego, nazwij to jawnie:
-
-```typescript
-const product = buildProduct({ stock: 0 });
-```
-
-Nie ukrywaj tego w losowym generatorze, który czasem zwraca `stock: 0`, a czasem `stock: 10`.
-
-## 10. Buildery a czytelność testu
-
-Builder powinien sprawić, że test wygląda jak opis scenariusza:
-
-```typescript
-const order = buildOrder({
-  customer: buildUser({ role: 'customer' }),
-  items: [buildOrderItem({ sku: 'PROMO-BOOK', quantity: 2 })],
-});
-```
-
-Jeśli test musi nadpisać 15 pól, sprawdź, czy nie potrzebujesz nazwanego wariantu domenowego, np. `buildPaidOrder`, `buildCancelledOrder`, `buildOrderWithOutOfStockItem`.
-
-## 11. Walidacja danych buildera
-
-Builder powinien tworzyć dane poprawne domyślnie. Warto mieć testy dla samych builderów, szczególnie gdy są używane w wielu suite’ach. Jeśli builder tworzy niepoprawny payload, wiele testów zacznie padać w setupie zamiast w testowanym zachowaniu.
-
-## 12. Buildery wariantów domenowych
-
-Jeżeli pewne warianty powtarzają się często, nazwij je językiem domeny:
-
-```typescript
-export function buildPaidOrder(overrides: Partial<Order> = {}) {
-  return buildOrder({ status: 'PAID', paidAt: new Date().toISOString(), ...overrides });
-}
-
-export function buildCancelledOrder(overrides: Partial<Order> = {}) {
-  return buildOrder({ status: 'CANCELLED', cancelledReason: 'customer_request', ...overrides });
-}
-```
-
-Test staje się wtedy krótszy i czytelniejszy:
-
-```typescript
-const order = buildPaidOrder({ currency: 'PLN' });
-```
-
-Nie przesadzaj jednak z liczbą wariantów. Jeśli wariant jest użyty raz, zwykłe `buildOrder({ ... })` może być prostsze.
-
-## 13. Buildery a kontrakt API
-
-Builder powinien być zgodny z aktualnym kontraktem API. Jeśli OpenAPI mówi, że `currency` jest wymagane, builder powinien je ustawić domyślnie. Jeśli API zmienia kontrakt, buildery powinny zostać zaktualizowane razem z klientami API i schematami.
-
-Dobry wzorzec to współdzielenie typów:
-
-```typescript
-type CreateOrderPayload = components['schemas']['CreateOrderPayload'];
-```
-
-Dzięki temu TypeScript szybciej wykryje rozjazd między danymi testowymi a kontraktem.
-
-## 14. Checklista review buildera
-
-- Czy domyślny obiekt przechodzi walidację API?
-- Czy pola dynamiczne są unikalne?
-- Czy wariant domenowy ma jasną nazwę?
-- Czy builder nie wykonuje requestów?
-- Czy test nadpisuje tylko dane istotne dla scenariusza?
-
-## 📘 Suplement Inżynieryjny 2026: Zarządzanie Danymi Testowymi (Data Management)
-*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 7*
-*   **Izolacja Danych**: Nigdy nie współdziel mutowalnych danych między testami działającymi równolegle. Używaj generatorów (np. biblioteki Faker) do tworzenia unikalnych tożsamości i twórz stan bazy dynamicznie per test.
-*   **Szybki Setup przez API**: Zamiast przeklikiwać UI w celu przygotowania danych, użyj szybkiego klienta API przed rozpoczęciem testu funkcjonalnego.
+## 4. Checklista Projektowania Danych Testowych
+- [ ] Czy wyeliminowałeś surowe obiekty JSON z plików testowych na rzecz Budowniczych i Fabryk danych?
+- [ ] Czy klasa `UserBuilder` posiada domyślne, bezpieczne wartości dla wszystkich wymaganych pól modelu?
+- [ ] Czy metody modyfikujące właściwości budowniczego zwracają `this` w celu umożliwienia wywołań łańcuchowych (Fluent API)?
+- [ ] Czy statyczne metody fabrykujące są nazwane językiem domenowym (np. `createBlockedAdmin`)?
