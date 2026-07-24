@@ -1,221 +1,93 @@
-# Podstawy k6
+# Automatyzacja testów wydajnościowych z Grafana k6
 
-k6 to narzędzie do testów wydajnościowych tworzone z myślą o programistach, testerach i SRE. Scenariusze pisze się w JavaScript, ale k6 nie jest Node.js — ma własne środowisko wykonawcze zoptymalizowane pod generowanie obciążenia. W praktyce k6 świetnie nadaje się do testów HTTP API, smoke performance, load, stress, spike i soak testów oraz automatyzacji progów jakości w CI.
+W tradycyjnej automatyzacji, testy wydajnościowe API były zdominowane przez starsze, oparte o interfejs XML/Java narzędzia, takie jak Apache JMeter. Choć potężny, JMeter jest trudny do wersjonowania w systemie Git, nie posiada natywnego wsparcia dla formatu "kod jako test" (Code-as-Test) i wywołuje ogromne obciążenie poznawcze u programistów.
 
-Celem testu k6 nie jest „wysłać dużo requestów”. Celem jest odpowiedzieć na pytanie: czy system spełnia wymagania wydajnościowe przy określonym profilu ruchu?
+**Grafana k6** redefiniuje ten obszar, dostarczając nowoczesne, napisane w języku Go, ale w pełni skryptowalne w **JavaScript (ES6)** narzędzie dedykowane dla inżynierów wydajności i SDET. W tej lekcji nauczysz się projektować kompletne scenariusze obciążeniowe, zarządzać wirtualnymi użytkownikami (VUs) oraz wdrażać rygorystyczne asercje wydajnościowe (**Thresholds**).
 
-## 1. Minimalny test k6
+---
+
+## 1. Koncepcja Wirtualnych Użytkowników (Virtual Users - VUs)
+
+W k6 obciążenie jest generowane przez tzw. **Wirtualnych Użytkowników (VUs – Virtual Users)**. Każdy VU to niezależny, odizolowany wątek (proces) wirtualny, który wykonuje w pętli kod zadeklarowany w funkcji głównej `default`. 
+
+Liczbą użytkowników oraz czasem trwania testu sterujemy przy użyciu obiektu konfiguracji `options`:
+
+```javascript
+// Prosty test wydajnościowy k6
+import http from 'k6/http';
+import { sleep } from 'k6';
+
+// 1. Opcje konfiguracyjne (Options)
+export const options = {
+  vus: 10,           // Uruchom 10 wirtualnych użytkowników jednocześnie
+  duration: '30s',   // Wykonuj test przez 30 sekund
+};
+
+// 2. Funkcja główna wykonywana przez każdego VU w pętli
+export default function () {
+  http.get('https://test-api.mycommerce.pl/api/products');
+  sleep(1); // Odpocznij 1 sekundę przed kolejnym zapytaniem (Think Time)
+}
+```
+
+---
+
+## 2. Modelowanie faz obciążenia (Load Stages)
+
+Rzeczywisty ruch na stronie nie pojawia się nagle i nie znika natychmiast. Aby bezpiecznie przetestować aplikację pod kątem przeciążeń, musimy stopniowo zwiększać ruch (Ramping Up), utrzymywać stałe obciążenie (Peak), a na koniec stopniowo wygaszać wątki (Ramping Down).
+
+Służą do tego **etapy obciążenia (stages)**:
+
+```javascript
+export const options = {
+  stages: [
+    { duration: '1m', target: 50 },  // Rampa w górę: w ciągu 1 minuty zwiększ ruch od 0 do 50 użytkowników
+    { duration: '3m', target: 50 },  // Utrzymanie: utrzymuj ruch 50 użytkowników przez 3 minuty
+    { duration: '1m', target: 0 },   // Rampa w dół: w ciągu 1 minuty zmniejsz obciążenie do zera
+  ],
+};
+```
+
+---
+
+## 3. Definiowanie twardych asercji wydajnościowych (Thresholds)
+
+Samo uruchomienie testu i narysowanie wykresu nie daje automatycznej odpowiedzi, czy wydajność jest zadowalająca. k6 umożliwia wdrożenie **Thresholds (Progów Tolerancji)**. Są to automatyczne, bardzo precyzyjne asercje na metrykach sieciowych, które potrafią wywalić rurociąg CI/CD (bramka jakości – Quality Gate), jeśli wydajność spadnie:
 
 ```javascript
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-export default function () {
-  const response = http.get('https://test.example.com/api/products');
-
-  check(response, {
-    'status is 200': (r) => r.status === 200,
-    'response is not empty': (r) => r.body.length > 0,
-  });
-
-  sleep(1);
-}
-```
-
-Uruchomienie:
-
-```bash
-k6 run products.js
-```
-
-`check` nie zatrzymuje testu jak asercja jednostkowa. Zapisuje wynik warunku jako metrykę. Do zatrzymania pipeline używa się thresholds.
-
-## 2. Lifecycle k6
-
-k6 ma kilka faz:
-
-- **init context** — kod poza funkcjami, uruchamiany przy starcie VU;
-- **setup** — przygotowanie danych przed testem;
-- **default function** — główny scenariusz wykonywany przez VU;
-- **teardown** — sprzątanie po teście;
-- **handleSummary** — generowanie raportu.
-
-Przykład:
-
-```javascript
-export function setup() {
-  return { token: 'test-token' };
-}
-
-export default function (data) {
-  http.get('https://test.example.com/api/orders', {
-    headers: { Authorization: `Bearer ${data.token}` },
-  });
-}
-
-export function teardown(data) {
-  // cleanup, jeśli potrzebny
-}
-```
-
-## 3. VUs, iterations i duration
-
-VU to virtual user. Nie oznacza zawsze człowieka 1:1, ale symuluje równoległe wykonywanie scenariusza.
-
-```javascript
 export const options = {
-  vus: 20,
-  duration: '5m',
-};
-```
-
-Alternatywnie możesz sterować liczbą iteracji:
-
-```javascript
-export const options = {
-  vus: 10,
-  iterations: 1000,
-};
-```
-
-## 4. Scenarios i executors
-
-Nowoczesne k6 używa `scenarios`, które pozwalają definiować różne modele ruchu:
-
-```javascript
-export const options = {
-  scenarios: {
-    constant_load: {
-      executor: 'constant-vus',
-      vus: 30,
-      duration: '10m',
-    },
-    ramping_load: {
-      executor: 'ramping-vus',
-      stages: [
-        { duration: '2m', target: 20 },
-        { duration: '5m', target: 20 },
-        { duration: '2m', target: 0 },
-      ],
-    },
-  },
-};
-```
-
-Executors dobiera się do celu: stałe obciążenie, ramp-up, określona liczba iteracji, stały rate żądań.
-
-## 5. Thresholds — quality gates
-
-Thresholds zamieniają wymagania wydajnościowe w automatyczną ocenę:
-
-```javascript
-export const options = {
+  vus: 50,
+  duration: '1m',
+  
+  // Asercje Wydajnościowe (Thresholds)
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<500', 'p(99)<1000'],
+    // A. 95% wszystkich zapytań HTTP (p95) musi odpowiedzieć w czasie poniżej 200 ms!
+    http_req_duration: ['p95 < 200'],
+    
+    // B. Współczynnik błędów sieciowych (failed requests) musi być mniejszy niż 1%
+    http_req_failed: ['rate < 0.01'],
   },
 };
-```
-
-Jeśli próg zostanie przekroczony, k6 zakończy się niepowodzeniem. To pozwala blokować regresje wydajnościowe w CI.
-
-## 6. Checks vs thresholds
-
-- `checks` odpowiadają na pytanie: czy pojedyncza odpowiedź spełnia warunek?
-- `thresholds` odpowiadają: czy całość testu spełniła kryteria jakości?
-
-Przykład: endpoint może czasem zwrócić 500, ale jeśli błędów jest mniej niż 1%, threshold może przejść. Dla krytycznych operacji płatności próg powinien być znacznie surowszy.
-
-## 7. Custom metrics
-
-k6 ma metryki typu `Trend`, `Counter`, `Rate`, `Gauge`.
-
-```javascript
-import { Trend } from 'k6/metrics';
-
-const checkoutDuration = new Trend('checkout_duration');
 
 export default function () {
-  const start = Date.now();
-  // flow checkout API
-  checkoutDuration.add(Date.now() - start);
+  const res = http.get('https://test-api.mycommerce.pl/api/products');
+  
+  // Weryfikacja poprawności funkcjonalnej (Check)
+  check(res, {
+    'status to 200': (r) => r.status === 200,
+  });
+  
+  sleep(0.5);
 }
 ```
 
-Custom metrics pomagają mierzyć proces biznesowy, nie tylko pojedyncze requesty.
+---
 
-## 8. Typy testów w k6
-
-- **smoke** — małe obciążenie, czy skrypt i system działają;
-- **load** — oczekiwane obciążenie produkcyjne;
-- **stress** — szukanie granicy systemu;
-- **spike** — nagły wzrost ruchu;
-- **soak** — długi test stabilności i wycieków zasobów.
-
-Nie każdy test musi być duży. Performance smoke w PR może trwać 1–3 minuty, a pełny load test może działać nightly.
-
-## 9. Dane testowe
-
-Wydajność zależy od danych. Test na pustej bazie jest mało wartościowy. Przygotuj dataset:
-
-- liczba produktów;
-- liczba użytkowników;
-- rozkład zamówień;
-- koszyki z różną liczbą pozycji;
-- dane hot/cold cache;
-- konta testowe per VU lub per scenariusz.
-
-## 10. Checklista k6
-
-- Czy jest jasno opisany cel testu?
-- Czy scenariusz odpowiada realnemu profilowi ruchu?
-- Czy thresholds wynikają z wymagań lub SLO?
-- Czy dane testowe są realistyczne?
-- Czy raport zawiera p95/p99, error rate i throughput?
-- Czy test nie przeciąża współdzielonego środowiska bez zgody?
-
-## Linki
-
-- [Grafana k6 Documentation](https://grafana.com/docs/k6/latest/)
-- [k6 Options](https://grafana.com/docs/k6/latest/using-k6/k6-options/)
-- [k6 Thresholds](https://grafana.com/docs/k6/latest/using-k6/thresholds/)
-- [k6 Scenarios](https://grafana.com/docs/k6/latest/using-k6/scenarios/)
-
-## 11. k6 w CI
-
-W CI nie uruchamiaj od razu dużych testów. Zacznij od małego performance smoke:
-
-```bash
-k6 run --vus 5 --duration 1m tests/performance/smoke.js
-```
-
-Pełne load/stress/soak testy uruchamiaj nightly albo ręcznie przed release. Wyniki powinny być artefaktem pipeline: summary, JSON, wykresy albo link do Grafana Cloud k6.
-
-## 12. Raportowanie wyniku
-
-Raport k6 powinien zawierać:
-
-- wersję aplikacji;
-- środowisko;
-- profil obciążenia;
-- dataset;
-- thresholds;
-- p95/p99;
-- error rate;
-- wnioski i rekomendacje.
-
-Bez tych danych wynik „test przeszedł” niewiele mówi.
-
-## 13. Typowe błędy początkujących
-
-- testowanie bez thresholds;
-- brak checks poprawności odpowiedzi;
-- zbyt duży test uruchamiany w każdym PR;
-- brak realistycznych danych;
-- ignorowanie błędów 4xx/5xx;
-- porównywanie wyników z różnych środowisk bez opisu różnic;
-- brak monitoringu backendu podczas testu.
-
-## 📘 Suplement Inżynieryjny 2026: Testowanie Wydajności z k6 i JMeter
-*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 11*
-*   **Performance Budgets**: Integruj testy wydajnościowe k6 z rurociągami CI, definiując precyzyjne budżety wydajności (np. 95% żądań musi odpowiedzieć w czasie poniżej 200 ms). Zapobiegnie to stopniowej degradacji szybkości systemu.
+## 4. Checklista Projektowania Testów z k6
+- [ ] Czy Twój kod testów obciążeniowych k6 jest wersjonowany w systemie Git w formacie Code-as-Test?
+- [ ] Czy modelujesz realistyczny ruch użytkowników, stosując ramping (stopniowe zwiększanie obciążenia) za pomocą etapów (`stages`)?
+- [ ] Czy wdrożyłeś rygorystyczne asercje na percentylach czasowych (`http_req_duration`) w sekcji `thresholds`?
+- [ ] Czy stosujesz mechanizm `check()` do weryfikowania poprawności kodów statusu odpowiedzi?
