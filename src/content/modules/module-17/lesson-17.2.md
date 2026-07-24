@@ -1,151 +1,65 @@
-# Rodzaje testów i piramida testów
+# Rodzaje testów i nowoczesna piramida testów (Test Pyramid)
 
-Automatyzacja jest skuteczna tylko wtedy, gdy zespół rozumie, **jaką informację chce uzyskać** i **na jakim poziomie najlepiej ją zdobyć**. Test jednostkowy, integracyjny, API, kontraktowy, E2E, eksploracyjny, regresyjny czy akceptacyjny nie konkurują ze sobą. Każdy odpowiada na inne pytanie i ma inny koszt.
+Jednym z największych wyzwań w projektowaniu dużych systemów automatyzacji jest optymalny dobór poziomów testowania. Jeśli zaimplementujesz zbyt wiele testów na poziomie interfejsu graficznego (UI E2E), Twoja suita stanie się powolna, flaky i droga w utrzymaniu. Jeśli z kolei skupisz się wyłącznie na testach jednostkowych, przeoczysz krytyczne błędy integracji systemowych.
 
-Piramida testów nie jest dogmatem. To model ekonomii informacji: im niżej testujesz, tym szybciej i taniej dostajesz feedback, ale tym mniej sprawdzasz realne połączenie całego systemu. Im wyżej testujesz, tym większy realizm, ale też większy koszt, wolniejsze wykonanie i trudniejsza diagnoza.
+Zrozumienie i wdrożenie **Piramidy Testów (Test Pyramid)** Martina Fowlera w nowoczesnym ujęciu z 2026 r. to kluczowa kompetencja architekta testów.
 
-## 1. Testowanie jako informacja o ryzyku
+---
 
-Tester nie „odhacza przypadków”. Tester dostarcza zespołowi informację:
+## 1. Klasyczna Piramida Testów i jej warstwy
 
-- czy produkt spełnia istotne wymagania;
-- jakie ryzyka pozostają;
-- czy regresja jest prawdopodobna;
-- gdzie system jest niestabilny;
-- czy można podjąć decyzję o wdrożeniu.
+Piramida testów definiuje optymalną proporcję i rozkład rodzajów testów w projekcie:
 
-Zanim wybierzesz narzędzie, nazwij ryzyko. Dla funkcji rabatów ryzyka mogą być różne:
-
-| Ryzyko | Najlepszy poziom testu |
-|---|---|
-| źle obliczony rabat procentowy | unit |
-| API zwraca `discountTotal` jako string zamiast number | contract/API |
-| koszyk nie zapisuje rabatu po odświeżeniu | integration/E2E |
-| użytkownik nie może użyć kuponu w checkout | E2E smoke |
-| admin może zobaczyć raport rabatów | UI/API role test |
-
-## 2. Testy jednostkowe
-
-Testy jednostkowe sprawdzają mały fragment logiki w izolacji. Są szybkie, tanie i precyzyjne. Dobrze nadają się do:
-
-- obliczeń;
-- walidacji;
-- mapowania danych;
-- reguł domenowych;
-- funkcji bez zależności zewnętrznych.
-
-Przykład: funkcja obliczająca cenę po rabacie powinna mieć wiele testów jednostkowych, bo wariantów jest dużo, a uruchamianie każdego przez UI byłoby kosztowne.
-
-Test jednostkowy nie mówi jednak, czy frontend poprawnie wysyła dane, API zapisuje wynik, a użytkownik widzi dobrą kwotę. Dlatego potrzebne są inne poziomy.
-
-## 3. Testy integracyjne
-
-Test integracyjny sprawdza współpracę kilku elementów:
-
-- serwis + repozytorium;
-- API + baza danych;
-- komponent + provider;
-- backend + kolejka;
-- moduł płatności + adapter dostawcy sandbox.
-
-Testy integracyjne są droższe niż unit, ale lepiej wykrywają problemy na granicach. Przykład: kalkulator rabatów może działać jednostkowo, ale integracja koszyka może zaokrąglać kwoty inaczej.
-
-## 4. Testy API
-
-Testy API są bardzo ważne dla Full Stack Testera. Sprawdzają zachowanie systemu bez kosztu pełnego UI:
-
-- statusy HTTP;
-- body odpowiedzi;
-- nagłówki;
-- autoryzację;
-- scenariusze negatywne;
-- paginację;
-- kontrakty danych.
-
-Test API jest często najlepszym miejscem dla walidacji ról, błędów 400/401/403/404, kontraktu i reguł biznesowych.
-
-## 5. Testy kontraktowe
-
-Testy kontraktowe chronią granicę między konsumentem i dostawcą API. Kontrakt może być opisany przez OpenAPI, Pact, JSON Schema albo AsyncAPI.
-
-Przykłady pytań kontraktowych:
-
-- Czy provider nadal zwraca pole `total` jako number?
-- Czy błąd walidacji ma stabilny `code`?
-- Czy event `OrderPaid` zawiera wymagane pola?
-- Czy konsument używa tylko tego, co provider gwarantuje?
-
-Kontrakt jest tańszy niż test E2E i szybciej wykrywa breaking changes.
-
-## 6. Testy E2E
-
-Testy end-to-end sprawdzają realny przepływ użytkownika przez wiele warstw. Są najdroższe, ale dają najwyższy realizm. Używaj ich dla krytycznych ścieżek:
-
-- logowanie;
-- checkout;
-- płatność;
-- rejestracja z aktywacją konta;
-- najważniejszy przepływ SaaS;
-- smoke po deployu.
-
-Nie używaj E2E do każdej walidacji formularza. Jeśli test E2E pada, diagnoza może dotyczyć UI, API, danych, bazy, sieci, sesji albo środowiska. Dlatego E2E powinny być nieliczne, krytyczne i dobrze raportowane.
-
-## 7. Smoke, sanity i regresja
-
-**Smoke tests** odpowiadają na pytanie: „czy system w ogóle żyje po zmianie?”. Powinny być szybkie i krytyczne.
-
-**Sanity tests** sprawdzają wąski obszar po konkretnej zmianie, np. tylko płatności po zmianie bramki płatniczej.
-
-**Regression tests** sprawdzają, czy istniejące zachowania nie zostały zepsute. Mogą być szerokie, ale nadal powinny być oparte na ryzyku.
-
-Przykład strategii:
-
-```text
-PR: unit + API smoke + E2E smoke
-main: pełniejsza regresja API + UI
-nightly: cross-browser + visual + accessibility + performance smoke
-release: krytyczne E2E + kontrakty + raporty
+```
+                  / \
+                 /   \       E2E / UI Tests (Playwright)
+                /     \      ~10% — Najdroższe, najwolniejsze, stabilność wizualna
+               /-------\
+              /         \    Integration / API Tests (Playwright request)
+             /           \   ~30% — Średnia szybkość, walidacja kontraktów i uprawnień
+            /-------------\
+           /               \  Unit / Component Tests (Jest, Vitest, Playwright CT)
+          /                 \ ~60% — Najszybsze, najtańsze, izolowane badanie funkcji
+         ─────────────────────
 ```
 
-## 8. Testy akceptacyjne
+### A. Warstwa 1: Testy Jednostkowe (Unit Tests)
+Weryfikują poprawność pojedynczych, odizolowanych funkcji, klas lub metod (np. funkcja obliczania podatku w koszyku).
+*   **Charakterystyka**: Ekstremalnie szybkie (wykonują się w milisekundach), odizolowane od sieci i bazy (mocki).
+*   **Narzędzia**: Vitest, Jest.
 
-Testy akceptacyjne potwierdzają, że funkcja spełnia kryteria akceptacji. Mogą być manualne, automatyczne, API lub E2E. Ważne, aby były powiązane z wymaganiem i zrozumiałe dla biznesu.
+### B. Warstwa 2: Testy Integracyjne i API (Integration / API Tests)
+Weryfikują poprawność komunikacji między modułami, bazą danych a serwerami API.
+*   **Charakterystyka**: Sprawdzają walidację danych, poprawność kodów HTTP, uprawnienia i zgodność kontraktu JSON bez renderowania UI.
+*   **Narzędzia**: Playwright (wbudowana fixtura `request`), Supertest.
 
-Dobre kryterium:
+### C. Warstwa 3: Testy End-to-End (E2E / UI Tests)
+Symulują rzeczywistą podróż użytkownika (User Journey) od początku do końca, testując zintegrowany system (frontend + backend + bazy danych).
+*   **Charakterystyka**: Najwolniejsze, wymagają pełnego renderowania przeglądarki, weryfikują spójność całego systemu.
+*   **Narzędzia**: Playwright (wbudowana fixtura `page`).
 
-```text
-Given klient ma produkt w koszyku
-When używa aktywnego kuponu 10%
-Then suma zamówienia jest pomniejszona o 10%, ale nie więcej niż 50 zł
-```
+---
 
-## 9. Antywzorce doboru poziomu testu
+## 2. Odwrócona piramida testów: Antywzorzec "Stożek lodowy" (Ice Cream Cone)
 
-- Wszystko przez UI, bo „tak widzi użytkownik”.
-- Same testy jednostkowe bez sprawdzenia integracji.
-- Brak testów kontraktowych mimo wielu konsumentów API.
-- Smoke suite trwająca 40 minut.
-- Regresja bez priorytetów ryzyka.
-- Testy E2E zależne od kolejności i wspólnych danych.
+W projektach z dużym długiem technologicznym piramida często ulega odwróceniu: powstaje ogromna liczba niestabilnych i wolnych testów UI E2E, a testów jednostkowych i API jest znikoma ilość.
 
-## 10. Checklista wyboru rodzaju testu
+*   **Skutki**: Czas wykonania suity przekracza godzinę, testy stale rzucają fałszywe błędy, a programiści przestają im ufać, co prowadzi do paraliżu wydań.
+*   **Rozwiązanie**: Przenieś 80% przypadków brzegowych (np. walidacje pól, niepoprawne formaty e-mail, błędy uprawnień) z warstwy UI do warstwy API lub jednostkowej, pozostawiając w E2E wyłącznie krytyczne procesy biznesowe (Happy Path).
 
-- Jakie ryzyko chcę sprawdzić?
-- Jaki najniższy poziom da wiarygodny dowód?
-- Czy potrzebuję realizmu całego systemu?
-- Czy awaria wskaże konkretną przyczynę?
-- Czy test będzie działał w odpowiednim pipeline?
-- Czy ten scenariusz nie jest już pokryty taniej niżej?
-- Czy wynik testu będzie zrozumiały dla zespołu?
+---
 
-## Linki
+## 3. Strategia Regresji Funkcjonalnej w Playwright
 
-- [ISTQB Certified Tester Foundation Level](https://www.istqb.org/certifications/certified-tester-foundation-level)
-- [ISO/IEC/IEEE 29119](https://www.iso.org/standard/81291.html)
-- [Vitest Guide](https://vitest.dev/guide/)
-- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Pact — Contract Testing](https://docs.pact.io/)
+Nowoczesny Full Stack Tester projektuje **hybrydowe scenariusze**:
+1.  **Arrange**: Dane wejściowe przygotuj błyskawicznie przez API (warstwa integracyjna).
+2.  **Act & Assert**: Proces zakupu sprawdź przez interfejs graficzny UI (warstwa E2E).
+To połączenie daje optymalną prędkość wykonania przy zachowaniu pełnego zaufania do rezultatów.
 
-## 📘 Suplement Inżynieryjny 2026: Fundamenty Testera i Strategia Jakości
-*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 5*
-*   **Risk-Based Testing**: Dobór testów automatycznych powinien zależeć bezpośrednio od analizy ryzyka biznesowego. Pokrywaj testami E2E wyłącznie obszary o najwyższym stopniu prawdopodobieństwa awarii i skutkach biznesowych.
+---
+
+## 4. Checklista Poziomów Testowania
+- [ ] Czy Twój projekt testowy dąży do zachowania optymalnych proporcji piramidy testów?
+- [ ] Czy unikasz wstrzykiwania setek przypadków walidacji pól tekstowych do testów UI E2E?
+- [ ] Czy wdrażasz testy hybrydowe (API Seeding) w celu drastycznego skracania czasu trwania regresji?
+- [ ] Czy potrafisz zidentyfikować i zdiagnozować antywzorzec "stożka lodowego" (Ice Cream Cone) w zespole?
