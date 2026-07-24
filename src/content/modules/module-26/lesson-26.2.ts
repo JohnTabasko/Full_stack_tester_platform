@@ -1,152 +1,64 @@
-import type { Lesson } from "../../../renderer/types";
+import type { Lesson } from '../../../renderer/types';
 import theory26_2 from './lesson-26.2.md?raw';
 
 export const lesson26_2: Lesson = {
   "id": "26.2",
   "moduleId": 26,
   "title": "Podstawy Appium",
-  "description": "Appium basics: architektura client-server, drivers/plugins Appium 2/3, capabilities, lokatory mobile, gesty, waits i konteksty WebView.",
+  "description": "Zrozum architekturę automatyzacji mobilnej w oparciu o Appium 2. Poznaj model Klient-Serwer, instalację sterowników systemowych, konfigurację Capabilities oraz pisanie testów w TypeScript.",
   "order": 2,
   "difficulty": "advanced",
-  "tags": [
-    "appium",
-    "natywne-mobile",
-    "capabilities",
-    "lokatory",
-    "gestures",
-    "oczekiwania"
-  ],
+  "tags": ["mobile", "Appium", "UiAutomator2", "XCUITest", "capabilities", "WebdriverIO"],
   "content": {
-    "objective": "Po ukończeniu lekcji rozumiesz architekturę Appium, potrafisz zaprojektować capabilities, stabilne lokatory i podstawowe scenariusze automatyzacji aplikacji mobilnej.",
+    "objective": "Po ukończeniu tej lekcji potrafisz opisać modularną architekturę Appium 2, instalować i zarządzać sterownikami, poprawnie konfigurować obiekt W3C Capabilities oraz pisać silnie otypowane scenariusze testów mobilnych w TypeScript.",
     "theory": theory26_2,
     "codeExamples": [
-      "const capabilities = {\n  platformName: 'Android',\n  'appium:automationName': 'UiAutomator2',\n  'appium:deviceName': 'Pixel 7',\n  'appium:app': './apps/app-debug.apk',\n  'appium:noReset': false,\n};"
-],
+      `// Przykład konfiguracji i startu sesji Appium (Książka 3 - Uppadhyay)
+const driver = await remote({
+  port: 4723,
+  capabilities: {
+    platformName: 'Android',
+    'appium:automationName': 'UiAutomator2',
+    'appium:app': './my-app.apk'
+  }
+});`
+    ],
     "exercises": [
       {
-            "id": "ex-auto-1",
-            "title": "Ćwiczenie 1",
-            "description": "Zaprojektuj scenariusz zgodny z oficjalną dokumentacją narzędzia i opisz cel testu."
-      },
-      {
-            "id": "ex-auto-2",
-            "title": "Ćwiczenie 2",
-            "description": "Dodaj wariant negatywny oraz kryterium sukcesu/fail dla pipeline CI."
-      },
-      {
-            "id": "ex-auto-3",
-            "title": "Ćwiczenie 3",
-            "description": "Przygotuj checklistę diagnostyczną i listę artefaktów potrzebnych po awarii."
-      },
-      {
-            "id": "ex-auto-4",
-            "title": "Ćwiczenie 4",
-            "description": "Wskaż, które elementy powinny zostać zautomatyzowane, a które opisane jako manual/exploratory."
+        "id": "ex-26-2-1",
+        "title": "Wdrożenie testu logowania w Appium",
+        "description": "Zaimplementuj mobilny skrypt testowy w TypeScript używając biblioteki WebdriverIO. Skonfiguruj capabilities dla emulatora Androida, zainstaluj aplikację, uzupełnij formularz logowania i zweryfikuj sukces."
       }
-],
+    ],
     "quiz": [
       {
-            "id": "q-auto-1",
-            "question": "Co jest najważniejsze przy użyciu tego narzędzia?",
-            "options": [
-                  "Jasny cel, kontrolowane dane i interpretowalne wyniki",
-                  "Uruchomienie bez asercji",
-                  "Maksymalna liczba opcji",
-                  "Brak raportu"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-2",
-            "question": "Co powinno trafić do CI?",
-            "options": [
-                  "Mały, stabilny zestaw z jasnymi progami i artefaktami",
-                  "Najcięższy test bez limitów",
-                  "Sekrety w logach",
-                  "Testy bez właściciela"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-3",
-            "question": "Co jest antywzorcem?",
-            "options": [
-                  "Ukrywanie problemu zamiast diagnozy",
-                  "Jawne kryteria sukcesu",
-                  "Artefakty po awarii",
-                  "Dokumentacja środowiska"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
-      },
-      {
-            "id": "q-auto-4",
-            "question": "Po co aktualne oficjalne źródła?",
-            "options": [
-                  "Aby unikać przestarzałych API i błędnych praktyk",
-                  "Aby zastąpić review",
-                  "Aby nie pisać testów",
-                  "Aby wyłączyć lint"
-            ],
-            "correctAnswer": 0,
-            "explanation": "Poprawna odpowiedź wynika z dobrych praktyk danego narzędzia."
+        "id": "q26-2-1",
+        "question": "Które z poniższych stwierdzeń najlepiej opisuje zmianę wprowadzoną w wersji Appium 2.0 w porównaniu do wersji 1.x?",
+        "options": [
+          "W wersji Appium 2 serwer jest w pełni modularny - nie zawiera domyślnych sterowników (drivers), które deweloper musi instalować niezależnie w zależności od platformy",
+          "Appium 2 wycofało obsługę języka JavaScript",
+          "Wersja 2 działa wyłącznie w chmurze",
+          "Appium 2 służy wyłącznie do testowania baz danych"
+        ],
+        "correctAnswer": 0,
+        "explanation": "To kluczowa zmiana architektoniczna. Appium 2.0 oddzieliło serwer od sterowników. Kierując się zasadą minimalnej złożoności, deweloper sam decyduje i instaluje tylko te sterowniki, których potrzebuje (np. tylko uiautomator2)."
       }
-],
+    ],
     "references": [
       {
         "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
         "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Appium Docs",
-        "url": "https://appium.io/docs/en/latest/",
-        "description": "Oficjalna dokumentacja Appium."
-      },
-      {
-        "title": "UiAutomator",
-        "url": "https://developer.android.com/training/testing/other-components/ui-automator",
-        "description": "Android UiAutomator."
-      },
-      {
-        "title": "XCTest",
-        "url": "https://developer.apple.com/documentation/xctest",
-        "description": "XCUITest i XCTest dla iOS."
+        "description": "Chapter 6: Strategies for Scalable Test Automation (Mobile testing and Appium 2 integration)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Zaczynaj od celu i ryzyka, nie od składni narzędzia.",
-      "Publikuj artefakty diagnostyczne w CI.",
-      "Nie używaj danych produkcyjnych ani sekretów w przykładach.",
-      "Porównuj wyniki z baseline i oficjalną dokumentacją."
-],
+      "Stosuj identyfikatory Accessibility ID (unikalne nazwy etykiet dostępności) jako główny typ selektora w testach mobilnych. Są one wielokrotnie szybsze i stabilniejsze niż surowe XPath."
+    ],
     "commonMistakes": [
       {
-            "mistake": "Brak celu testu",
-            "solution": "Zapisz hipotezę i kryteria sukcesu przed implementacją."
-      },
-      {
-            "mistake": "Brak izolacji danych",
-            "solution": "Użyj runId, osobnych kont lub kontrolowanego datasetu."
-      },
-      {
-            "mistake": "Brak artefaktów",
-            "solution": "Zapisuj raporty, logi, konfigurację i metryki jako artefakty."
+        "mistake": "Brak zamykania sesji sterownika (driver.deleteSession()) w przypadku błędów w teście",
+        "solution": "Zawsze zawieraj kod zamykania sesji w sekcji finally lub afterEach, aby zwolnić pamięć emulatora i zablokowane porty."
       }
-]
+    ]
   }
 };
