@@ -1,251 +1,97 @@
-# Testowanie i asercje API — Full Stack Approach
+# Testowanie kontraktów i asercje odpowiedzi API (API Response Assertions)
 
-Playwright nie służy wyłącznie do testowania UI. Fixture `request` oraz `APIRequestContext` pozwalają wykonywać żądania HTTP bezpośrednio z testu. To kluczowa umiejętność Full Stack Testera, bo wiele stabilnych testów E2E używa API do przygotowania danych, weryfikacji stanu backendu albo testowania kontraktu bez kosztownego przechodzenia przez UI.
+Warstwa testowania API w Playwright jest niezwykle silna i działa w pełnej synergii z testami UI. Wysyłając zapytania HTTP bezpośrednio z poziomu test runnera (za pomocą wbudowanej fixtury `request`), otrzymujemy obiekt odpowiedzi **`APIResponse`**.
 
-Samo `expect(response.ok()).toBeTruthy()` nie wystarcza. Dobry test API sprawdza status, body, nagłówki, kontrakt, scenariusze negatywne, autoryzację i skutki uboczne.
+Jako profesjonalny Full Stack Tester musisz umieć napisać rygorystyczne asercje, które sprawdzą nie tylko poprawność kodu statusu HTTP, ale zweryfikują kompletność struktury danych (kontraktu JSON) oraz bezpieczeństwo nagłówków odpowiedzi.
 
-## 1. Fixture `request`
+---
 
-Najprostszy test API:
+## 1. Weryfikacja kodów statusu HTTP
+
+Najprostszą asercją na obiekcie odpowiedzi API jest weryfikacja poprawności kodu statusu:
 
 ```typescript
 import { test, expect } from '@playwright/test';
 
-test('API zwraca listę produktów', async ({ request }) => {
-  const response = await request.get('/api/products');
+test('rejestracja nowego zamówienia przez API', async ({ request }) => {
+  const response = await request.post('/api/v1/orders', {
+    data: { productId: '99', quantity: 1 }
+  });
 
+  // Asercja Web-First na poprawność statusu (oczekuje 2xx)
   await expect(response).toBeOK();
-  expect(response.headers()['content-type']).toContain('application/json');
 
-  const body = await response.json();
-  expect(body).toEqual(expect.any(Array));
-  expect(body.length).toBeGreaterThan(0);
+  // Lub alternatywnie, asercja na dokładny kod statusu
+  expect(response.status()).toBe(201);
 });
 ```
 
-`request` korzysta z konfiguracji Playwright, w tym z `baseURL`, jeśli jest ustawione.
+---
 
-## 2. `APIResponseAssertions`
+## 2. Walidacja struktury i kontraktu JSON payloadu
 
-Playwright ma asercję dla odpowiedzi API:
+Samo sprawdzenie kodu statusu `200 OK` to za mało. Musimy mieć pewność, że backend zwrócił poprawną strukturę danych i nie nastąpił tzw. *breaking change* (uszkodzenie kontraktu).
 
-```typescript
-await expect(response).toBeOK();
-```
-
-`toBeOK()` sprawdza, czy status jest w zakresie 2xx/3xx zgodnie z semantyką `response.ok()`. Jeśli potrzebujesz konkretnego statusu, sprawdzaj go jawnie:
-
-```typescript
-expect(response.status()).toBe(201);
-```
-
-Dobre testy często używają obu poziomów: `toBeOK` dla ogólnego sukcesu albo konkretny status dla kontraktu endpointu.
-
-## 3. Status HTTP to dopiero początek
-
-```typescript
-const response = await request.get('/api/orders/ORD-123');
-expect(response.status()).toBe(200);
-
-const order = await response.json();
-expect(order).toMatchObject({
-  id: 'ORD-123',
-  status: 'PAID',
-  currency: 'PLN',
-});
-```
-
-Status `200` mówi, że serwer odpowiedział. Nie mówi, czy zwrócił właściwe zamówienie, status, walutę, role użytkownika albo dane paginacji.
-
-## 4. Nagłówki
-
-```typescript
-expect(response.headers()['content-type']).toContain('application/json');
-expect(response.headers()['cache-control']).toContain('no-store');
-```
-
-Nagłówki są ważne dla:
-
-- typów treści;
-- cache;
-- bezpieczeństwa;
-- paginacji;
-- rate limitów;
-- korelacji requestów.
-
-Jeśli system używa `x-correlation-id`, warto sprawdzać jego obecność i wykorzystywać go w diagnostyce.
-
-## 5. Body JSON i kontrakt
-
+### A. Pobranie i prosta weryfikacja pól
 ```typescript
 const body = await response.json();
 
-expect(body).toEqual(expect.objectContaining({
-  id: expect.any(String),
-  status: expect.stringMatching(/^(NEW|PAID|CANCELLED)$/),
-  totalGross: expect.any(Number),
-  items: expect.any(Array),
-}));
+// Weryfikacja istnienia i formatu kluczowych pól
+expect(body).toHaveProperty('id');
+expect(body.id).not.toBeNull();
+expect(typeof body.id).toBe('string');
 ```
 
-Asercja powinna być tak szczegółowa, jak wymaga kontrakt. Jeśli API jest publiczne albo krytyczne dla wielu klientów, warto dołożyć walidację schematu OpenAPI/Zod/Ajv w osobnej warstwie testów.
-
-## 6. Scenariusze negatywne
-
-Test API bez negatywnych przypadków jest niepełny.
+### B. Częściowe dopasowanie obiektu (Partial Object Matching)
+Często backend zwraca w odpowiedzi wiele parametrów (np. daty utworzenia, id procesów), które są dynamiczne i trudne do przewidzenia. Możemy użyć matchera `objectContaining`, aby sprawdzić wyłącznie obecność i poprawność kluczowych danych biznesowych:
 
 ```typescript
-test('API odrzuca zamówienie bez produktów', async ({ request }) => {
-  const response = await request.post('/api/orders', {
-    data: { items: [] },
-  });
-
-  expect(response.status()).toBe(400);
-  const error = await response.json();
-  expect(error).toMatchObject({
-    code: 'VALIDATION_ERROR',
-  });
-});
+expect(body).toEqual(
+  expect.objectContaining({
+    status: 'created',
+    totalAmount: 150.00,
+    customer: expect.objectContaining({
+      email: 'klient@example.com'
+    })
+  })
+);
 ```
 
-Typowe negatywne przypadki:
+---
 
-- 400 — błędne dane;
-- 401 — brak uwierzytelnienia;
-- 403 — brak uprawnień;
-- 404 — brak zasobu;
-- 409 — konflikt;
-- 422 — błąd walidacji domenowej;
-- 429 — rate limit;
-- 500 — błąd serwera, zwykle nie jako oczekiwany wynik.
+## 3. Weryfikacja Nagłówków Odpowiedzi (Response Headers)
 
-## 7. Autoryzacja i storage state
-
-`APIRequestContext` może współdzielić cookies/storage z kontekstem przeglądarki albo być niezależny, zależnie od sposobu utworzenia. W testach z fixture `request` zwykle korzystasz z kontekstu skonfigurowanego przez Playwright.
-
-Przykład z nagłówkiem:
+Nagłówki odpowiedzi są kluczowe pod kątem bezpieczeństwa i cache-owania. Warto wdrożyć automatyczne asercje weryfikujące poprawność nagłówków zwracanych przez Twoje API:
 
 ```typescript
-const response = await request.get('/api/admin/users', {
-  headers: {
-    Authorization: `Bearer ${process.env.ADMIN_TOKEN}`,
-  },
-});
+const headers = response.headers();
+
+// Upewnij się, że serwer wymusza format JSON
+expect(headers['content-type']).toContain('application/json');
+
+// Upewnij się, że wdrożono nagłówki bezpieczeństwa CORS
+expect(headers['access-control-allow-origin']).toBeDefined();
 ```
 
-Przykład niezależnego kontekstu:
+---
+
+## 4. Wyświetlanie czytelnej diagnostyki przy błędach
+
+Jeśli asercja statusu API nie przejdzie na serwerze CI, test padnie z mało mówiącym komunikatem (np. `Expected 200, received 500`). Wyszukanie przyczyny błędu wymaga wówczas otwierania logów backendu.
+
+Najlepszą praktyką inżynieryjną z 2026 r. jest dołączenie pełnej treści błędu zwróconego przez serwer bezpośrednio do komunikatu asercji:
 
 ```typescript
-const api = await playwright.request.newContext({
-  baseURL: process.env.BASE_URL,
-  extraHTTPHeaders: {
-    Authorization: `Bearer ${process.env.API_TOKEN}`,
-  },
-});
-
-const response = await api.get('/api/orders');
-await api.dispose();
+if (response.status() !== 201) {
+  const errorText = await response.text();
+  throw new Error(`Błąd tworzenia zamówienia! Serwer zwrócił status ${response.status()} o treści: ${errorText}`);
+}
 ```
 
-Zamykaj ręcznie utworzone konteksty przez `dispose()`.
+---
 
-## 8. API jako setup i teardown dla UI
-
-Zamiast tworzyć dane przez UI, użyj API:
-
-```typescript
-test('użytkownik edytuje produkt', async ({ page, request }) => {
-  const create = await request.post('/api/products', {
-    data: { name: `Produkt ${Date.now()}`, price: 100 },
-  });
-  expect(create.status()).toBe(201);
-  const product = await create.json();
-
-  await page.goto(`/products/${product.id}/edit`);
-  await page.getByLabel('Cena').fill('120');
-  await page.getByRole('button', { name: 'Zapisz' }).click();
-
-  await expect(page.getByText('Produkt zapisany')).toBeVisible();
-
-  const verify = await request.get(`/api/products/${product.id}`);
-  const updated = await verify.json();
-  expect(updated.price).toBe(120);
-});
-```
-
-To skraca test i usuwa zależność od nieistotnych ekranów.
-
-## 9. Multipart, formularze i pliki
-
-APIRequestContext obsługuje różne typy payloadów:
-
-```typescript
-await request.post('/api/upload', {
-  multipart: {
-    file: {
-      name: 'invoice.pdf',
-      mimeType: 'application/pdf',
-      buffer: await fs.promises.readFile('tests/assets/invoice.pdf'),
-    },
-    type: 'invoice',
-  },
-});
-```
-
-Dla JSON używaj `data`. Dla formularzy i plików — `form` lub `multipart` zgodnie z dokumentacją.
-
-## 10. `failOnStatusCode`
-
-W nowszych wersjach Playwright opcja `failOnStatusCode` pozwala sprawić, że request rzuci błąd dla statusów spoza 2xx/3xx.
-
-To przydatne dla helperów setupu, które mają natychmiast przerwać test, jeśli nie uda się utworzyć danych. Nie używaj jej w testach negatywnych, gdzie oczekujesz np. 400 albo 403.
-
-## 11. Eventual consistency i polling API
-
-Jeżeli backend przetwarza zamówienie asynchronicznie:
-
-```typescript
-await expect.poll(async () => {
-  const response = await request.get('/api/orders/ORD-123');
-  const order = await response.json();
-  return order.status;
-}, {
-  timeout: 30_000,
-}).toBe('PAID');
-```
-
-To lepsze niż `waitForTimeout(30000)`, bo test kończy się natychmiast, gdy warunek jest spełniony.
-
-## 12. Antywzorce
-
-- Sprawdzanie tylko `response.ok()`.
-- Brak testów 400/401/403/404/409.
-- Pełne porównanie body zawierającego dynamiczne pola.
-- Brak cleanupu danych utworzonych przez API.
-- Używanie jednego współdzielonego użytkownika do testów modyfikujących stan.
-- Twardo wpisane tokeny w kodzie.
-- `failOnStatusCode` w testach negatywnych.
-
-## 13. Checklista asercji API
-
-- Czy status HTTP jest sprawdzony?
-- Czy body potwierdza semantykę odpowiedzi?
-- Czy nagłówki istotne dla kontraktu są sprawdzone?
-- Czy są scenariusze negatywne?
-- Czy autoryzacja i role są pokryte?
-- Czy dane dynamiczne są sprawdzane przez typ/format?
-- Czy cleanup danych jest zaplanowany?
-- Czy test API wspiera stabilność testu UI, zamiast powielać jego kroki?
-
-## Linki
-
-- [API testing](https://playwright.dev/docs/api-testing)
-- [APIRequestContext](https://playwright.dev/docs/api/class-apirequestcontext)
-- [APIResponseAssertions](https://playwright.dev/docs/api/class-apiresponseassertions)
-- [Authentication](https://playwright.dev/docs/auth)
-- [Assertions](https://playwright.dev/docs/test-assertions)
-
-## 📘 Suplement Inżynieryjny 2026: Asercje i Weryfikacje (Web-First Assertions)
-*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
-*   **Asercje Web-First**: Zawsze używaj asynchronicznych asercji, takich jak `expect(locator).toBeVisible()`. Te asercje automatycznie ponawiają sprawdzenie (poll) przez określony timeout (domyślnie 5s), zapobiegając niestabilności spowodowanej powolnym renderowaniem sieciowym.
-*   **Custom Matchers (`expect.extend`)**: Dla zachowania czystości kodu domenowego wyodrębniaj techniczne aserty do niestandardowych metod weryfikujących (np. `expect(page).toBeAuthenticated()`).
+## 5. Checklista Asercji API
+- [ ] Czy zawsze weryfikujesz status odpowiedzi przed próbą parsowania pliku JSON?
+- [ ] Czy stosujesz matcher `expect.objectContaining()` do elastycznej walidacji kontraktów JSON?
+- [ ] Czy sprawdzasz kluczowe nagłówki odpowiedzi (np. `Content-Type`)?
+- [ ] Czy w przypadku błędów przechwytujesz i logujesz pełne body błędu w celu ułatwienia debugowania w CI?

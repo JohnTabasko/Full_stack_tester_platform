@@ -5,210 +5,52 @@ export const lesson3_1: Lesson = {
   "id": "3.1",
   "moduleId": 3,
   "title": "Asercje webowe",
-  "description": "Web-first assertions: widoczność, tekst, formularze, URL/title, soft assertions, timeouty, asercje negatywne, accessibility i snapshoty.",
+  "description": "Opanuj asercje Web-First (Locator Assertions). Dowiedz się, jak działa automatyczna pętla odpytywania (auto-polling), negowanie matchera za pomocą .not oraz weryfikacja struktur ARIA.",
   "order": 1,
-  "difficulty": "beginner",
-  "tags": [
-    "assertions",
-    "web-first",
-    "expect",
-    "visibility",
-    "text",
-    "ui-testing"
-  ],
+  "difficulty": "intermediate",
+  "tags": ["assertions", "web-first", "toHaveText", "toBeVisible", "ARIA-snapshots"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz używać web-first assertions Playwrighta do stabilnej weryfikacji interfejsu użytkownika, rozumiesz mechanizm ponawiania i wiesz, jak dobierać asercje do oczekiwanego zachowania użytkownika.",
+    "objective": "Po ukończeniu tej lekcji potrafisz pisać wysoce stabilne, asynchroniczne asercje sieciowe na elementach HTML, poprawnie negować warunki oraz wdrożyć asercje struktur ARIA w celu weryfikacji drzewa dostępności strony.",
     "theory": theory3_1,
     "codeExamples": [
-      "await page.getByRole('button', { name: 'Zapisz' }).click();\n\nawait expect(page.getByText('Zapisano zmiany')).toBeVisible();\nawait expect(page.getByTestId('status')).toHaveText('Aktywny');\nawait expect(page).toHaveURL(/\\/settings/);\n",
-      "// Antywzorzec: jednorazowy odczyt dynamicznego tekstu.\nexpect(await page.getByTestId('status').textContent()).toBe('Aktywny');\n\n// Lepsze: asercja retry-aware.\nawait expect(page.getByTestId('status')).toHaveText('Aktywny');\n"
+      `// Asercja Web-First z niestandardowym timeoutem (Książka 2 - Greffier)
+await expect(page.getByRole('alert')).toBeVisible({ timeout: 10000 });`
     ],
     "exercises": [
       {
         "id": "ex-3-1-1",
-        "title": "Asercja rezultatu",
-        "description": "Dla tematu „Asercje webowe” napisz test z asercją sprawdzającą realny efekt użytkownika lub kontraktu."
-      },
-      {
-        "id": "ex-3-1-2",
-        "title": "Scenariusz negatywny",
-        "description": "Dodaj asercję dla błędu: brak elementu, niepoprawny status, walidacja albo wyjątek."
-      },
-      {
-        "id": "ex-3-1-3",
-        "title": "Refaktor asercji",
-        "description": "Przepisz test z ogólnym expect(true).toBeTruthy() na konkretne oczekiwanie domenowe."
-      },
-      {
-        "id": "ex-3-1-4",
-        "title": "Diagnostyka komunikatu",
-        "description": "Dodaj opis asercji lub helper tak, aby porażka testu była zrozumiała w raporcie."
-      },
-      {
-        "id": "ex-3-1-5",
-        "title": "Granice matcherów",
-        "description": "Wskaż, kiedy użyć gotowego matchera, a kiedy napisać custom assertion."
-      },
-      {
-        "id": "ex-3-1-6",
-        "title": "Review asercji",
-        "description": "Przygotuj checklistę review dla asercji w testach interfejsu użytkownika/API."
+        "title": "Weryfikacja procesu rejestracji",
+        "description": "Napisz test, który po wysłaniu niepoprawnego formularza rejestracji asynchronicznie oczekuje na pojawienie się czerwonego komunikatu o błędzie o konkretnej treści."
       }
     ],
     "quiz": [
       {
         "id": "q3-1-1",
-        "question": "Jaka jest rola asercji w teście?",
+        "question": "Co odróżnia asercję Web-First od tradycyjnej asercji synchronicznej?",
         "options": [
-          "Potwierdzenie oczekiwanego zachowania systemu",
-          "Wydłużenie testu",
-          "Zastąpienie danych testowych",
-          "Ukrycie błędów"
+          "Asercja Web-First automatycznie odpytuje i czeka na spełnienie warunku w tle (co kilkanaście milisekund) przez określony timeout",
+          "Nie wymaga asynchroniczności (async/await)",
+          "Może być uruchamiana wyłącznie bez przeglądarki",
+          "Weryfikuje wyłącznie pliki JSON"
         ],
         "correctAnswer": 0,
-        "explanation": "Asercja jest miejscem, w którym test zamienia obserwację w ocenę poprawności."
-      },
-      {
-        "id": "q3-1-2",
-        "question": "Co oznacza web-first assertion?",
-        "options": [
-          "Asercja, która automatycznie ponawia sprawdzenie przez określony czas",
-          "Asercja wyłącznie dla CSS",
-          "Brak oczekiwania",
-          "Dowolny screenshot"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Playwright czeka, aż warunek interfejsu użytkownika zostanie spełniony lub upłynie timeout."
-      },
-      {
-        "id": "q3-1-3",
-        "question": "Dlaczego expect(locator).toBeVisible() jest lepsze niż ręczne sprawdzanie DOM?",
-        "options": [
-          "Uwzględnia widoczność i oczekuje na stan",
-          "Zawsze ignoruje timeout",
-          "Nie wymaga lokatora",
-          "Działa tylko w API"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Asercje locatorów są dostosowane do dynamicznego interfejsu użytkownika."
-      },
-      {
-        "id": "q3-1-4",
-        "question": "Co powinien sprawdzać test API poza statusem?",
-        "options": [
-          "Body, headers, kontrakt, błędy i semantykę odpowiedzi",
-          "Kolor przycisku",
-          "Tylko URL strony",
-          "Nic"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Status HTTP jest tylko częścią kontraktu API."
-      },
-      {
-        "id": "q3-1-5",
-        "question": "Kiedy warto stworzyć custom matcher?",
-        "options": [
-          "Gdy powtarzalna asercja domenowa zyska na czytelnej nazwie",
-          "Dla jednej przypadkowej linijki",
-          "Aby ukryć dowolne błędy",
-          "Zawsze zamiast gotowych matcherów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Custom matcher powinien wyrażać intencję domenową i poprawiać diagnostykę."
-      },
-      {
-        "id": "q3-1-6",
-        "question": "Co jest antywzorcem asercji?",
-        "options": [
-          "expect(true).toBeTruthy() po wykonaniu akcji",
-          "toHaveText dla komunikatu sukcesu",
-          "toHaveStatus dla API",
-          "toHaveCount dla listy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Taka asercja nie sprawdza zachowania systemu."
-      },
-      {
-        "id": "q3-1-7",
-        "question": "Co daje opis asercji lub komunikat diagnostyczny?",
-        "options": [
-          "Szybszą analizę porażki w raporcie",
-          "Ukrycie stack trace",
-          "Brak potrzeby testów",
-          "Zmianę danych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Czytelny komunikat skraca czas diagnozy."
-      },
-      {
-        "id": "q3-1-8",
-        "question": "Najważniejsza zasada lekcji „Asercje webowe” to:",
-        "options": [
-          "Asercja ma być konkretna, czytelna i powiązana z ryzykiem",
-          "Asercje są opcjonalne",
-          "Wystarczy kliknięcie",
-          "Każdy helper jest dobry"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wartość testu wynika z jakości oczekiwań."
+        "explanation": "Asercje Web-First czekają i ponawiają sprawdzenia, co eliminuje problem wyścigów stanów (race conditions) w asynchronicznym UI."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
-        "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
-        "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
+        "title": "Hands-On Automated Testing with Playwright (Packt, 2026)",
         "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-            "title": "Assertions",
-            "url": "https://playwright.dev/docs/test-assertions",
-            "description": "Asercje web-first i ogólne."
-      },
-      {
-            "title": "LocatorAssertions",
-            "url": "https://playwright.dev/docs/api/class-locatorassertions",
-            "description": "Asercje locatorów, w tym dostępnościowe."
-      },
-      {
-            "title": "ARIA snapshots",
-            "url": "https://playwright.dev/docs/aria-snapshots",
-            "description": "Snapshoty struktury dostępności."
+        "description": "Chapter 2: How Playwright ensures actions happen at the right time."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Asercja powinna opisywać oczekiwany rezultat, a nie tylko potwierdzać, że kod się wykonał.",
-      "Web-first assertions są retry-aware — używaj ich zamiast ręcznego pollingu interfejsu użytkownika.",
-      "W API sprawdzaj status, body, nagłówki i scenariusze negatywne; sam status 200 rzadko wystarcza.",
-      "Helper lub custom matcher ma zwiększać czytelność intencji, a nie ukrywać istotne szczegóły testu."
+      "Przekazuj do expect() zawsze cały obiekt lokatora (Locator), a nie wywołania metod pobierających tekst lub stan widoczności."
     ],
     "commonMistakes": [
       {
-        "mistake": "Asercja zbyt ogólna",
-        "solution": "Sprawdzaj konkretny, istotny rezultat: tekst, status, pole JSON, count, URL lub stan elementu."
-      },
-      {
-        "mistake": "Ręczne oczekiwanie przed expect",
-        "solution": "Używaj web-first assertions, które same czekają na spełnienie warunku."
-      },
-      {
-        "mistake": "Test API sprawdzający tylko 200 OK",
-        "solution": "Dodaj walidację body, headers, kontraktu i błędów."
-      },
-      {
-        "mistake": "Helpery ukrywające asercje o niejasnym znaczeniu",
-        "solution": "Nazwij helper językiem domeny i nie chowaj w nim zbyt wielu niezależnych oczekiwań."
+        "mistake": "Używanie expect(await page.url()).toBe('/dashboard') zamiast expect(page).toHaveURL('/dashboard')",
+        "solution": "Tradycyjne .toBe() nie czeka na zmianę URL. Zawsze używaj dedykowanej asercji Web-First expect(page).toHaveURL()."
       }
     ]
   }

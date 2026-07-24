@@ -5,213 +5,61 @@ export const lesson3_4: Lesson = {
   "id": "3.4",
   "moduleId": 3,
   "title": "Własne asercje i funkcje pomocnicze",
-  "description": "Własne matchery, helpery, generatory danych, asercje domenowe i organizacja kodu pomocniczego w projekcie testowym.",
+  "description": "Naucz się pisać własne matchery asercji za pomocą expect.extend(), otypowywać je w TypeScript oraz dodawać precyzyjne, autorskie komunikaty błędów.",
   "order": 4,
-  "difficulty": "beginner",
-  "tags": [
-    "custom-matchers",
-    "helpers",
-    "assertions",
-    "test-architecture"
-  ],
+  "difficulty": "advanced",
+  "tags": ["assertions", "custom-matchers", "expect.extend", "TypeScript", "diagnostics"],
   "content": {
-    "objective": "Po ukończeniu lekcji potrafisz tworzyć helpery i własne asercje, które zwiększają czytelność testów, a nie ukrywają ich sensu, oraz wiesz, jak organizować kod pomocniczy w projekcie.",
+    "objective": "Po ukończeniu tej lekcji potrafisz rozszerzać możliwości silnika expect o własne, silnie otypowane asercje domenowe, otypowywać je w TypeScript oraz projektować rzetelne i czytelne komunikaty błędów diagnostycznych.",
     "theory": theory3_4,
     "codeExamples": [
-      "export async function expectOrderToBePaid(order: { status: string; paidAt?: string }) {\n  expect(order.status).toBe('paid');\n  expect(order.paidAt, 'paid order should contain paidAt timestamp').toBeTruthy();\n}\n",
-      "expect.extend({\n  toBeValidMoneyAmount(received: number) {\n    const pass = Number.isFinite(received) && received >= 0;\n    return {\n      pass,\n      message: () => `expected ${received} to be a non-negative finite money amount`,\n    };\n  },\n});\n"
+      `// Przykład rozszerzenia expect (Książka 2 - Greffier)
+export const expect = baseExpect.extend({
+  async toBeValidPageTitle(page: Page, expected: string) {
+    const title = await page.title();
+    const pass = title.includes(expected);
+    return {
+      message: () => \`Expected title "\${title}" \${pass ? 'not ' : ''}to contain "\${expected}"\`,
+      pass
+    };
+  }
+});`
     ],
     "exercises": [
       {
         "id": "ex-3-4-1",
-        "title": "Asercja rezultatu",
-        "description": "Dla tematu „Własne asercje i funkcje pomocnicze” napisz test z asercją sprawdzającą realny efekt użytkownika lub kontraktu."
-      },
-      {
-        "id": "ex-3-4-2",
-        "title": "Scenariusz negatywny",
-        "description": "Dodaj asercję dla błędu: brak elementu, niepoprawny status, walidacja albo wyjątek."
-      },
-      {
-        "id": "ex-3-4-3",
-        "title": "Refaktor asercji",
-        "description": "Przepisz test z ogólnym expect(true).toBeTruthy() na konkretne oczekiwanie domenowe."
-      },
-      {
-        "id": "ex-3-4-4",
-        "title": "Diagnostyka komunikatu",
-        "description": "Dodaj opis asercji lub helper tak, aby porażka testu była zrozumiała w raporcie."
-      },
-      {
-        "id": "ex-3-4-5",
-        "title": "Granice matcherów",
-        "description": "Wskaż, kiedy użyć gotowego matchera, a kiedy napisać custom assertion."
-      },
-      {
-        "id": "ex-3-4-6",
-        "title": "Review asercji",
-        "description": "Przygotuj checklistę review dla asercji w testach interfejsu użytkownika/API."
+        "title": "Zaimplementowanie matchera toBeAuthenticated",
+        "description": "Zaprojektuj i wdroż custom matcher o nazwie `toBeAuthenticated(page: Page)` weryfikujący obecność i poprawność ciasteczka sesyjnego użytkownika, z obsługą typowania TypeScript."
       }
     ],
     "quiz": [
       {
         "id": "q3-4-1",
-        "question": "Jaka jest rola asercji w teście?",
+        "question": "W jaki sposób rejestrujemy własne matchery asercji w Playwright Test, aby zachować autouzupełnianie w edytorze?",
         "options": [
-          "Potwierdzenie oczekiwanego zachowania systemu",
-          "Wydłużenie testu",
-          "Zastąpienie danych testowych",
-          "Ukrycie błędów"
+          "Definiując rozszerzenie expect.extend() i stosując mechanizm scalania deklaracji (Declaration Merging) TypeScript dla interfejsu PlaywrightTest.Matchers",
+          "Wystarczy napisać zwykłą funkcję helpera w pliku JS",
+          "Nie da się rozszerzyć obiektów asercji o typowanie",
+          "Konfigurując to w pliku package.json"
         ],
         "correctAnswer": 0,
-        "explanation": "Asercja jest miejscem, w którym test zamienia obserwację w ocenę poprawności."
-      },
-      {
-        "id": "q3-4-2",
-        "question": "Co oznacza web-first assertion?",
-        "options": [
-          "Asercja, która automatycznie ponawia sprawdzenie przez określony czas",
-          "Asercja wyłącznie dla CSS",
-          "Brak oczekiwania",
-          "Dowolny screenshot"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Playwright czeka, aż warunek interfejsu użytkownika zostanie spełniony lub upłynie timeout."
-      },
-      {
-        "id": "q3-4-3",
-        "question": "Dlaczego expect(locator).toBeVisible() jest lepsze niż ręczne sprawdzanie DOM?",
-        "options": [
-          "Uwzględnia widoczność i oczekuje na stan",
-          "Zawsze ignoruje timeout",
-          "Nie wymaga lokatora",
-          "Działa tylko w API"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Asercje locatorów są dostosowane do dynamicznego interfejsu użytkownika."
-      },
-      {
-        "id": "q3-4-4",
-        "question": "Co powinien sprawdzać test API poza statusem?",
-        "options": [
-          "Body, headers, kontrakt, błędy i semantykę odpowiedzi",
-          "Kolor przycisku",
-          "Tylko URL strony",
-          "Nic"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Status HTTP jest tylko częścią kontraktu API."
-      },
-      {
-        "id": "q3-4-5",
-        "question": "Kiedy warto stworzyć custom matcher?",
-        "options": [
-          "Gdy powtarzalna asercja domenowa zyska na czytelnej nazwie",
-          "Dla jednej przypadkowej linijki",
-          "Aby ukryć dowolne błędy",
-          "Zawsze zamiast gotowych matcherów"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Custom matcher powinien wyrażać intencję domenową i poprawiać diagnostykę."
-      },
-      {
-        "id": "q3-4-6",
-        "question": "Co jest antywzorcem asercji?",
-        "options": [
-          "expect(true).toBeTruthy() po wykonaniu akcji",
-          "toHaveText dla komunikatu sukcesu",
-          "toHaveStatus dla API",
-          "toHaveCount dla listy"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Taka asercja nie sprawdza zachowania systemu."
-      },
-      {
-        "id": "q3-4-7",
-        "question": "Co daje opis asercji lub komunikat diagnostyczny?",
-        "options": [
-          "Szybszą analizę porażki w raporcie",
-          "Ukrycie stack trace",
-          "Brak potrzeby testów",
-          "Zmianę danych"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Czytelny komunikat skraca czas diagnozy."
-      },
-      {
-        "id": "q3-4-8",
-        "question": "Najważniejsza zasada lekcji „Własne asercje i funkcje pomocnicze” to:",
-        "options": [
-          "Asercja ma być konkretna, czytelna i powiązana z ryzykiem",
-          "Asercje są opcjonalne",
-          "Wystarczy kliknięcie",
-          "Każdy helper jest dobry"
-        ],
-        "correctAnswer": 0,
-        "explanation": "Wartość testu wynika z jakości oczekiwań."
+        "explanation": "TypeScript pozwala na rozszerzenie istniejących interfejsów za pomocą declaration merging. Dzięki temu edytor podpowiada nasze własne metody (np. .toBeValidPageTitle) bezpośrednio po obiekcie expect."
       }
     ],
     "references": [
       {
-        "title": "Scalable Test Automation with Playwright (Raj Uppadhyay, 2026)",
-        "url": "https://rebrand.ly/dae925",
-        "description": "Enterprise-grade design patterns (PageFactory, ApiFactory, BasePage), SOLID & DRY principles, and full stack scaling."
-      },
-      {
         "title": "Practical Playwright Test (Jean-François Greffier, 2026)",
         "url": "https://doi.org/10.1007/979-8-8688-2160-8",
-        "description": "Deep dive into Playwright runner extension, custom expectations, dependent and automatic fixtures, and component testing."
-      },
-      {
-        "title": "Hands-On Automated Testing with Playwright (Faraz K. Kelhini, 2026)",
-        "url": "https://www.packtpub.com",
-        "description": "Comprehensive guide to browser mechanics, Chrome DevTools Protocol metrics, WCAG accessibility, visual testing, and mobile web."
-      },
-      {
-        "title": "Playwright Assertions",
-        "url": "https://playwright.dev/docs/test-assertions",
-        "description": "Oficjalny opis asercji Playwright i mechanizmu web-first assertions."
-      },
-      {
-        "title": "Playwright Testowanie API",
-        "url": "https://playwright.dev/docs/api-testing",
-        "description": "Dokumentacja testowania API w Playwright Test."
-      },
-      {
-        "title": "Jest Expect",
-        "url": "https://jestjs.io/docs/expect",
-        "description": "Opis matcherów expect, przydatny również dla rozumienia wielu asercji w ekosystemie JS."
-      },
-      {
-        "title": "Vitest Expect API",
-        "url": "https://vitest.dev/api/expect.html",
-        "description": "Matcher API w Vitest, użyteczne przy własne asercje i testach niższych poziomów."
+        "description": "Chapter 6: Extending Playwright Test (Custom expect matchers)."
       }
     ],
     "tipsAndTricks": [
-      "Zawsze opieraj architekturę testów na zasadach SOLID, unikając przedwczesnej abstrakcji zgodnie z zasadą WET (Write Everything Twice) z podręczników 2026.",
-      
-      "Asercja powinna opisywać oczekiwany rezultat, a nie tylko potwierdzać, że kod się wykonał.",
-      "Web-first assertions są retry-aware — używaj ich zamiast ręcznego pollingu interfejsu użytkownika.",
-      "W API sprawdzaj status, body, nagłówki i scenariusze negatywne; sam status 200 rzadko wystarcza.",
-      "Helper lub custom matcher ma zwiększać czytelność intencji, a nie ukrywać istotne szczegóły testu."
+      "Zawsze uwzględniaj zachowanie zanegowane w metodzie message() (tj. co ma się wyświetlić, gdy oczekiwano, że warunek NIE zostanie spełniony)."
     ],
     "commonMistakes": [
       {
-        "mistake": "Asercja zbyt ogólna",
-        "solution": "Sprawdzaj konkretny, istotny rezultat: tekst, status, pole JSON, count, URL lub stan elementu."
-      },
-      {
-        "mistake": "Ręczne oczekiwanie przed expect",
-        "solution": "Używaj web-first assertions, które same czekają na spełnienie warunku."
-      },
-      {
-        "mistake": "Test API sprawdzający tylko 200 OK",
-        "solution": "Dodaj walidację body, headers, kontraktu i błędów."
-      },
-      {
-        "mistake": "Helpery ukrywające asercje o niejasnym znaczeniu",
-        "solution": "Nazwij helper językiem domeny i nie chowaj w nim zbyt wielu niezależnych oczekiwań."
+        "mistake": "Pisanie skomplikowanych pętli i asercji logicznych w plikach testowych zamiast zamknięcia ich w custom matcherze",
+        "solution": "Przenieś techniczną logikę weryfikacyjną do rozszerzonego expect.extend(), co uczyni Twoje testy krystalicznie czystymi."
       }
     ]
   }

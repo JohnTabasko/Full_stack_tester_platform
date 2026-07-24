@@ -1,242 +1,87 @@
-# Asercje webowe — Web-First Assertions
+# Locator Assertions: Zaawansowane asercje sieciowe (Web-First)
 
-Asercje są miejscem, w którym test przestaje być sekwencją akcji, a zaczyna być dowodem jakości. Kliknięcie przycisku nie oznacza jeszcze, że aplikacja działa. Dopiero asercja mówi: „po tej akcji system osiągnął oczekiwany stan”.
+Podczas testowania interfejsu graficznego (UI), stany elementów HTML zmieniają się w sposób asynchroniczny pod wpływem renderowania kodu JavaScript oraz zapytań sieciowych. Sprawdzanie stanu elementu w sposób statyczny (np. odpytywanie o stan widoczności tylko raz) jest najczęstszą przyczyną niestabilności testów (flakiness).
 
-Playwright ma specjalny rodzaj asercji dla aplikacji webowych: **web-first assertions**. Są one dostosowane do dynamicznego UI, czyli do aplikacji, które renderują dane po odpowiedzi API, animują elementy, przeładowują komponenty albo zmieniają stan bez pełnej nawigacji.
+Playwright Test eliminuje ten problem poprzez **Asercje Web-First (Locator Assertions)**. Są to inteligentne, asynchroniczne matchery, które automatycznie czekają i wielokrotnie ponawiają sprawdzanie stanu elementu (auto-polling) przed podjęciem decyzji o błędzie.
 
-## 1. Dlaczego zwykłe odczyty są kruche
+---
 
-Antywzorzec:
+## 1. Katalog kluczowych asercji sieciowych (Web-First Matchers)
 
-```typescript
-const text = await page.getByTestId('status').textContent();
-expect(text).toBe('Gotowe');
-```
+Wszystkie asercje sieciowe w Playwright przyjmują jako główny parametr instancję lokalizatora (`Locator`) i są poprzedzone słowem kluczowym `await`.
 
-Ten kod odczytuje tekst tylko raz. Jeśli aplikacja pokaże `Gotowe` 100 ms później, test padnie, mimo że produkt działa poprawnie.
+Oto najistotniejsze asercje wykorzystywane w projektach komercyjnych:
 
-Lepsza wersja:
+### A. Widoczność i obecność w DOM
+*   `await expect(locator).toBeVisible()`: Czeka, aż element będzie w pełni widoczny na ekranie (rozmiar większy niż 0x0, brak stylów `display: none` lub `visibility: hidden`).
+*   `await expect(locator).toBeHidden()`: Czeka, aż element całkowicie zniknie ze strony lub zostanie usunięty z drzewa DOM. Idealne do sprawdzania loaderów i spinnerów sieciowych.
 
-```typescript
-await expect(page.getByTestId('status')).toHaveText('Gotowe');
-```
+### B. Interaktywność i edytowalność
+*   `await expect(locator).toBeEnabled()`: Czeka, aż przycisk lub pole wyboru przestanie mieć atrybut `disabled`.
+*   `await expect(locator).toBeEditable()`: Weryfikuje, czy pole tekstowe jest włączone i gotowe do edycji (nie posiada atrybutu `readonly`).
 
-Playwright będzie ponawiał sprawdzenie aż do spełnienia warunku albo przekroczenia timeoutu asercji.
+### C. Stan pól wyboru (Checkboxes & Radios)
+*   `await expect(locator).toBeChecked()`: Weryfikuje, czy checkbox lub przycisk radiowy jest zaznaczony.
 
-## 2. Web-first assertion — co to znaczy
+### D. Treści, wartości i klasy CSS
+*   `await expect(locator).toHaveText('Wartość')`: Weryfikuje dokładną treść tekstową elementu.
+*   `await expect(locator).toContainText('fraza')`: Sprawdza, czy element zawiera określoną frazę (mniej surowa wersja `toHaveText`).
+*   `await expect(locator).toHaveValue('wpisany-tekst')`: Weryfikuje bieżącą wartość wpisaną do pola formularza `<input>`.
+*   `await expect(locator).toHaveClass('active-row')`: Weryfikuje, czy element posiada określoną klasę CSS (np. sprawdzanie aktywnego wiersza w tabeli).
 
-Web-first assertion:
+### E. Adresy i Tytuły
+*   `await expect(page).toHaveURL('/dashboard')`: Oczekuje, aż adres URL przeglądarki zmieni się na pożądany format.
+*   `await expect(page).toHaveTitle('Sklep MyCommerce')`: Sprawdza tytuł karty przeglądarki.
 
-- przyjmuje locator albo page;
-- automatycznie ponawia sprawdzenie;
-- dobrze współpracuje z auto-waiting;
-- daje czytelny komunikat błędu;
-- jest odporna na krótkie opóźnienia renderowania.
+---
 
-Przykład:
+## 2. Pod maską: Mechanizm Auto-Polling i Timouty
 
-```typescript
-await page.getByRole('button', { name: 'Zapisz' }).click();
-await expect(page.getByText('Zapisano zmiany')).toBeVisible();
-```
-
-Nie trzeba dodawać `waitForTimeout`. Asercja sama czeka na widoczny komunikat.
-
-## 3. Widoczność i obecność elementu
-
-Najczęstsze asercje:
+Kiedy Playwright wykonuje asercję:
 
 ```typescript
-await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-await expect(page.getByText('Ładowanie')).toBeHidden();
-await expect(page.getByTestId('toast')).toBeAttached();
-await expect(page.getByTestId('deleted-item')).not.toBeAttached();
+await expect(page.locator('.alert-success')).toBeVisible();
 ```
 
-Różnice:
+W tle uruchamiana jest pętla, która w odstępach kilkunastu milisekund odpytuje drzewo DOM. Pętla ta działa do momentu spełnienia warunku widoczności lub przekroczenia dopuszczalnego czasu oczekiwania.
 
-- `toBeVisible()` — element jest w DOM i widoczny dla użytkownika;
-- `toBeHidden()` — element nie jest widoczny albo nie istnieje;
-- `toBeAttached()` — element jest podłączony do DOM;
-- `not.toBeAttached()` — element nie istnieje w DOM.
-
-Jeśli sprawdzasz rezultat użytkownika, zwykle wybieraj `toBeVisible`. Jeśli sprawdzasz cleanup DOM, użyj `toBeAttached` / `not.toBeAttached`.
-
-## 4. Tekst
+Czas ten jest określony parametrem `expect.timeout` w pliku `playwright.config.ts` (domyślnie wynosi **5000 ms** / 5 sekund). W razie potrzeby możesz go nadpisać dla pojedynczego wywołania:
 
 ```typescript
-await expect(page.getByTestId('order-status')).toHaveText('Opłacone');
-await expect(page.getByTestId('summary')).toContainText('Razem: 120,00 zł');
-await expect(page.getByRole('alert')).toHaveText(/niepoprawne hasło/i);
+// Pozwól na dłuższy czas oczekiwania (np. przy powolnym generowaniu faktury)
+await expect(page.locator('.invoice-download-btn')).toBeVisible({ timeout: 10000 });
 ```
 
-`toHaveText` sprawdza pełny tekst elementu. `toContainText` sprawdza fragment. Regex jest dobry dla tekstów częściowo dynamicznych, ale nie powinien być zbyt szeroki.
+---
 
-Dla list:
+## 3. Negowanie asercji sieciowych (`.not`)
+
+Wszystkie asercje Web-First można zanegować za pomocą słowa `.not`. Playwright będzie wówczas oczekiwał na **zniknięcie** danego stanu:
 
 ```typescript
-await expect(page.getByRole('listitem')).toHaveText([
-  'Produkt A',
-  'Produkt B',
-  'Produkt C',
-]);
+// Czekaj na zniknięcie komunikatu o ładowaniu danych
+await expect(page.locator('.spinner-loader')).not.toBeVisible();
 ```
 
-To sprawdza treść i kolejność elementów.
+---
 
-## 5. Formularze
+## 4. Wykorzystanie Migawki ARIA (ARIA Snapshots)
+
+Nowoczesną i rekomendowaną w 2026 r. techniką weryfikacji dużych struktur dostępności na stronie są **ARIA Snapshots**. Pozwalają one sprawdzić, czy układ ról dostępności strony (nagłówki, przyciski, listy) odpowiada zadeklarowanemu wzorcowi:
 
 ```typescript
-await expect(page.getByLabel('Email')).toHaveValue('user@example.com');
-await expect(page.getByLabel('Akceptuję regulamin')).toBeChecked();
-await expect(page.getByRole('button', { name: 'Zapisz' })).toBeEnabled();
-await expect(page.getByRole('button', { name: 'Zapisz' })).toBeDisabled();
-await expect(page.getByLabel('Opis')).toBeEditable();
+await expect(page.locator('#navigation-sidebar')).toMatchAriaSnapshot(`
+  - navigation "Główne menu":
+    - link "Pulpit"
+    - link "Zamówienia"
+    - link "Ustawienia"
+`);
 ```
 
-Te asercje są lepsze niż pobieranie atrybutów ręcznie, bo opisują intencję użytkownika.
+---
 
-## 6. Atrybuty, CSS i klasy
-
-```typescript
-await expect(page.getByRole('link', { name: 'Profil' })).toHaveAttribute('href', '/profile');
-await expect(page.getByTestId('status-badge')).toHaveClass(/success/);
-await expect(page.getByTestId('modal')).toHaveCSS('position', 'fixed');
-```
-
-Asercje CSS i klas są przydatne, ale używaj ich ostrożnie. Jeśli testujesz zachowanie, zwykle lepsza jest asercja tekstu, roli lub stanu. Asercje CSS mają sens przy komponentach UI, regresji wizualnej albo stylach krytycznych dla używalności.
-
-## 7. Liczność elementów
-
-```typescript
-await expect(page.getByRole('row')).toHaveCount(10);
-await expect(page.getByTestId('cart-item')).toHaveCount(3);
-```
-
-`toHaveCount` jest web-first. To lepsze niż:
-
-```typescript
-expect(await page.getByRole('row').count()).toBe(10);
-```
-
-`count()` sprawdza aktualny stan tylko raz, a `toHaveCount` czeka na oczekiwaną liczbę.
-
-## 8. PageAssertions
-
-Asercje mogą dotyczyć całej strony:
-
-```typescript
-await expect(page).toHaveURL(/\/checkout\/success$/);
-await expect(page).toHaveTitle(/Panel użytkownika/);
-```
-
-Po nawigacji SPA często warto łączyć URL i widoczny stan:
-
-```typescript
-await expect(page).toHaveURL(/\/settings$/);
-await expect(page.getByRole('heading', { name: 'Ustawienia' })).toBeVisible();
-```
-
-Sam URL nie zawsze oznacza, że dane zostały wyrenderowane.
-
-## 9. Soft assertions
-
-Soft assertion nie przerywa testu natychmiast po porażce:
-
-```typescript
-await expect.soft(page.getByTestId('user-name')).toHaveText('Jan Kowalski');
-await expect.soft(page.getByTestId('user-email')).toHaveText('jan@example.com');
-await expect.soft(page.getByTestId('user-role')).toHaveText('Admin');
-```
-
-To dobre przy formularzach, profilach, raportach i widokach, gdzie chcesz zebrać kilka błędów naraz. Nie używaj soft assertions do krytycznego warunku, bez którego dalsze kroki nie mają sensu.
-
-## 10. Własny opis asercji
-
-```typescript
-await expect(
-  page.getByRole('alert'),
-  'Po błędnym haśle powinien pojawić się komunikat walidacyjny'
-).toBeVisible();
-```
-
-Opis asercji jest bardzo pomocny w raporcie CI. Używaj go dla warunków domenowych i miejsc, które często się psują.
-
-## 11. Timeout asercji
-
-Domyślny timeout asercji jest konfigurowany w `playwright.config.ts`:
-
-```typescript
-export default defineConfig({
-  expect: {
-    timeout: 5_000,
-  },
-});
-```
-
-Możesz nadpisać lokalnie:
-
-```typescript
-await expect(page.getByText('Import zakończony')).toBeVisible({ timeout: 30_000 });
-```
-
-Lokalny dłuższy timeout ma sens dla długiego procesu domenowego. Nie ustawiaj ogromnego globalnego timeoutu tylko dlatego, że jeden import trwa długo.
-
-## 12. Asercje negatywne
-
-```typescript
-await expect(page.getByText('Błąd serwera')).not.toBeVisible();
-await expect(page.getByRole('button', { name: 'Usuń' })).not.toBeEnabled();
-```
-
-Uważaj: asercja negatywna może przejść z nieoczekiwanego powodu. `not.toBeVisible()` przejdzie także wtedy, gdy element nie istnieje. Jeśli chcesz sprawdzić, że element istnieje, ale jest ukryty, dopisz osobny warunek.
-
-## 13. Antywzorce
-
-- Brak asercji po akcji.
-- `expect(await locator.textContent()).toBe(...)` dla dynamicznego UI.
-- `waitForTimeout` przed asercją.
-- Sprawdzanie zbyt technicznych szczegółów zamiast rezultatu użytkownika.
-- Same asercje negatywne bez potwierdzenia pozytywnego stanu.
-- Brak `await` przed `expect(locator)`.
-
-## 14. Checklista asercji webowych
-
-- Czy asercja sprawdza realny rezultat użytkownika?
-- Czy używa web-first matcherów zamiast jednorazowego odczytu?
-- Czy locator jest jednoznaczny?
-- Czy timeout jest uzasadniony?
-- Czy komunikat błędu będzie zrozumiały w CI?
-- Czy asercja negatywna nie przechodzi przypadkiem?
-- Czy po zmianie URL sprawdzasz też widoczny stan strony?
-
-## Linki
-
-- [Assertions](https://playwright.dev/docs/test-assertions)
-- [LocatorAssertions API](https://playwright.dev/docs/api/class-locatorassertions)
-- [PageAssertions API](https://playwright.dev/docs/api/class-pageassertions)
-- [Best practices](https://playwright.dev/docs/best-practices)
-
-## 15. Asercje dostępnościowe
-
-Playwright udostępnia asercje związane z dostępnością, np. accessible name, description czy error message. Są przydatne, gdy chcesz wykryć regresję niewidoczną wizualnie, ale ważną dla technologii asystujących.
-
-```typescript
-await expect(page.getByRole('button', { name: 'Zapisz' })).toHaveAccessibleName('Zapisz');
-await expect(page.getByLabel('Email')).toHaveAccessibleErrorMessage('Email jest wymagany');
-```
-
-Nie zastępuje to pełnego audytu WCAG, ale wzmacnia zwykłe testy UI.
-
-## 16. Asercje snapshotowe
-
-Dla wybranych przypadków możesz użyć snapshotów wizualnych lub ARIA. Nie stosuj ich jako zamiennika jasnej asercji biznesowej. Snapshot jest dobry dla struktury lub layoutu, ale komunikat „zamówienie opłacone” nadal warto sprawdzić przez `toHaveText`.
-
-## 17. Zasada końcowa
-
-Dobra asercja webowa odpowiada na pytanie: jaki stan użytkownik lub system ma zobaczyć po akcji? Jeśli asercja nie odpowiada na to pytanie, prawdopodobnie jest zbyt techniczna albo zbyt słaba.
-
-## 📘 Suplement Inżynieryjny 2026: Asercje i Weryfikacje (Web-First Assertions)
-*Inspiracja: „Practical Playwright Test” (2026), Chapter 6*
-*   **Asercje Web-First**: Zawsze używaj asynchronicznych asercji, takich jak `expect(locator).toBeVisible()`. Te asercje automatycznie ponawiają sprawdzenie (poll) przez określony timeout (domyślnie 5s), zapobiegając niestabilności spowodowanej powolnym renderowaniem sieciowym.
-*   **Custom Matchers (`expect.extend`)**: Dla zachowania czystości kodu domenowego wyodrębniaj techniczne aserty do niestandardowych metod weryfikujących (np. `expect(page).toBeAuthenticated()`).
+## 5. Checklista Asercji Sieciowych
+- [ ] Czy do weryfikacji elementów UI używasz wyłącznie asynchronicznych asercji z `await expect()`?
+- [ ] Czy całkowicie wyeliminowałeś tradycyjne asercje synchroniczne na stanach logicznych (np. `expect(await locator.isVisible()).toBe(true)`)?
+- [ ] Czy stosujesz `.toBeHidden()` zamiast oczekiwać na usunięcie elementu ręcznym sleepem?
+- [ ] Czy dostosowałeś timeouty asercji dla powolnych, asynchronicznych procesów backendowych?
