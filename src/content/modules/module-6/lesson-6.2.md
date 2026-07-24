@@ -1,200 +1,110 @@
-# Wzorzec strony bazowej — BasePage bez klasy-śmietnika
+# Wzorzec strony bazowej (BasePage) i Metoda Szablonowa
 
-BasePage to wspólna klasa bazowa dla Page Objectów. Może ujednolicić nawigację, diagnostykę i oczekiwanie na załadowanie strony. Może też stać się najgorszym antywzorcem w projekcie: ogromną klasą, do której zespół wrzuca każdą przypadkową metodę.
+Gdy Twój projekt testowy zaczyna rosnąć, klasy Page Object Model (POM) zaczynają powielać te same powtarzalne czynności techniczne: logowanie zdarzeń, weryfikację stabilności strony po załadowaniu, sprawdzanie błędów serwera (np. 500 Internal Server Error) czy obsługę menu nawigacyjnych.
 
-Dobra BasePage ma małą odpowiedzialność. Nie zna logiki koszyka, tabel, modali, API, płatności i logowania naraz. Daje wspólny szkielet, ale nie zastępuje dobrze zaprojektowanych stron i komponentów.
+Najlepszą praktyką inżynierii obiektowej jest wyodrębnienie tych zachowań do wspólnej klasy abstrakcyjnej – **`BasePage`** – oraz zaimplementowanie wzorca projektowego **Metody Szablonowej (Template Method Pattern)**. W tej lekcji nauczysz się projektować hierarchię klas POM z użyciem silnych typów TypeScript.
 
-## 1. Kiedy BasePage ma sens
+---
 
-BasePage jest przydatna, gdy wiele stron ma wspólny cykl życia:
+## 1. Dziedziczenie w POM: Rola klasy abstrakcyjnej `BasePage`
 
-- każda strona ma `path`;
-- każda strona potrafi sprawdzić, że jest załadowana;
-- chcesz mieć spójne `goto()`;
-- chcesz dodać diagnostykę, np. screenshot;
-- chcesz ujednolicić podstawowe oczekiwanie na widok.
-
-Nie twórz BasePage tylko dlatego, że „tak się robi w POM”. W małym projekcie kilka prostych klas bez dziedziczenia może być czytelniejsze.
-
-## 2. Minimalna BasePage
+Klasa bazowa powinna być zadeklarowana jako klasa abstrakcyjna (`abstract class`). Oznacza to, że nie można stworzyć jej bezpośredniej instancji w testach (`new BasePage(page)` jest niedozwolone) – służy ona wyłącznie jako szablon i fundament dla innych, wyspecjalizowanych stron (np. `LoginPage`, `CartPage`).
 
 ```typescript
-import { type Page } from '@playwright/test';
+// src/pages/BasePage.ts
+import { Page, test, expect } from '@playwright/test';
 
 export abstract class BasePage {
-  protected constructor(protected readonly page: Page) {}
-
-  abstract readonly path: string;
-  abstract expectLoaded(): Promise<void>;
-
-  async goto() {
-    await this.page.goto(this.path);
-    await this.expectLoaded();
-  }
-}
-```
-
-Każda strona definiuje własny warunek gotowości:
-
-```typescript
-import { expect, type Page } from '@playwright/test';
-import { BasePage } from './BasePage';
-
-export class ProfilePage extends BasePage {
-  readonly path = '/profile';
+  protected readonly page: Page;
 
   constructor(page: Page) {
-    super(page);
-  }
-
-  async expectLoaded() {
-    await expect(this.page.getByRole('heading', { name: 'Profil' })).toBeVisible();
+    this.page = page;
   }
 }
 ```
 
-`expectLoaded()` jest lepsze niż losowe `waitForTimeout`, bo opisuje realny stan widoku.
+Dzięki temu, że pole `page` jest zadeklarowane jako `protected`, wszystkie klasy pochodne mają do niego bezpośredni dostęp, ale sam obiekt jest zabezpieczony przed bezpośrednimi zmianami z poziomu plików testowych.
 
-## 3. Locator-first BasePage
+---
 
-BasePage nie powinna wymuszać CSS/XPath. Każda klasa dziedzicząca nadal powinna używać locatorów użytkownika:
+## 2. Wdrożenie wzorca Metody Szablonowej (Template Method Pattern)
 
-```typescript
-protected heading(name: string) {
-  return this.page.getByRole('heading', { name });
-}
-```
+Wzorzec ten polega na zdefiniowaniu niezmiennego szkieletu algorytmu (np. procesu nawigacji lub klikania z weryfikacją błędów) w klasie bazowej, podczas gdy specyficzne kroki są delegowane do klas pochodnych za pomocą metod hakowych (hooks).
 
-Taki helper może być przydatny, ale nie przesadzaj. Jeśli BasePage zaczyna mieć dziesiątki skrótów do każdego typu elementu, staje się własnym mini-frameworkiem.
-
-## 4. Diagnostyka
-
-Możesz dodać małe narzędzia diagnostyczne:
+Dodajmy metodę szablonową `navigate()` do naszej klasy `BasePage`:
 
 ```typescript
-async screenshot(name: string) {
-  await this.page.screenshot({
-    path: `test-results/${name}.png`,
-    fullPage: true,
-  });
-}
-```
+export abstract class BasePage {
+  protected readonly page: Page;
 
-W praktyce screenshoty przy awarii lepiej często obsłużyć przez konfigurację lub fixture. BasePage może mieć diagnostykę manualną dla trudnych przypadków, ale nie powinna dublować mechanizmów Playwright.
-
-## 5. Dziedziczenie kontra kompozycja
-
-Dziedziczenie działa dobrze dla wspólnych elementów cyklu życia. Kompozycja działa lepiej dla fragmentów UI.
-
-Zły kierunek:
-
-```typescript
-class BasePage {
-  async openUserMenu() {}
-  async sortTable() {}
-  async closeModal() {}
-  async addProductToCart() {}
-}
-```
-
-Lepszy kierunek:
-
-```typescript
-class DashboardPage extends BasePage {
-  readonly navigation = new NavigationComponent(this.page.getByRole('navigation'));
-  readonly ordersTable = new OrdersTable(this.page.getByTestId('orders-table'));
-}
-```
-
-Jeśli funkcja dotyczy tylko niektórych stron, zrób komponent albo helper, nie metodę w BasePage.
-
-## 6. Antywzorce BasePage
-
-- `BasePage` ma 1000 linii.
-- Każdy Page Object dziedziczy metody, których nigdy nie używa.
-- BasePage zna szczegóły domeny: koszyk, faktury, płatności, admina.
-- BasePage ukrywa `waitForTimeout`.
-- BasePage zawiera uniwersalne `click(selector: string)` i `fill(selector: string)` zamiast locatorów domenowych.
-- Zmiana BasePage psuje cały projekt.
-
-## 7. Checklista
-
-- Czy BasePage ma mniej niż kilka naprawdę wspólnych metod?
-- Czy `expectLoaded()` sprawdza widoczny stan strony?
-- Czy dziedziczenie nie zastępuje komponentów?
-- Czy BasePage nie zna logiki biznesowej?
-- Czy test po użyciu Page Objecta nadal jest czytelny?
-- Czy metody bazowe nie ukrywają sztywnych timeoutów?
-
-## Linki
-
-- [Page Object Models](https://playwright.dev/docs/pom)
-- [Locators](https://playwright.dev/docs/locators)
-- [Assertions](https://playwright.dev/docs/test-assertions)
-
-## 8. BasePage a diagnostyka CI
-
-BasePage może pomagać w diagnostyce, ale nie powinna zastępować mechanizmów Playwright. Dobrym kompromisem jest metoda, która dołącza kontekst tylko wtedy, gdy test tego potrzebuje:
-
-```typescript
-async attachPageContext(testInfo: TestInfo, name: string) {
-  await testInfo.attach(`${name}-url`, {
-    body: this.page.url(),
-    contentType: 'text/plain',
-  });
-  await testInfo.attach(`${name}-screenshot`, {
-    body: await this.page.screenshot({ fullPage: true }),
-    contentType: 'image/png',
-  });
-}
-```
-
-Nie dodawaj automatycznie screenshotu po każdej akcji — raport stanie się ciężki. Używaj diagnostyki tam, gdzie skraca analizę awarii.
-
-## 9. BasePage i nawigacja z parametrami
-
-Nie każda strona ma stały `path`. Często potrzebujesz ID zasobu:
-
-```typescript
-class OrderDetailsPage extends BasePage {
-  pathFor(orderId: string) {
-    return `/orders/${orderId}`;
+  constructor(page: Page) {
+    this.page = page;
   }
 
-  async gotoOrder(orderId: string) {
-    await this.page.goto(this.pathFor(orderId));
-    await this.expectLoaded(orderId);
+  /**
+   * Metoda szablonowa definiująca sztywny algorytm nawigacji.
+   */
+  public async navigate(path: string): Promise<void> {
+    await test.step(`Nawigacja do ścieżki: \${path}\`, async () => {
+      // 1. Wywołaj hook przed nawigacją
+      await this.beforeNavigate(path);
+      
+      // 2. Wykonaj fizyczną nawigację
+      await this.page.goto(path);
+      
+      // 3. Wywołaj hook po nawigacji (np. sprawdzenie błędów 500)
+      await this.afterNavigate(path);
+    });
   }
 
-  async expectLoaded(orderId: string) {
-    await expect(this.page.getByRole('heading', { name: `Zamówienie ${orderId}` })).toBeVisible();
+  // Hooki, które klasy pochodne mogą opcjonalnie nadpisać
+  protected async beforeNavigate(path: string): Promise<void> {
+    // Domyślnie puste - gotowe na ewentualne logowanie
+  }
+
+  protected async afterNavigate(path: string): Promise<void> {
+    // Wspólne dla wszystkich stron sprawdzenie, czy serwer nie zwrócił błędu 500
+    const title = await this.page.title();
+    if (title.includes('500') || title.includes('Internal Server Error')) {
+      throw new Error(`Wykryto krytyczny błąd serwera (500) podczas nawigacji do \${path}\`);
+    }
   }
 }
 ```
 
-To lepsze niż trzymanie dynamicznego ID w stanie klasy.
+---
 
-## 10. Kiedy BasePage usunąć
+## 3. Implementacja klasy pochodnej (`LoginPage`)
 
-Jeśli BasePage ma tylko konstruktor i żadnej realnej wspólnej logiki, nie jest potrzebna. Dziedziczenie bez wartości komplikuje kod. Użyj prostych klas Page Object i wróć do BasePage, gdy pojawi się rzeczywista powtarzalność.
+Klasa pochodna dziedziczy wszystkie metody i właściwości po `BasePage` za pomocą słowa kluczowego `extends` oraz przekazuje stronę do konstruktora bazowego za pomocą `super(page)`:
 
-## 11. BasePage i konfiguracja środowiska
+```typescript
+// src/pages/LoginPage.ts
+import { BasePage } from './BasePage';
 
-BasePage nie powinna czytać sekretów ani decydować, na jakim środowisku działa test. To rola `playwright.config.ts` i fixtures. Jeśli BasePage zaczyna zawierać `process.env.BASE_URL`, tokeny albo dane użytkowników, miesza odpowiedzialności.
+export class LoginPage extends BasePage {
+  private readonly usernameInput = this.page.locator('[data-test="username"]');
 
-## 12. BasePage a oczekiwania na sieć
+  // Nadpisywanie hooka z metody szablonowej
+  protected override async afterNavigate(path: string): Promise<void> {
+    await super.afterNavigate(path);
+    // Dodatkowa, specyficzna dla LoginPage weryfikacja gotowości elementu formularza
+    await this.usernameInput.waitFor({ state: 'visible' });
+  }
 
-Unikaj globalnego `waitForLoadState('networkidle')` w każdej nawigacji. Aplikacje SPA, analytics, polling i WebSocket mogą sprawić, że networkidle będzie niestabilne. Lepsze jest `expectLoaded()` oparte na widocznym stanie strony.
+  async login(user: string, pass: string) {
+    await this.usernameInput.fill(user);
+    // ...
+  }
+}
+```
 
-## 13. Zasada końcowa
+Dzięki temu, test wywołując `await loginPage.navigate('/login')` automatycznie wykona pełen, bezpieczny algorytm sprawdzania błędów 500 oraz weryfikacji gotowości formularza, bez powielania ani jednej linii kodu!
 
-BasePage jest dobra, gdy usuwa powtarzalność cyklu życia strony. Jest zła, gdy staje się miejscem dla każdej metody, której nie wiadomo gdzie włożyć.
+---
 
-BasePage pozostaje narzędziem pomocniczym, nie centrum architektury.
- To ważne.
- Naprawdę.
-
-## 📘 Suplement Inżynieryjny 2026: Wzorzec Obiektu Strony (Page Object Factory)
-*Inspiracja: „Scalable Test Automation with Playwright” (2026), Chapter 3*
-*   **PageObject Factory**: Zastąp bezpośrednią instancjację `new LoginPage(page)` za pomocą fabryki `PageFactory`. Zapobiega to kruchości testów – przy zmianie konstruktora klasy strony poprawiasz wyłącznie kod fabryki.
-*   **Metoda Szablonowa (Template Method)**: Definiuj szkielet procesów (np. nawigacji i sprawdzania błędów 500) w abstrakcyjnej klasie bazowej `BasePage`.
+## 4. Checklista Projektowania BasePage
+- [ ] Czy zadeklarowałeś klasę bazową jako klasę abstrakcyjną (`abstract class`)?
+- [ ] Czy pole `page` posiada modyfikator dostępu `protected readonly`?
+- [ ] Czy zastosowałeś metodę szablonową (`Template Method`) do ujednolicenia cyklu życia nawigacji lub interakcji?
+- [ ] Czy klasy pochodne przekazują instancję strony do konstruktora nadrzędnego za pomocą `super(page)`?
